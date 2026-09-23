@@ -20,9 +20,9 @@
       attribute and the CSS that reads it must be matched against the final
       value, not re-matched afterwards.
 
-      Duplicating the key and the default from `src/theme/theme.ts` is the cost
-      of running before the bundle exists. Nothing checks that the copies agree,
-      so a change to either constant has to be made in both places.
+      The storage key and the default live here only. The React side of the
+      theme system is not landed yet, so when it arrives it has to agree with
+      these two constants — nothing checks that for you.
 
       Note what is absent: any reference to `prefers-color-scheme`. The default
       is light for everyone who has not chosen, including readers whose OS is
