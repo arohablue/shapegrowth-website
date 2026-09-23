@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
-    "verify": "node scripts/verify-injection.mjs && node scripts/verify-transformation.mjs && node scripts/verify-framing.mjs && node scripts/verify-phenotype.mjs && node scripts/verify-narrative.mjs"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

@@ -47,9 +47,23 @@ export function resolveNormalizationMatrix(bounds: Box3, transform: AssetTransfo
   const translateY =
     transform.anchor === 'base' ? -corrected.min.y * scale + transform.yOffset : -centre.y * scale + transform.yOffset
 
+  // ORDER MATTERS, AND IT USED TO BE WRONG.
+  //
+  // Read right to left: stand the asset up, scale it, move its centre to the
+  // origin, and only then yaw it. The yaw has to be OUTSIDE the centring,
+  // because `centre` is measured in the asset's own frame — with the yaw
+  // inboard, the matrix rotated the geometry and then subtracted an
+  // unrotated offset, so any non-zero yaw slid the plant off the origin by
+  // |centre| * scale * 2sin(yaw/2). For this scan that is ~0.85 units at 90
+  // degrees, over half the plant's radius, which would have read as "the
+  // rotation moved the plant" rather than as the bug it was.
+  //
+  // It was invisible until now only because every asset shipped with yaw 0.
+  // Yawing outboard also leaves `translateY` alone, which is what we want:
+  // a rotation about the scene's vertical cannot change a height.
   return new Matrix4()
-    .makeTranslation(-centre.x * scale, translateY, -centre.z * scale)
-    .multiply(new Matrix4().makeRotationY(transform.yaw))
+    .makeRotationY(transform.yaw)
+    .multiply(new Matrix4().makeTranslation(-centre.x * scale, translateY, -centre.z * scale))
     .multiply(new Matrix4().makeScale(scale, scale, scale))
     .multiply(upCorrection)
 }

@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react'
+import { lazy, type ComponentType } from 'react'
 import type { FigureAspect } from '@/evidence/figure'
 // DEMO ONLY. Delete this import and the spread below to return the page to
 // eleven labelled holes. See `demo.ts`.
@@ -180,8 +180,63 @@ export type EvidenceSource =
 export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
   // DEMO ONLY — temporary development visuals, spread in FIRST so that any real
   // entry written below supersedes the demo for that slot. Removing this one
-  // line removes all eleven. See `demo.ts`.
+  // line removes all nine that remain. See `demo.ts`.
   ...DEMO_SOURCES,
 
-  // Real assets go here, under the same step ids.
+  /* ── REAL ────────────────────────────────────────────────────────────────
+   * Both of these come out of the COLMAP sunflower reconstruction staged in
+   * `data/colmap-sunflower/`, and their demo counterparts have been deleted
+   * from `demo.ts` rather than left underneath, because a superseded demo is
+   * dead code that still reads as a live placeholder.
+   *
+   * Only one of them is a built file now. `source-data` is rebuilt by
+   *
+   *   python3 scripts/build-capture-sheet.py
+   *
+   * while `reconstruction-output` has no build step at all: it reads the same
+   * PLY the scroll scene reads, at runtime. `scripts/build-evidence-plate.py`
+   * used to sit beside the capture-sheet builder and produce the still that
+   * filled that slot; it went with the JPEG, because a generator for an asset
+   * nothing loads is the most convincing kind of dead code — it runs.
+   *
+   * `aspect` is stated on both, which is the difference between a real entry
+   * and a demo one: a demo takes whatever hole it is given, a real asset
+   * declares the shape of the file and lets the page reshape to it. Both
+   * happen to be 16:9, which is what the figures already reserved — that is a
+   * coincidence of how they were built, not something to rely on.
+   *
+   * `phenotyping-output` is deliberately still a demo. There is no trait
+   * extraction figure yet, and there will not be one until traits have
+   * actually been measured. */
+
+  'source-data': {
+    type: 'image',
+    src: '/capture/sunflower-views.jpg',
+    alt:
+      'Six photographs of the same potted sunflower against a white background, arranged three across and two down. Each is taken from a different position on a circle around the plant, and reading left to right and top to bottom the viewpoint travels the whole way round: the flower head starts turned away, swings through profile, comes to face the camera in the last frame. The same leaves, stem and pot recur in every frame, so the six read as one specimen recorded from six angles rather than as six plants.',
+    aspect: 'wide',
+  },
+
+  /* The only `component` on the page, and the only slot where a still was the
+   * wrong medium rather than merely a smaller one. A dense cloud photographed
+   * from one angle is indistinguishable from a photograph of the plant — the
+   * thing that makes it read as RECOVERED GEOMETRY is that it turns, and a
+   * still cannot show that at any resolution. It was a two-up JPEG of the cloud
+   * beside the mesh, which has been deleted rather than kept as a fallback: a
+   * superseded asset that still loads is dead weight in the build.
+   *
+   * `lazy`, for the reason the type's own docs give. This reaches three and
+   * @react-three/fiber, and the offerings sit below the entire reconstruction
+   * sequence — imported eagerly it would put a second copy of the renderer in
+   * the critical path of a page many readers never scroll to the bottom of.
+   * The chunk is fetched when the plate mounts; the PLY inside it is already in
+   * `useLoader`'s cache by then, because the scene above it asked for the same
+   * URL. */
+  'reconstruction-output': {
+    type: 'component',
+    component: lazy(() => import('@/evidence/views/DenseCloud')),
+    alt:
+      'An interactive three-dimensional view of the reconstructed sunflower, drawn as a dense cloud of individually coloured points recovered from the photographs. The stem, the leaf blades and the yellow flower head are all resolved, and the plant turns slowly so it is seen from every side. Dragging across it rotates the plant; a pinch moves the viewpoint closer or further away.',
+    aspect: 'wide',
+  },
 }

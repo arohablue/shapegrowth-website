@@ -12,6 +12,7 @@ import { createRepresentationWeights, resolveRepresentation } from '@/experience
 import type { RepresentationWeights } from '@/experience/representation'
 import type { Breakpoint } from '@/experience/types'
 import { useProgressContext } from '@/progress/ProgressContext'
+import { useTheme } from '@/theme/ThemeContext'
 import { AnnotationProjector } from './AnnotationLabels'
 import type { AnnotationLabelHandles } from './AnnotationLabels'
 import { CaptureRig } from './CaptureRig'
@@ -77,8 +78,9 @@ export interface PlantReconstructionSceneProps {
  *
  * It has no knowledge of DOM sections, scroll, or the page's structure. The
  * mapping lives in `experience/representation.ts` as a pure function, so the
- * scene's behaviour can be asserted without a browser. Swap the five narrative
- * sections for eight tomorrow and nothing in here changes.
+ * scene's behaviour can be asserted without a browser. Swap the three narrative
+ * sections for eight tomorrow and nothing in here changes — as the collapse from
+ * five sections to three did, touching not one line of this file.
  *
  * Weights are fanned out through a ref rather than props. Progress changes
  * every frame; passing it as a prop would re-render the tree at 120 Hz. The ref
@@ -99,19 +101,26 @@ export function PlantReconstructionScene({
   labelsRef,
 }: PlantReconstructionSceneProps) {
   const { stateRef, breakpointRef, reducedMotion } = useProgressContext()
+  const { scene: sceneTuning } = useTheme()
   const weightsRef = useRef(createRepresentationWeights())
 
   // Reduced motion kills the one remaining time-driven motion, the coherent
   // drift field. The transformation itself is scroll-driven, so it stays:
   // removing it would leave the user with no reconstruction at all.
+  //
+  // Theme sits between the tier overrides and the explicit prop: it is a
+  // property of the environment like the tier is, but an inspector or a visual
+  // test passing `pointCloud` is stating an intent that must still win.
   const pointCloudConfig = useMemo<PointCloudConfig>(
     () => ({
       ...DEFAULT_POINT_CLOUD_CONFIG,
       ...TIER_POINT_CLOUD_OVERRIDES[tier],
+      depthMode: sceneTuning.depthMode,
+      brightness: sceneTuning.brightness,
       ...pointCloud,
       ...(reducedMotion ? { driftAmount: 0 } : null),
     }),
-    [tier, pointCloud, reducedMotion],
+    [tier, sceneTuning, pointCloud, reducedMotion],
   )
   const meshConfig = useMemo<MeshConfig>(() => ({ ...DEFAULT_MESH_CONFIG, ...mesh }), [mesh])
   const wireframeConfig = useMemo<WireframeConfig>(

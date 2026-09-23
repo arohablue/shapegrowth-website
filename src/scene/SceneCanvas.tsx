@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber'
 import { PerformanceMonitor } from '@react-three/drei'
 import { useCallback, useRef, useState } from 'react'
-import { PALETTE } from '@/theme/palette'
+import { usePalette } from '@/theme/ThemeContext'
 import { CAMERA_FOV } from '@/experience/cameraSpline'
 import { useProgressContext } from '@/progress/ProgressContext'
 import { AnnotationLabels, createAnnotationLabelHandles } from './AnnotationLabels'
@@ -73,6 +73,7 @@ const TIER_SETTINGS = {
 
 export function SceneCanvas() {
   const { reducedMotion } = useProgressContext()
+  const palette = usePalette()
   const [tier] = useState(detectTier)
   const settings = TIER_SETTINGS[tier]
 
@@ -177,7 +178,7 @@ export function SceneCanvas() {
             onDecline={onDecline}
             onFallback={onFallback}
           />
-          <color attach="background" args={[PALETTE.void]} />
+          <color attach="background" args={[palette.void]} />
           {/* No scene fog: the points use an additive ShaderMaterial that does
               not compile the fog chunks. Depth attenuation is in the shader. */}
 

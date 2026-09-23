@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import { Color, NormalBlending, type BufferGeometry, type ShaderMaterial } from 'three'
 import type { RepresentationWeights } from '@/experience/representation'
-import { PALETTE } from '@/theme/palette'
+import { usePalette } from '@/theme/ThemeContext'
 import type { WireframeConfig } from './pointCloudConfig'
 import { wireframeFragmentShader, wireframeVertexShader } from './shaders/wireframe'
 
@@ -29,14 +29,15 @@ interface Props {
  * structure is a fact once inferred.
  */
 export function WireframeLayer({ geometry, config, weightsRef }: Props) {
+  const palette = usePalette()
   const materialRef = useRef<ShaderMaterial>(null)
 
   const initialUniforms = useMemo(
     () => ({
       uBuild: { value: 0 },
       uOpacity: { value: 0 },
-      uColor: { value: new Color(PALETTE.cloud) },
-      uFrontColor: { value: new Color(PALETTE.accent) },
+      uColor: { value: new Color(palette.cloud) },
+      uFrontColor: { value: new Color(palette.accent) },
     }),
     [],
   )

@@ -18,7 +18,7 @@ import {
 } from '@/experience/phenotype'
 import type { RepresentationWeights } from '@/experience/representation'
 import type { Breakpoint } from '@/experience/types'
-import { PALETTE } from '@/theme/palette'
+import { usePalette } from '@/theme/ThemeContext'
 import {
   annotationLineFragmentShader,
   annotationLineVertexShader,
@@ -62,6 +62,7 @@ const SPAN_SHARE = 0.62
  * lines sit in the same space as the specimen.
  */
 export function PhenotypeLayer({ bounds, breakpointRef, dpr, weightsRef }: Props) {
+  const palette = usePalette()
   const groupRef = useRef<Group>(null)
   const lineMatRef = useRef<ShaderMaterial>(null)
   const markerMatRef = useRef<ShaderMaterial>(null)
@@ -212,8 +213,8 @@ export function PhenotypeLayer({ bounds, breakpointRef, dpr, weightsRef }: Props
   const lineUniforms = useMemo(
     () => ({
       uOpacity: { value: 0 },
-      uColor: { value: new Color(PALETTE.cloud) },
-      uHeadColor: { value: new Color(PALETTE.accent) },
+      uColor: { value: new Color(palette.cloud) },
+      uHeadColor: { value: new Color(palette.accent) },
     }),
     [],
   )
@@ -223,8 +224,8 @@ export function PhenotypeLayer({ bounds, breakpointRef, dpr, weightsRef }: Props
       uSize: { value: 7 },
       uPixelRatio: { value: dpr },
       uOpacity: { value: 0 },
-      uColor: { value: new Color(PALETTE.cloud) },
-      uAnchorColor: { value: new Color(PALETTE.accent) },
+      uColor: { value: new Color(palette.cloud) },
+      uAnchorColor: { value: new Color(palette.accent) },
     }),
     [],
   )

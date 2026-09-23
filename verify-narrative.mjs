@@ -9,27 +9,48 @@
 //
 // Bundled from src on every run, for the same reason as the others: a harness
 // pointed at a stale bundle reports PASS for code that no longer exists.
+import { execFileSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import { buildSrc, fromRoot } from './lib/esbuild-src.mjs'
 
-const { BLOCK_RANGES, SCROLLABLE_VH, TRACKS, STAGE_ORDER } = await buildSrc(
-  'src/experience/timeline.ts',
-  'bundle-timeline.mjs',
+const build = (entry, out) =>
+  execFileSync(
+    'npx',
+    ['esbuild', entry, '--bundle', '--format=esm', '--alias:@=./src', `--outfile=${out}`],
+    { stdio: 'inherit' },
+  )
+
+build('src/experience/timeline.ts', 'bundle-timeline.mjs')
+build('src/experience/easing.ts', 'bundle-easing.mjs')
+// The copy moved out of timeline.ts and into content.ts, which is now the one
+// file to edit for any text on screen. Bundled separately because the two
+// answer different questions: timeline.ts owns WHEN a beat happens, content.ts
+// owns WHAT it says. This harness is the thing that checks they agree.
+build('src/content.ts', 'bundle-content.mjs')
+// The evidence registry, so assertion 12 can tell an empty slot from a filled
+// one. It is a type-only import of react plus one object literal, so it bundles
+// without pulling anything in.
+build('src/evidence/registry.ts', 'bundle-registry.mjs')
+// The figure contract: the category vocabulary and the aspect resolver, so
+// assertion 12 can check a figure against the same tables the page renders from
+// rather than against a copy of them written here.
+build('src/evidence/figure.ts', 'bundle-figure.mjs')
+// The temporary development visuals, separately from the registry that spreads
+// them. Assertion 12 has to tell a slot held by a demo schematic from a slot
+// holding a real figure, and after the spread `EVIDENCE_SOURCES` alone cannot:
+// both are just sources. Comparing by object identity against this map is what
+// keeps the apparatus rules pointed at real material only. When `demo.ts` is
+// finally deleted, this build line and the identity check go with it.
+build('src/evidence/demo.ts', 'bundle-demo.mjs')
+
+const stamp = Date.now()
+const { BLOCK_RANGES, SCROLLABLE_VH, TRACKS, STAGE_ORDER } = await import(
+  `./bundle-timeline.mjs?t=${stamp}`
 )
-const { EASINGS, clamp01, invLerp, smoothstep } = await buildSrc(
-  'src/experience/easing.ts',
-  'bundle-easing.mjs',
-)
-const { SECTION_COPY, OFFERINGS } = await buildSrc('src/content.ts', 'bundle-content.mjs')
-// Registry / figure / demo are bundled separately so assertion 12 can tell an
-// empty slot from a filled one, and a demo schematic from a real figure.
-const { EVIDENCE_SOURCES } = await buildSrc('src/evidence/registry.ts', 'bundle-registry.mjs')
-const { CATEGORY_LABEL, resolveAspect } = await buildSrc(
-  'src/evidence/figure.ts',
-  'bundle-figure.mjs',
-)
-const { DEMO_SOURCES } = await buildSrc('src/evidence/demo.ts', 'bundle-demo.mjs')
+const { SECTION_COPY, OFFERINGS } = await import(`./bundle-content.mjs?t=${stamp}`)
+const { EVIDENCE_SOURCES } = await import(`./bundle-registry.mjs?t=${stamp}`)
+const { CATEGORY_LABEL, resolveAspect } = await import(`./bundle-figure.mjs?t=${stamp}`)
+const { DEMO_SOURCES } = await import(`./bundle-demo.mjs?t=${stamp}`)
 
 // Compared by value, NOT by `===`. esbuild bundles each entry independently, so
 // `bundle-registry.mjs` carries its own inlined copy of `demo.ts` and the object
@@ -42,6 +63,8 @@ const sameSource = (a, b) =>
   b !== undefined &&
   a.type === b.type &&
   (a.type === 'component' ? a.component === b.component : a.src === b.src)
+const { EASINGS, clamp01, invLerp, smoothstep } = await import(`./bundle-easing.mjs?t=${stamp}`)
+
 const fail = []
 const note = (m) => fail.push(m)
 
@@ -51,6 +74,7 @@ const note = (m) => fail.push(m)
 // The one literal duplicated here is the falloff constant; if it changes in
 // hooks.ts it must change here, and assertion 0 below is what catches that.
 const FALLOFF_PAD = 45
+const FALLOFF_RAMP = 115
 
 const track = (id, p) => {
   const w = TRACKS[id]
@@ -60,9 +84,11 @@ const track = (id, p) => {
 const RANGE = new Map(BLOCK_RANGES.map((r) => [r.id, r]))
 const signedOffset = (id, p) => {
   const r = RANGE.get(id)
-  const raw =
-    (p * SCROLLABLE_VH + 50 - (r.startVh + r.endVh) / 2) / (r.vh / 2 + FALLOFF_PAD)
-  return raw < -1 ? -1 : raw > 1 ? 1 : raw
+  const reach = r.vh / 2 + FALLOFF_PAD
+  const ramp = reach < FALLOFF_RAMP ? reach : FALLOFF_RAMP
+  const distance = p * SCROLLABLE_VH + 50 - (r.startVh + r.endVh) / 2
+  const magnitude = clamp01((Math.abs(distance) - (reach - ramp)) / ramp)
+  return distance < 0 ? -magnitude : magnitude
 }
 const focus = (id, p) => 1 - clamp01(Math.abs(signedOffset(id, p)))
 
@@ -76,9 +102,12 @@ const specOpacity = (f) => smoothstep(0.46, 0.78, f)
 // alignment table in the header of timeline.ts.
 const OWNS = {
   capture: ['scan', 'pointCloud'],
-  reconstruct: ['vertex'],
-  geometry: ['geometry'],
-  surface: ['mesh', 'finalPlant'],
+  // Four tracks, because the merged beat is a claim about all four. When
+  // GEOMETRY and SURFACE were beats of their own this row held only `vertex`,
+  // and that is exactly why assertion 3 caught the merge: a caption reading
+  // "images become one measurable 3D plant" over a window where only the vertex
+  // snap advances is a caption describing a fifth of what it says.
+  reconstruct: ['vertex', 'geometry', 'mesh', 'finalPlant'],
   phenotype: ['phenotype'],
 }
 
@@ -168,9 +197,10 @@ for (const b of beats) {
 }
 
 // ── 4. One sentence at a time ───────────────────────────────────────────────
-// Blocks are 140vh apart and the focus falloff is 115vh, so at every boundary
-// both neighbours read focus 0.391. That is *why* the lede ramp starts at 0.34:
-// below it, two ledes would be fully opaque at every one of the four boundaries.
+// The focus falloff is 115vh wide at every block (see FALLOFF_RAMP in
+// progress/hooks.ts), so at each boundary both neighbours read a focus in the
+// high 0.3s. That is *why* the lede ramp starts at 0.34: below it, two ledes
+// would be fully opaque at every boundary.
 let worstPair = 0
 let worstPairAt = 0
 let worstPairIds = ''
@@ -274,7 +304,7 @@ if (worstPair > 0.35) {
       }
     }
   }
-  const src = await readFile(fromRoot('src/ui/StageSection.tsx'), 'utf8')
+  const src = await readFile('src/ui/StageSection.tsx', 'utf8')
   const band = src.match(/className="([^"]*\bbottom-0\b[^"]*)"/)
   console.log(
     `\ncaption band: ${band ? `"${band[1]}"` : 'NOT FOUND'}` +
@@ -288,13 +318,15 @@ if (worstPair > 0.35) {
 }
 
 // ── 8. The copy is the brief, verbatim ──────────────────────────────────────
-// Five sentences are small enough to assert exactly, and "someone reworded the
+// Three sentences are small enough to assert exactly, and "someone reworded the
 // narrative" is otherwise invisible to every other check in the repo.
 const BRIEF = {
   capture: 'We observe the plant from multiple viewpoints.',
-  reconstruct: 'Image streams become spatial information.',
-  geometry: 'Points become structure.',
-  surface: 'Structure becomes a measurable 3D representation.',
+  // Was 'Image streams become spatial information.', with 'Points become
+  // structure.' and 'Structure becomes a measurable 3D representation.' as beats
+  // of their own after it. One sentence now carries all three, and it carries
+  // the outcome rather than the mechanism.
+  reconstruct: 'Image streams become one measurable 3D plant.',
   phenotype: 'The reconstructed plant becomes quantitative data.',
 }
 for (const id of STAGE_ORDER) {
@@ -313,7 +345,15 @@ for (const id of STAGE_ORDER) {
     if (c.index !== String(i + 1).padStart(2, '0')) {
       note(`${id}: plate number is "${c.index}", expected "${String(i + 1).padStart(2, '0')}"`)
     }
-    if (/\s/.test(c.title)) note(`${id}: title "${c.title}" is more than one word`)
+    // Was "one word". `3D Reconstruction` is two, deliberately: the three beats
+    // are the product's own three steps and naming the middle one `Reconstruct`
+    // to satisfy a word count would cost the reader the thing being sold. What
+    // the rule was really protecting is the progress rail, which sets these
+    // upright in a fixed right-hand gutter — so the budget is now characters,
+    // measured against that gutter, and the word cap only blocks a title
+    // becoming a phrase.
+    if (c.title.trim().split(/\s+/).length > 2) note(`${id}: title "${c.title}" is a phrase, not a name`)
+    if (c.title.length > 18) note(`${id}: title is ${c.title.length} chars, over the 18-char rail budget`)
     // One sentence, one full stop, at the end. No semicolons, no em-dash
     // subclauses — those are how a caption turns into a paragraph.
     if ((c.lede.match(/[.!?]/g) ?? []).length !== 1 || !c.lede.endsWith('.')) {
@@ -327,7 +367,7 @@ for (const id of STAGE_ORDER) {
     if (/[.!?](\s|$)/.test(c.spec)) note(`${id}: spec is punctuated as a sentence — "${c.spec}"`)
     if (c.spec.length > 34) note(`${id}: spec is ${c.spec.length} chars, over the 34 budget`)
   }
-  console.log(`\ntotal words across all five sentences: ${words}`)
+  console.log(`\ntotal words across all ${STAGE_ORDER.length} sentences: ${words}`)
   if (words > 40) note(`${words} words of narrative — over the 40-word budget`)
 }
 
@@ -600,7 +640,7 @@ const BANNED = [
     // very close to invisible. Resolve it against public/ the way Vite will.
     if (!src.src.startsWith('/')) {
       note(`DEMO_SOURCES["${id}"]: src "${src.src}" is not a root-relative path`)
-    } else if (!existsSync(fromRoot(`public${src.src}`))) {
+    } else if (!existsSync(`public${src.src}`)) {
       note(`DEMO_SOURCES["${id}"]: no file at public${src.src}`)
     }
   }

@@ -148,6 +148,10 @@ export interface CaptureConfig {
   frustumOpacity: number
   /** How far the frustum's rays reach toward the specimen, as a fraction of the radius. */
   frustumReach: number
+  /** Overall length of the camera body riding the orbit, in world units. */
+  bodyLength: number
+  /** Alpha of the camera body's edges. */
+  bodyOpacity: number
   /** Pixel size of a marked viewpoint. */
   stationSize: number
   /** How many sparse tie points are sampled out of the scan. */
@@ -184,6 +188,22 @@ export const DEFAULT_CAPTURE_CONFIG: CaptureConfig = {
   // Stops well short of the specimen. Rays that reach the plant draw a hard
   // wireframe box over it and immediately read as a game HUD targeting bracket.
   frustumReach: 0.62,
+  // The camera itself: housing, lens barrel and a yoke, drawn as edges at the
+  // apex of the frustum so the field of view comes out of a lens rather than out
+  // of nothing. Before it, the capture beat showed a trajectory, some marks and
+  // a cone, and a reader had to infer the instrument from its output.
+  //
+  // 0.42 against a 3.2-tall specimen, so the camera is about an eighth of the
+  // plant. That is roughly the true ratio for a machine-vision body photographing
+  // a pot plant at two metres, and it is also the practical range: much smaller
+  // and the barrel is a few pixels of noise on the orbit line, much larger and an
+  // accessory becomes the second subject of the frame.
+  bodyLength: 0.42,
+  // Above `frustumOpacity` (0.42) on purpose, and it is the only place in the rig
+  // where anything is drawn more firmly than the orbit path. The frustum is a
+  // volume of space and should be faint; the camera is an object and should not.
+  // Equal weights made the body read as a continuation of the cone.
+  bodyOpacity: 0.62,
   stationSize: 34,
   // Sparse on purpose, and this number is the story. Photogrammetry produces a
   // few hundred tie points before it produces millions of dense samples, so the

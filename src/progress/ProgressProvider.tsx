@@ -46,10 +46,10 @@ const readReducedMotion = (): boolean =>
  * own element, so experienceProgress is normalised over whatever that element
  * contains. Putting new sections inside it does not append to the narrative, it
  * *rescales* it: add 500vh and SCROLLABLE_VH goes 810 → 1310, so the PHENOTYPE
- * block slides from p 0.815→1.000 down to p 0.580→0.695 while `TRACKS.phenotype`
+ * block slides from p 0.852→1.000 down to p 0.611→0.695 while `TRACKS.phenotype`
  * stays authored at 0.85→1.00 — the measurement pass would then draw itself at
  * 1113vh, several screens into content that has nothing to do with it, and the
- * five beats would each be captioned over the wrong transformation.
+ * three beats would each be captioned over the wrong transformation.
  *
  * So the rule that falls out of this, and it is the important one: new content
  * goes in `trailing` and NEVER into `BLOCKS`. `BLOCKS` is the reconstruction's

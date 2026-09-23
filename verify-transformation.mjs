@@ -1,11 +1,15 @@
 // Verification of the pure transformation layer. Bundled from src by esbuild —
 // rebuilt on every run, because a harness pointed at a stale bundle reports
 // PASS for code that no longer exists.
-import { buildSrc } from './lib/esbuild-src.mjs'
+import { execFileSync } from 'node:child_process'
 
-const { createRepresentationWeights, resolveRepresentation } = await buildSrc(
-  'src/experience/representation.ts',
-  'bundle-representation.mjs',
+execFileSync(
+  'npx',
+  ['esbuild', 'src/experience/representation.ts', '--bundle', '--format=esm', '--alias:@=./src', '--outfile=bundle-representation.mjs'],
+  { stdio: 'inherit' },
+)
+const { createRepresentationWeights, resolveRepresentation } = await import(
+  `./bundle-representation.mjs?t=${Date.now()}`
 )
 
 const w = createRepresentationWeights()

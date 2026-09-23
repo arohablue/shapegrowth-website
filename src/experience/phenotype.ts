@@ -92,9 +92,9 @@ export type SpanAttachment = 'surface' | 'clearance'
  * The label, value, unit and precision are NOT here — they live in
  * `content.ts` with the rest of the screen copy, joined to this table by `id`.
  * The split is along the line of who can safely edit what: an anchor like
- * `{ x: -1.08, y: 0.0, z: 0.1 }` is only editable by someone reading the
- * comment above it about clearing the widest broadside leaf at x = -0.996,
- * whereas a label and a number are copy. `TRAIT_READOUT` being a
+ * `{ x: -1.15, y: 0.0, z: 0.1 }` is only editable by someone reading the
+ * comment above it about clearing the widest leaf at x = -1.272, whereas a
+ * label and a number are copy. `TRAIT_READOUT` being a
  * `Record<TraitId, …>` means the compiler rejects a trait that appears in one
  * file and not the other.
  */
@@ -138,71 +138,179 @@ interface TraitGeometry {
 /**
  * The default set.
  *
- * Anchors are authored against the specimen's actual anatomy — phyllotactic
- * leaves off a leaning stem — and then verified against the loaded geometry
- * (see `verify-phenotype.mjs`, which asserts every anchor is within a
- * tolerance of a real sample rather than floating in space).
+ * Every point below was READ OFF THE SCAN, not eyeballed against a render.
+ * `public/models/sunflower-cloud.ply` is loaded, put through the same
+ * `resolveNormalizationMatrix` the app applies, and then probed: the stem axis
+ * is found per height band by shrinking a disc onto the densest core, blades
+ * are isolated as connected components at a 0.016 hop radius, and every
+ * endpoint quoted here is either a real sample or a point whose distance to the
+ * nearest sample was measured. `verify-phenotype.mjs` re-derives those
+ * distances from the same file on every run, so a re-scan that moves the plant
+ * fails the harness rather than silently detaching the labels.
  *
- * Sides alternate and heights are kept apart on purpose. That is not
- * decoration: it is the entire collision-avoidance strategy. A general 2D label
- * solver is the obvious alternative and it is the wrong tool here — the set is
- * fixed, small, and authored, so laying it out by hand the way a botanical
- * plate is laid out costs nothing at runtime and cannot oscillate between
- * frames the way an iterative solver can when the camera moves.
+ * WHAT THE REAL SPECIMEN IS, AND WHY THAT MATTERS HERE
+ * ───────────────────────────────────────────────────
+ * A bushy potted sunflower, ~1.27 plan half-extent against a 3.2 height, with
+ * leaves reaching full width from y = -1.25 upward and a near-vertical stem at
+ * roughly (0.00, +0.09) that drifts to (-0.45, +0.36) in the top fifth. It is
+ * not the sparse, well-spaced specimen these seven were first authored against,
+ * and the difference is the whole reason they had to be redone: on a plant this
+ * dense, "just outside the silhouette" is a much longer push than it looks, and
+ * anchors that used to sit in clear air now sit inside the canopy.
+ *
+ * So the anchors are not offsets from their spans. Each one is placed by
+ * marching outward along the annotation's own direction until its label box
+ * clears the plant ON SCREEN, then adding a little. That is why the anchor
+ * coordinates look unrelated to the endpoints they belong to.
+ *
+ * "On screen" is the part that matters and it is why these were all re-derived
+ * when the asset gained its 86-degree yaw. A 3D clearance is rotation-
+ * invariant, so rotating the old anchors with the plant kept every one of them
+ * the same distance from the nearest sample — and broke three of them anyway,
+ * because the yaw swung them from beside the specimen to in front of or behind
+ * it, where they project straight onto the canopy. `leaf-area`'s rotated anchor
+ * sat at z = -1.05, a full plan extent behind the plant and dead centre on it
+ * in the render. The clearance that has to hold is a 2D one.
+ *
+ * The derivation is therefore a projection: the cloud is rasterised to a
+ * coverage mask through the real camera at six points across the phenotype
+ * window (p = 0.85 … 1.00, 1440x900, FOV 38 — the tightest framing the spline
+ * reaches), and the anchor marches outboard until the label box it would carry
+ * lands on under 0.5% covered pixels at EVERY one of the six. Six and not one
+ * because the camera is still moving while the labels are up; an anchor placed
+ * against a single frame drifts onto a leaf halfway through the beat.
+ *
+ * Two floors are imposed on top of that. The march is at least 0.22 of the plan
+ * extent, or the leader line comes out zero-length and the label sits on its
+ * own anchor dot; and the anchor stays at least 0.12 from the nearest sample in
+ * 3D, or it reads as touching the plant even when the projection says it is
+ * clear. Both were added after a first pass returned three traits with a 0.00
+ * march that passed the ink test honestly — the offset label box was indeed
+ * over clean paper, while the dot it hung from was buried in a leaf.
+ *
+ * Heights stay laddered so the seven separate vertically on screen, and the
+ * pairs that land closest take opposite sides. That is not decoration: it is
+ * the entire collision-avoidance strategy. A general 2D label solver is the
+ * obvious alternative and it is the wrong tool here — the set is fixed, small,
+ * and authored, so laying it out by hand the way a botanical plate is laid out
+ * costs nothing at runtime and cannot oscillate between frames the way an
+ * iterative solver can when the camera moves.
+ *
+ * None of this makes the NUMBERS real. `TRAIT_READOUT` is still invented and
+ * still carries `PHENOTYPE_DISCLAIMER`. What is now real is only where each
+ * caliper is shown being placed.
  */
 const TRAIT_GEOMETRY: readonly TraitGeometry[] = [
   {
     id: 'plant-height',
     // The one clearance span: a datum line beside the plant, base to apex, the
-    // way total height is dimensioned on a drawing. x = -1.08 is chosen, not
-    // eyeballed — the widest broadside leaf reaches x = -0.996, so this clears
-    // the silhouette by ~0.08 of the plan extent and no closer.
-    startPoint: { x: -1.08, y: 0.0, z: 0.1 },
-    endPoint: { x: -1.08, y: 1.0, z: 0.1 },
-    // Near the apex and opening to the RIGHT, into the gap between the datum
-    // line and the stem tip. Hanging it at mid-height on the left put the label
-    // off the left edge of a 375px viewport — 1 world unit is ~119px there and
-    // "PLANT HEIGHT" is ~73px wide, so there is simply no room outboard of a
-    // datum at -1.08. Inboard there is, and it is empty.
-    anchor: { x: -0.8, y: 0.96, z: 0.1 },
+    // way total height is dimensioned on a drawing.
+    //
+    // This is the trait the yaw hurt most, and the only one that could not be
+    // fixed by moving its anchor. Rotating the old datum took it to z = +1.11,
+    // which is not beside the plant at all — it is a full plan extent in FRONT
+    // of it, so it projects as a vertical line drawn straight down the middle
+    // of the specimen. A height datum crossing the thing it measures is not a
+    // datum, so the line was re-placed rather than rotated: swept inboard from
+    // x = -1.60 until the first x whose whole length clears the silhouette by
+    // 6px in all six frames, sampled at 41 stations up the line and not just at
+    // the two ends, because a datum that grazes the canopy in the middle reads
+    // as touching it even though both endpoints are clear. That is x = -1.00,
+    // and it holds 0.275 of real 3D clearance at its tightest point.
+    //
+    // z = 0 rather than the old 0.1: the offset existed to dodge a leaf that
+    // the rotation has moved, and the plane of the page is where a drawing
+    // would put it.
+    startPoint: { x: -1.0, y: 0.0, z: 0.0 },
+    endPoint: { x: -1.0, y: 1.0, z: 0.0 },
+    // At the FOOT of the datum, not the apex, and opening OUTWARD across it.
+    //
+    // This is the one label in the set that sits on a line rather than beside
+    // everything. It is not a compromise made to dodge a collision — the sweep
+    // was run for both sides at every 0.02 of x and 0.01 of y against all five
+    // viewports the harness checks, and `side: 'right'` has NO solution at all:
+    // the pocket beside the pot is wide enough at 1440 and is not at 375, where
+    // the label is the same 89px but the plant is not the same size. Opening
+    // left has 602, and every one of them crosses the datum, necessarily —
+    // anything inboard of the line with its label to the left must pass over
+    // it. So the choice is between crossing a hairline and crossing a leaf.
+    //
+    // A drawing crosses the hairline. Dimension text sits ON the dimension line
+    // by convention, and here that convention happens to also be the only thing
+    // that fits. x = -0.68 is the innermost of the 602 — further out and the
+    // label runs off the left edge at 375.
+    anchor: { x: -0.68, y: 0.02, z: 0.0 },
     attachment: 'clearance',
-    side: 'right',
+    side: 'left',
     at: 0.0,
     priority: 0,
   },
   {
     id: 'leaf-length',
-    // Leaf 8: attach point on the stem to blade tip, one of the three leaves
-    // presenting broadside to the camera at this point on the spline.
-    startPoint: { x: -0.035, y: 0.686, z: -0.117 },
-    endPoint: { x: 0.66, y: 0.701, z: -0.371 },
-    anchor: { x: 0.78, y: 0.7, z: -0.371 },
+    // The upper blade that the yaw has swung toward the viewer: from just off
+    // its node on the stem out to the tip, 0.85 of a world unit. Chosen over
+    // the longer lower leaves because it is the straightest — the endpoints
+    // here sit 0.027 and 0.010 from real samples, where a node-to-tip line on
+    // the drooping lower blades departs by 0.16. A "length" that visibly floats
+    // off the organ is worse than a shorter one.
+    //
+    // Same two samples as before the yaw, carried through Ry(1.5010) and
+    // rescaled by 0.96308 — the plan half-extent grows from 1.25406 to 1.30214
+    // when the plant turns, and these are FRACTIONS of it, so rotating them
+    // without the rescale would have walked every endpoint 3.7% outboard.
+    startPoint: { x: 0.078, y: 0.869, z: 0.224 },
+    endPoint: { x: -0.249, y: 0.868, z: 0.78 },
+    // Straight on past the tip, the minimum 0.22 march. The canopy has already
+    // ended here so there is nothing to clear — 0.00% ink at all six frames —
+    // and this is the outermost label on the set, so at 375px the frame margin
+    // and not the leaf is what stops it going further.
+    anchor: { x: -0.469, y: 0.868, z: 0.78 },
     attachment: 'surface',
-    side: 'right',
+    side: 'left',
     at: 0.16,
     priority: 1,
   },
   {
     id: 'leaf-width',
-    // Leaf 4's widest chord — across the blade, not along it. Both ends at the
-    // same height because the chord is perpendicular to the midrib.
-    startPoint: { x: -0.477, y: 0.413, z: -0.19 },
-    endPoint: { x: -0.422, y: 0.413, z: 0.119 },
-    // Below the blade rather than beside its midpoint, so the label does not
-    // sit on the leaf it is describing.
-    anchor: { x: -0.62, y: 0.3, z: -0.03 },
+    // A chord across the mid-canopy blade, perpendicular in plan to its midrib
+    // — the widest of four stations sampled along it. The two y values differ
+    // by 0.02 because the blade droops: a level chord would be the authored
+    // idea of a leaf rather than this leaf. Endpoints land 0.020 and 0.013 from
+    // real samples after the rotation.
+    startPoint: { x: 0.68, y: 0.342, z: 0.228 },
+    endPoint: { x: 0.412, y: 0.324, z: 0.528 },
+    // Outboard of the blade along the chord's own direction rather than below
+    // it — this specimen has more canopy underneath than beside.
+    anchor: { x: 0.9, y: 0.342, z: 0.228 },
     attachment: 'surface',
-    side: 'left',
+    // LEFT before the yaw, right after it. This blade used to sit on -x and the
+    // rotation carried it across to +x; the side has to follow the organ or the
+    // leader line reaches back across the whole plant to find its own anchor.
+    // It is the only one of the seven whose side changed.
+    side: 'right',
     at: 0.28,
     priority: 2,
   },
   {
     id: 'leaf-area',
-    // A trait of a surface, not of a span. Both ends sit on leaf 5's blade so
-    // the marker pair reads as sampling a region rather than measuring a length.
-    startPoint: { x: 0.14, y: 0.487, z: 0.212 },
-    endPoint: { x: 0.301, y: 0.487, z: -0.041 },
-    anchor: { x: 0.52, y: 0.6, z: 0.08 },
+    // A trait of a surface, not of a span. Two stations partway along the long
+    // +x blade, so the marker pair reads as sampling a region rather than
+    // measuring a length — which is why it stops partway along a blade rather
+    // than reaching the tip.
+    //
+    // The start is the loosest endpoint in the set at 0.113 from the nearest
+    // sample, well inside the 0.22 tolerance but the one to watch: this blade
+    // is thin where the upper station falls, so the rotated point passes
+    // through a gap between samples rather than onto one.
+    startPoint: { x: 0.151, y: 0.716, z: -0.29 },
+    endPoint: { x: 0.216, y: 0.714, z: -0.616 },
+    // The trait whose old anchor the yaw broke outright — rotated, it landed
+    // at z = -1.05, behind the plant and projecting onto the middle of the
+    // canopy. Re-marched outboard 0.51 to the first position clear in all six
+    // frames, which still leaves 0.47% ink: the highest of the seven, and the
+    // reason the ceiling is 0.5% rather than zero. There is no fully empty
+    // pocket at this height on a plant this bushy.
+    anchor: { x: 0.726, y: 0.714, z: -0.616 },
     attachment: 'surface',
     side: 'right',
     at: 0.42,
@@ -210,25 +318,37 @@ const TRAIT_GEOMETRY: readonly TraitGeometry[] = [
   },
   {
     id: 'leaf-angle',
-    // From leaf 9's node outward along the first part of the midrib: the angle
-    // the blade leaves the stem at. Reads as an angle because it starts on the
-    // axis and departs from it.
-    startPoint: { x: -0.05, y: 0.762, z: -0.117 },
-    endPoint: { x: -0.3, y: 0.812, z: -0.22 },
-    anchor: { x: -0.54, y: 0.88, z: -0.22 },
+    // From a node low on the stem outward along the first stretch of a midrib:
+    // the angle the blade leaves the stem at. Reads as an angle because it
+    // starts on the axis and departs from it, so it is kept short — 0.33 — and
+    // stops before the blade droops away from the straight line. This is the
+    // lower leaf rather than one of the mid-canopy ones: its first third is
+    // the straightest stretch on the plant, never more than 0.096 off material,
+    // where the mid-canopy blades bend away by 0.24 within the same distance.
+    startPoint: { x: 0.045, y: 0.202, z: -0.058 },
+    endPoint: { x: 0.011, y: 0.198, z: -0.305 },
+    // The longest march in the set, 0.70, and it has to be: the span sits in
+    // the middle of the canopy and the first clear position is past the
+    // blade's own tip. Held at the start point's height and depth rather than
+    // continuing along the span, because extending the span's own direction
+    // drives it further behind the plant, not out of it.
+    anchor: { x: 0.745, y: 0.202, z: -0.058 },
     attachment: 'surface',
-    side: 'left',
+    side: 'right',
     at: 0.55,
     priority: 5,
   },
   {
     id: 'internode-distance',
-    // Leaf 6's node to leaf 7's, so it runs vertically along the axis rather
-    // than out into the canopy. Both ends are on the stem surface, which leans
-    // — hence the x and z drift over 0.074 of the height.
-    startPoint: { x: -0.074, y: 0.538, z: -0.124 },
-    endPoint: { x: -0.067, y: 0.612, z: -0.096 },
-    anchor: { x: -0.42, y: 0.575, z: -0.11 },
+    // Two nodes apart on the stem surface, so it runs vertically along the axis
+    // rather than out into the canopy. The axis drifts slightly over this
+    // stretch, which is why x and z are not equal at the two ends.
+    startPoint: { x: 0.036, y: 0.506, z: 0.024 },
+    endPoint: { x: 0.059, y: 0.594, z: 0.039 },
+    // Straight out to -x at the foot of the span, 0.52. This one crosses the
+    // canopy to reach clear air, so it is the second-highest ink at 0.21%; the
+    // alternative was pushing it past the frame edge at 375px.
+    anchor: { x: -0.484, y: 0.506, z: 0.024 },
     attachment: 'surface',
     side: 'left',
     at: 0.68,
@@ -240,14 +360,21 @@ const TRAIT_GEOMETRY: readonly TraitGeometry[] = [
   },
   {
     id: 'stem-diameter',
-    // Across the stem low on the axis, where a caliper would go. This is the
-    // shortest span in the set by an order of magnitude — 0.06 of the plan
-    // extent — which is why the leader line, not the span, carries the label.
-    startPoint: { x: -0.127, y: 0.22, z: -0.086 },
-    endPoint: { x: -0.065, y: 0.22, z: -0.086 },
-    anchor: { x: 0.2, y: 0.2, z: -0.086 },
+    // Across the trunk just above the pot, below everything, where a caliper
+    // would actually reach. The half-width is the 75th percentile of the radial
+    // distance of every sample within 0.20 of the axis — the stem's own surface
+    // rather than a guess. This is the shortest span in the set by a wide
+    // margin, 0.14 of the plan extent, which is why the leader line and not the
+    // span carries the label.
+    startPoint: { x: -0.004, y: 0.125, z: 0.102 },
+    endPoint: { x: 0.005, y: 0.125, z: -0.032 },
+    // Left, and a long way out — 0.74, the second-longest march. Right is
+    // taken by leaf-angle at a similar height, and the extra distance is what
+    // keeps the label off the POT rather than merely off the plant; the pot is
+    // in the coverage mask too, which is why this one had to travel so far.
+    anchor: { x: -0.744, y: 0.125, z: 0.102 },
     attachment: 'surface',
-    side: 'right',
+    side: 'left',
     at: 0.8,
     priority: 6,
   },

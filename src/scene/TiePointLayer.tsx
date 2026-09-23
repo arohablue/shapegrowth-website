@@ -9,7 +9,7 @@ import {
 } from 'three'
 import { traverseAtPosition } from '@/experience/captureRig'
 import type { RepresentationWeights } from '@/experience/representation'
-import { PALETTE } from '@/theme/palette'
+import { usePalette } from '@/theme/ThemeContext'
 import type { CaptureConfig } from './pointCloudConfig'
 import { capturePointFragmentShader, capturePointVertexShader } from './shaders/capture'
 
@@ -50,6 +50,7 @@ interface Props {
  *     has been, which is the entire claim the capture sequence is making.
  */
 export function TiePointLayer({ source, config, dpr, weightsRef }: Props) {
+  const palette = usePalette()
   const materialRef = useRef<ShaderMaterial>(null)
 
   const geometry = useMemo(() => {
@@ -101,8 +102,8 @@ export function TiePointLayer({ source, config, dpr, weightsRef }: Props) {
       // thing rather than two sizes of the same thing.
       uFlashWidth: { value: 0.014 },
       uOpacity: { value: 0 },
-      uColor: { value: new Color(PALETTE.cloud) },
-      uFlashColor: { value: new Color(PALETTE.accent) },
+      uColor: { value: new Color(palette.cloud) },
+      uFlashColor: { value: new Color(palette.accent) },
     }),
     [],
   )

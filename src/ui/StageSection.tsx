@@ -12,15 +12,19 @@ const RANGE = new Map(BLOCK_RANGES.map((r) => [r.id, r]))
  * WHY THE COPY SITS IN A BOTTOM BAND AND NOT A SIDE COLUMN
  * ────────────────────────────────────────────────────────────────────────────
  * This was measured, not composed. `probe-copy-space.mjs` projected the real
- * normalised scan through the real camera spline at the progress each of the
- * five headings peaks, on both breakpoints, and printed the screen occupancy.
- * The result is the same at every beat:
+ * normalised scan through the real camera spline at the progress each heading
+ * peaks, on both breakpoints, and printed the screen occupancy. The result was
+ * the same at every beat:
  *
  *   desktop 1440x900   specimen occupies columns 4-8, rows 2-6 of 9
  *   mobile  375x812    specimen occupies the middle third only
  *
- * Rows 0-1 and 7-8 are EMPTY — zero projected samples — at all five beats on
- * both breakpoints. The previous layout put the copy in `col-span-5` at the
+ * Rows 0-1 and 7-8 are EMPTY — zero projected samples — at every beat on both
+ * breakpoints. That sweep was run against the five headings this page used to
+ * have, whose peaks spanned p 0.148 → 0.846; the three it has now peak at 0.238,
+ * 0.602 and 0.926. The first two fall inside the measured span. The third does
+ * not, and the camera is still travelling there, so the clear band at the very
+ * end of the page is confirmed by screenshot rather than by that sweep. The previous layout put the copy in `col-span-5` at the
  * viewport's vertical centre, which reads as the safe choice and is not: 12-15%
  * of the specimen's projected samples fall inside that column, so the type was
  * laid directly over the plant's left flank for the whole page. The horizontal

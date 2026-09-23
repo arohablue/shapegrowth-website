@@ -99,7 +99,7 @@ export function Offerings() {
       <div className="offerings__inner">
         <header className="offerings__masthead">
           <span className="eyebrow">{OFFERINGS_COPY.eyebrow}</span>
-          {/* h2, matching the five plate headings above it rather than opening a
+          {/* h2, matching the stage headings above it rather than opening a
               new h1 — this is a continuation of one document. */}
           <h2 className="offerings__title">{OFFERINGS_COPY.title}</h2>
           <p className="offerings__standfirst">{OFFERINGS_COPY.standfirst}</p>

@@ -26,7 +26,11 @@ export function Outro() {
   })
 
   return (
-    <section style={{ height: `${OUTRO.vh}vh` }} aria-label={OUTRO_COPY.closing}>
+    // Named by the colophon rather than by a closing line, because there is no
+    // longer a closing line — see `OUTRO_COPY`. The section still needs an
+    // accessible name to be announced as a region, and "what was examined" is
+    // the most useful thing to call this frame in a landmark list.
+    <section style={{ height: `${OUTRO.vh}vh` }} aria-label={OUTRO_COPY.colophonLeft}>
       {/* Fixed, for the reason given in StageSection.tsx — and here it is not a
           refinement but the difference between a legible ending and none. As a
           bottom-aligned sticky child of the last block, this content was only
@@ -39,7 +43,6 @@ export function Outro() {
             labels. The wording, and why there is no call to action here, is in
             `content.ts`. */}
         <div ref={ref} className="reveal">
-          <p className="section-lede mb-10 max-w-[16ch]">{OUTRO_COPY.closing}</p>
           <div className="flex items-end justify-between border-t border-ink/12 pt-6">
             <span className="meta">{OUTRO_COPY.colophonLeft}</span>
             <span className="meta">{OUTRO_COPY.colophonRight}</span>

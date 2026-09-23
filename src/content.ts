@@ -9,7 +9,7 @@ import type { ScientificFigure } from './evidence/figure'
  * anything except hold strings — no logic, no imports beyond one type — so it
  * cannot break the scene, the scroll or the layout by being edited.
  *
- * Before this file, the copy was spread across six modules: the five beats in
+ * Before this file, the copy was spread across six modules: the beats in
  * `experience/timeline.ts`, the headline and standfirst in `ui/Hero.tsx`, the
  * closing line in `ui/Outro.tsx`, the loading line in
  * `ui/AssetLoadingIndicator.tsx`, and the seven trait readouts inline in
@@ -30,13 +30,13 @@ import type { ScientificFigure } from './evidence/figure'
  * WHAT WILL PUSH BACK IF YOU CHANGE IT
  * ────────────────────────────────────
  * Some of this text is load-bearing on layout, and rather than leave that as a
- * trap the constraints are enforced by `scripts/verify-narrative.mjs` and
- * `scripts/verify-phenotype.mjs`. Run `npm run verify` after a copy edit.
+ * trap the constraints are enforced by `verify-narrative.mjs` and
+ * `verify-phenotype.mjs`. Run `node verify-narrative.mjs` after a copy edit.
  * It will tell you, by name, if:
  *
  *   • a lede runs past 60 characters or a spec past 34 (they are set in a fixed
  *     band and will wrap onto the specimen);
- *   • the five ledes together run past 40 words (currently 27);
+ *   • the ledes together run past 40 words (currently 20, across three);
  *   • a plate index stops matching its position;
  *   • marketing vocabulary appears — `discover`, `unlock`, `seamless`,
  *     `learn more`, `contact us` and a dozen others are rejected outright,
@@ -45,7 +45,7 @@ import type { ScientificFigure } from './evidence/figure'
  * `verify-phenotype.mjs` separately checks that all seven trait labels still fit
  * on a 375px viewport. `INTERNODE DIST.` is abbreviated for exactly that reason.
  *
- * Assertion 8 of the narrative harness pins the five ledes to the brief
+ * Assertion 8 of the narrative harness pins the ledes to the brief
  * *verbatim*. That is intentional — it makes an accidental reword visible — so
  * a deliberate reword means updating the `BRIEF` table in that harness too. It
  * will print both strings and tell you which is which.
@@ -128,21 +128,21 @@ export const HERO_ARIA = `${HERO_COPY.headline.lead} ${HERO_COPY.headline.middle
  *
  * So each section carries exactly three pieces of type:
  *
- *   index + title  a plate number and a one-word beat, set as a label
+ *   index + title  a plate number and the beat's name, set as a label
  *   lede           the single sentence that names the transformation
  *   spec           a specification fragment, not a sentence
  *
  * `spec` is what keeps the register scientific without adding prose. It is set
  * in the same tracked mono as the measurement annotations on purpose — the
  * editorial layer and the measurement layer are then visibly the same document,
- * which is the cheapest way to make five sections read as one narrative.
+ * which is the cheapest way to make three sections read as one narrative.
  *
  * There is deliberately no call to action anywhere in this table.
  */
 export interface SectionCopy {
   /** Plate number. Tabular, accent, always two digits, must match position. */
   readonly index: string
-  /** One word, uppercased by CSS. Also what the progress rail lists. */
+  /** The beat's name, uppercased by CSS. Also what the progress rail lists. */
   readonly title: string
   /** The sentence. The only place a full stop appears. ≤60 chars. */
   readonly lede: string
@@ -154,35 +154,64 @@ export interface SectionCopy {
  * Keyed by `StageId`. The keys are structural — they are wired to camera
  * keyframes and shader tracks in `experience/timeline.ts` — so rename a
  * `title`, never a key.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * EVERY NUMBER IN A `spec` IS READ OFF THE SCAN
+ * ────────────────────────────────────────────────────────────────────────────
+ * These three lines sit directly beneath a real reconstruction, which makes
+ * them read as its provenance. They therefore have to BE its provenance.
+ *
+ * All three were wrong when this offering still rendered a synthetic fixture
+ * and nobody re-checked them against the drop: "24 viewpoints · structured
+ * light" (the capture is 66 registered RGB frames, and there is no structured
+ * light anywhere in this pipeline), and "2.4M samples · watertight" (the dense
+ * cloud is 560,012 points, and the surface has 1,646 boundary edges across 35
+ * components — `is_watertight()` returns False). Plausible-sounding hardware
+ * specs under a real scan are the exact failure this project exists to avoid.
+ *
+ * Sources, all re-checkable:
+ *
+ *   66, 102   `data/colmap-sunflower/run_config.json` — `registered_images`
+ *             and `total_images`. COLMAP dropped 36 frames it could not place.
+ *   RGB       the same file's `image_source`.
+ *   560k      `fused.ply` vertex count, printed by `scripts/rebuild-mesh.py`.
+ *             The DENSE cloud as COLMAP produced it — not the 468k that
+ *             survive matte-bleed removal, and not the 234k the browser draws
+ *             after decimation. This line describes the reconstruction, and
+ *             those two are delivery decisions made downstream of it.
+ *   36k       `meshed-rebuilt.ply` triangle count, the decimation target in
+ *             `rebuild-mesh.py`.
+ *   7         `TRAIT_GEOMETRY.length` in `experience/phenotype.ts`.
+ *
+ * "Non-destructive" stays: it is a property of imaging a plant rather than
+ * cutting it up, which is true of this method and is not a measurement.
+ *
+ * Re-run the pipeline on a new scan and these go stale silently — nothing
+ * validates copy against `run_config.json`. Check them by hand.
  */
 export const SECTION_COPY: Record<StageId, SectionCopy> = {
   capture: {
     index: '01',
     title: 'Capture',
     lede: 'We observe the plant from multiple viewpoints.',
-    spec: '24 viewpoints · structured light',
+    spec: '66 of 102 views registered · RGB',
   },
+  // The middle beat absorbed two that used to stand alone — GEOMETRY ("Points
+  // become structure") and SURFACE ("Structure becomes a measurable 3D
+  // representation"). Both were true and both were mechanism. A reader does not
+  // need to be told that a reconstruction triangulates before it closes; they
+  // need to be told that photographs come in and a measurable plant comes out,
+  // which is what this one line now says. The triangulation and the closing are
+  // still on screen underneath it, which is the right place for a mechanism.
   reconstruct: {
     index: '02',
-    title: 'Reconstruct',
-    lede: 'Image streams become spatial information.',
-    spec: '2.4M samples · registered',
-  },
-  geometry: {
-    index: '03',
-    title: 'Geometry',
-    lede: 'Points become structure.',
-    spec: 'triangulated · watertight',
-  },
-  surface: {
-    index: '04',
-    title: 'Surface',
-    lede: 'Structure becomes a measurable 3D representation.',
-    spec: 'organs segmented · addressable',
+    title: '3D Reconstruction',
+    lede: 'Image streams become one measurable 3D plant.',
+    spec: '560k dense points · 36k triangles',
   },
   phenotype: {
-    index: '05',
-    title: 'Phenotype',
+    index: '03',
+    title: 'Phenotyping',
     lede: 'The reconstructed plant becomes quantitative data.',
     spec: '7 traits · non-destructive',
   },
@@ -283,10 +312,15 @@ export const TRAIT_READOUT: Record<TraitId, TraitReadout> = {
  * touch" here would convert the whole document into an ad for itself. The two
  * meta fragments are the colophon of a plate — what was examined, what came off
  * it.
+ *
+ * There was a closing line above them, `'Nothing was cut.'`, set large against a
+ * 16ch measure. It is gone and nothing replaced it. It was the payoff of an
+ * argument the page no longer makes out loud, and read on its own — which is how
+ * it read, as the last words on screen — it was a claim about what the method
+ * avoids rather than about what it produces. The colophon says what was examined
+ * and what came off it, which is the whole ending the piece needs.
  */
 export const OUTRO_COPY = {
-  /** Answers the hero and nothing else. ≤16ch measure. */
-  closing: 'Nothing was cut.',
   colophonLeft: `${SPECIMEN} — reconstruction complete`,
   /**
    * Counted from `TRAIT_READOUT` rather than written as "7", so adding or
@@ -319,14 +353,14 @@ export const LOADING_COPY = {
  *
  * WHAT THIS IS AND WHAT IT IS NOT
  * ───────────────────────────────
- * Above: one continuous scroll-driven transformation, five beats, one specimen.
+ * Above: one continuous scroll-driven transformation, three beats, one specimen.
  * Below: an index of two offerings, each a sequence of evidence steps. The
  * reconstruction is the *argument*; this is the *record*. They are different
  * kinds of reading and the code keeps them apart — nothing here reads
  * experienceProgress, subscribes to a frame, or appears in `BLOCKS`.
  *
  * That separation is the whole reason this could be added without retiming the
- * five beats. See the two-slot note in `progress/ProgressProvider.tsx`.
+ * reconstruction. See the two-slot note in `progress/ProgressProvider.tsx`.
  *
  *
  * THE POINT OF THE `evidence` ARRAYS
@@ -447,18 +481,20 @@ export const OFFERINGS_COPY = {
    * section an index of two things instead of the second half of an argument.
    */
   standfirst:
-    'Above, one specimen carried through five stages. Below, two measurement programmes and the figures each of them produces.',
+    'Above, one specimen carried through three stages. Below, two measurement programmes and the figures each of them produces.',
 } as const
 
 /**
- * `Capture → Reconstruct → Geometry → Surface → Phenotype`, built from the beat
- * titles rather than typed out.
+ * `Capture → 3D Reconstruction → Phenotyping`, built from the beat titles rather
+ * than typed out.
  *
- * Offering 01's whole structure is a second pass over those five beats, so the
- * chain printed at its head has to be the same five words the progress rail
+ * Offering 01's whole structure is a second pass over those three beats, so the
+ * chain printed at its head has to be the same three words the progress rail
  * showed during the scroll. Deriving it means renaming a beat updates the rail,
  * the section heading and this chain together; a hand-typed string would make
- * that rename a silent inconsistency between the two halves of the page.
+ * that rename a silent inconsistency between the two halves of the page — and it
+ * is what made collapsing five beats into three a change to one table instead of
+ * a hunt through the copy.
  *
  * Reads `SECTION_COPY` in declaration order, which is beat order — the same
  * property `verify-narrative.mjs` already asserts when it checks that each plate
@@ -628,7 +664,22 @@ export const OFFERINGS: readonly Offering[] = [
      * the stages are the same, the material is real. No new claim is made and
      * the reader is not addressed.
      */
-    bridge: ['The same five stages, shown with the underlying data.'],
+    bridge: ['The same three stages, shown with the underlying data.'],
+    /**
+     * Three plates, one per beat, and it has to stay three. This run used to be
+     * five, mirroring the five stages the scroll then had: a separate SURFACE
+     * TOPOLOGY wireframe plate and a separate RECONSTRUCTED SURFACE MODEL plate
+     * sat between the point cloud and the traits. Both are gone with the beats
+     * they illustrated. What they asserted has not been dropped — the closed,
+     * organ-separated surface is now the end of the reconstruction plate's
+     * summary, where it belongs, because it is the *output* of reconstructing
+     * rather than a third thing that happens afterwards.
+     *
+     * `aspect: 'wide'` throughout, so the empty run reads as one sequence rather
+     * than a set of differently shaped objects. That is the shape of the HOLE and
+     * not a claim about the figure: the real asset states its own ratio in
+     * `registry.ts` and that one wins. See `aspectOf`.
+     */
     evidence: [
       {
         id: 'source-data',
@@ -636,7 +687,7 @@ export const OFFERINGS: readonly Offering[] = [
         label: 'Multi-view image acquisition',
         stage: 'capture',
         summary:
-          'Multiple viewpoints provide the visual observations used for 3D reconstruction. The specimen is photographed intact, without cutting or flattening.',
+          'Multiple viewpoints provide the visual observations used for 3D reconstruction. The specimen is photographed where it stands.',
         category: 'photograph',
         aspect: 'wide',
         placeholder: '[REAL SOURCE IMAGE — TO BE INSERTED]',
@@ -647,42 +698,24 @@ export const OFFERINGS: readonly Offering[] = [
         label: 'Structure-from-motion reconstruction',
         stage: 'reconstruct',
         summary:
-          'Camera positions and a dense point cloud are recovered from correspondences between the images. The views are resolved into a single coordinate frame.',
+          // Was "...into a closed surface with plant organs separated". Neither
+          // half held: screened Poisson leaves 1,646 boundary edges across 35
+          // components, so the surface is not closed, and nothing in this
+          // pipeline segments organs — no leaf, stem or head is ever labelled.
+          'Camera positions and a dense point cloud are recovered from correspondences between the images. The views resolve into a single coordinate frame, and the samples into a continuous surface.',
         category: 'point-cloud',
-        expandable: true,
+        // No `expandable`, and it USED to be set, back when this slot held a
+        // still. The enlarge control exists so a reader can get closer to dense
+        // material they cannot otherwise inspect; the filled slot is now a view
+        // they can already turn and zoom in place, so the control would open a
+        // modal containing a second copy of a thing that was already answering
+        // the question — at the cost of a third WebGL context on the page.
         aspect: 'wide',
         placeholder: '[REAL POINT CLOUD RESULT — TO BE INSERTED]',
       },
       {
-        id: 'geometry-output',
-        index: '03',
-        label: 'Surface topology',
-        stage: 'geometry',
-        summary:
-          'The points are connected into vertices, edges and faces. The reconstruction gains an explicit surface rather than a scatter of samples.',
-        category: 'mesh',
-        expandable: true,
-        aspect: 'wide',
-        placeholder: '[REAL GEOMETRY OUTPUT — TO BE INSERTED]',
-      },
-      {
-        id: 'final-model',
-        index: '04',
-        label: 'Reconstructed surface model',
-        stage: 'surface',
-        summary:
-          'The closed surface used for measurement, with plant organs separated. Each measurement can be addressed to a named part rather than to the model as a whole.',
-        category: 'mesh',
-        // `wide`, like the other four, so the empty run reads as one sequence
-        // rather than a set of differently shaped objects. This is the shape of
-        // the HOLE and not a claim about the figure: the real asset states its
-        // own ratio in `registry.ts` and that one wins. See `aspectOf`.
-        aspect: 'wide',
-        placeholder: '[REAL RECONSTRUCTED MESH — TO BE INSERTED]',
-      },
-      {
         id: 'phenotyping-output',
-        index: '05',
+        index: '03',
         label: 'Trait extraction',
         stage: 'phenotype',
         summary:
@@ -728,3 +761,38 @@ export const OFFERINGS: readonly Offering[] = [
     evidence: DYNAMICS_EVIDENCE,
   },
 ]
+
+/**
+ * The invitation, and the last thing on the page.
+ *
+ * `OUTRO_COPY` above says the ending of the *demonstration* is deliberately not
+ * a call to action, and that still holds — this is a separate document that
+ * follows the evidence, the same way `OFFERINGS_COPY` does. The distinction the
+ * two comments are drawing together: the specimen's closing frame stays a
+ * colophon, and the asking happens afterwards, once the argument is finished.
+ *
+ * No form. The site is a static build on GitHub Pages with no server to post to,
+ * so a form here could only be a third-party endpoint or a lie; a `mailto:`
+ * hands the reader the address in the tool they already use to write to people.
+ * `bodyHint` is therefore a prompt in a draft, not a set of required fields —
+ * the reader can delete it.
+ */
+export const CONTACT_COPY = {
+  eyebrow: 'Contact',
+  title: "Let's talk.",
+  standfirst: 'Have a plant dataset, research question, or collaboration in mind?',
+  address: 'admin@shape-growth.com',
+  subject: 'Shape Growth — Inquiry',
+  /**
+   * Trailing newline on each line so the reader's cursor lands under the label
+   * rather than beside it. Joined with `\n` and encoded by the caller.
+   */
+  bodyHint: ['Name:', 'Organization:', 'Message:'],
+  action: 'Contact us',
+  /**
+   * Stated rather than implied. A button that silently launches a different
+   * application is the one interaction on this page that can surprise someone,
+   * and the cost of saying so is six words.
+   */
+  hint: 'Opens your email application',
+} as const

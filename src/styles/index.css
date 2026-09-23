@@ -1,10 +1,55 @@
 @import 'tailwindcss';
 
-@theme {
-  --color-void: #070908;
-  --color-ink: #eae8e1;
-  --color-cloud: #96a79b;
-  --color-accent: #9bd07f;
+/* ───────────────────────── theme tokens ─────────────────────────
+
+   The four role colours, and the only place in the stylesheet that names a
+   literal. Everything downstream — 64 sites, plus the Tailwind utilities —
+   reads the role, so switching theme is switching these four values and
+   nothing else.
+
+   This works without touching those 64 sites because the roles were already
+   semantic. `--color-void` means "the page", not "near-black", so the
+   legibility veil's `color-mix(void 58%, transparent)` is a *scrim in the page
+   colour* and stays correct when the page turns warm off-white — it simply
+   becomes a light scrim, which is what that gradient needs there anyway. The
+   same holds for every `color-mix(ink N%)`: they are all "type at N% weight".
+
+   Values live in `src/theme/palette.ts` as well, because the WebGL scene needs
+   them as numbers. That file is the source; these are the transcription.
+
+   The default sits on bare `:root` as well as `[data-theme='light']` so the
+   page is light before any attribute exists — with the boot script blocked or
+   JS off entirely, the fallback is the default rather than an unstyled flash. */
+:root,
+:root[data-theme='light'] {
+  --void: #f2f0e8;
+  --ink: #101410;
+  --cloud: #2f6b41;
+  --accent: #3a6f1c;
+  /* Native UI — scrollbars, form controls, the canvas's own backdrop — is not
+     reachable from custom properties and gets this instead. */
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --void: #070908;
+  --ink: #eae8e1;
+  --cloud: #96a79b;
+  --accent: #9bd07f;
+  color-scheme: dark;
+}
+
+/* `inline` is load-bearing, not stylistic. A plain `@theme` copies the value
+   into the generated utilities at build time, which would bake whichever theme
+   compiled first into `text-ink/55`, `bg-void/85` and friends — they would
+   never respond to `data-theme`. `@theme inline` emits `var(--ink)` into those
+   utilities instead, so they resolve per-element at runtime like the custom
+   CSS already does. */
+@theme inline {
+  --color-void: var(--void);
+  --color-ink: var(--ink);
+  --color-cloud: var(--cloud);
+  --color-accent: var(--accent);
 
   --font-display: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
   --font-editorial: 'Instrument Serif', ui-serif, Georgia, serif;
@@ -127,6 +172,60 @@
   /* Contain layout/paint so seven per-frame transform writes cannot invalidate
      anything outside this element. */
   contain: layout paint;
+
+  /* THE HALO, AND WHY THESE LABELS NEED ONE AT ALL
+     ──────────────────────────────────────────────
+     The anchors are derived by marching outward from the specimen until the
+     ANCHOR POINT clears the canopy (see the `outside()` reasoning in
+     phenotype.ts). But a label is not a point: `side: 'left'` puts ~100px of
+     text back across the plant from that cleared anchor, and nothing clears
+     the BOX. Measured at 1440x900 in the light theme, over the real scan:
+     LEAF WIDTH's reading bottomed out at 1.13:1 against its backdrop and
+     STEM DIAMETER's at 1.74:1, with 43% and 50% of their boxes under the
+     4.5:1 AA threshold. Both are white-on-pale-leaf at that point.
+
+     Two fixes were measured before this one. Pushing the anchors further
+     outboard works on desktop, where the clear run is ~400px wide, and fails
+     at 375px, where the same two labels land on the LAST pixel that clears —
+     zero margin against a re-scan, a font-metric change or a camera nudge.
+     And neither placement can fix `.annotation__label`, which at 46% ink
+     tops out at 3.01:1 even over clean paper.
+
+     The halo is therefore necessary but NOT sufficient, and the capture below
+     proves it: it restores the readings, which are 92% ink, but a casing only
+     covers the few pixels around each glyph and cannot raise the ink of the
+     glyph itself. The two faint rules — the caps and the unit — are fixed at
+     source instead; see the alpha notes on each.
+
+     So the contrast is made local to the glyph instead of depending on where
+     the glyph happens to sit. This is the casing a map label carries over
+     varied ground, and it costs nothing where the backdrop is already the
+     page: the halo IS `--color-void`, so on paper it is invisible by
+     construction and only resolves over the specimen.
+
+     Five layers, not one, and the two tight ones are DUPLICATED on purpose.
+     A blurred shadow is partially transparent everywhere, so a single pass
+     leaves the pixel touching the stroke at maybe half void and the casing
+     fails exactly where it is needed most. Compositing the same tight blur
+     twice compounds toward opaque within ~1px of the glyph while the wide
+     0.22em pass does the soft falloff that keeps this from looking like an
+     outline. On the rendered frame, over the worst backdrop on the plant,
+     STEM DIAMETER's stroke-to-casing ratio went 1.47 -> 1.89. Treat that as
+     a relative reading only: the same measurement on the same size and
+     colour over CLEAN PAPER returns 2.83, not the 4.97 the specified colours
+     give, because at 8px the median stroke pixel is antialiased rather than
+     solid. WCAG is met by the specified colours; this number only says the
+     leaf is now most of the way to being irrelevant to the label above it.
+
+     Inherited from the layer rather than repeated on the four text rules
+     below — one declaration, and no way for a new child to be added without
+     it. `em` so it tracks the font-size drop at the mobile breakpoint. */
+  text-shadow:
+    0 0 0.22em var(--color-void),
+    0 0 0.12em var(--color-void),
+    0 0 0.07em var(--color-void),
+    0 0 0.07em var(--color-void),
+    0 0 0.04em var(--color-void);
 }
 
 .annotation {
@@ -143,13 +242,20 @@
   white-space: nowrap;
 }
 
+/* 62%, not the 46% this started at. Composited over `--color-void` — which is
+   what the halo guarantees is behind the glyph, wherever on the specimen it
+   lands — 46% ink reads 3.02:1 in the light theme, below the 4.5:1 AA floor
+   for text this size. AA is reached at 0.590 light / 0.497 dark; 62% clears
+   both (4.97:1 light, 6.1:1 dark) with enough margin to survive a re-scan.
+   It stays the quietest thing in the stack — the reading above it is 92% —
+   because the caps are a key to the value, not the value. */
 .annotation__label {
   font-family: var(--font-mono);
   font-size: 0.5625rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   line-height: 1;
-  color: color-mix(in oklab, var(--color-ink) 46%, transparent);
+  color: color-mix(in oklab, var(--color-ink) 62%, transparent);
 }
 
 /* The reading itself. Tabular figures are the whole point — see the note in
@@ -166,12 +272,19 @@
   color: color-mix(in oklab, var(--color-ink) 92%, transparent);
 }
 
+/* Full cloud, not the 78% this started at, and no color-mix at all. Cloud is
+   the darkest of the secondary inks and it only reaches 5.58:1 over void in
+   the light theme at FULL strength; AA would need 0.896 alpha, which leaves
+   0.036 of headroom — less than the difference between two rounding choices
+   in a future palette edit. So the transparency is removed rather than tuned
+   to the edge of the threshold. The unit still recedes from the reading it
+   follows: 0.6875em against the value's size, and green against 92% ink. */
 .annotation__unit {
   margin-left: 0.28em;
   font-size: 0.6875em;
   font-weight: 400;
   letter-spacing: 0.04em;
-  color: color-mix(in oklab, var(--color-cloud) 78%, transparent);
+  color: var(--color-cloud);
 }
 
 /* SCHEMATIC — NOT MEASURED.
@@ -187,12 +300,16 @@
    for the same job. A second treatment invented for the same meaning would read
    as a different kind of statement.
 
-   Deliberately quieter than the thing it qualifies: cloud at 58% against the
-   readings' 92% ink. It has to be found, not announced — a notice that competed
-   with the values would be a banner across the specimen, and the specimen is the
-   page. It is also the reason this is not accented: the accent is the drawing
-   tip and the anchor marker, and borrowing it here would read as a seventh
-   measurement rather than as a note about them.
+   Quieter than the thing it qualifies — 62% against the readings' 92% — but no
+   quieter than that. It began at 58% CLOUD, which measures 2.45:1 over paper in
+   the light theme and made the one line on the frame that has to be legible the
+   least legible thing on it. A disclaimer nobody can read is not a disclaimer,
+   so it now carries the same ink and the same alpha as `.annotation__label`:
+   4.97:1 light, 6.50:1 dark, AA at this size. It still has to be found rather
+   than announced — a notice that competed with the values would be a banner
+   across the specimen, and the specimen is the page. And it is still not
+   accented: the accent is the drawing tip and the anchor marker, and borrowing
+   it here would read as a seventh measurement rather than as a note about them.
 
    Top left is the one corner nothing else occupies while the stage is open —
    the beat's heading is fixed to the bottom, the progress rail to the right
@@ -209,7 +326,7 @@
   text-transform: uppercase;
   line-height: 1;
   white-space: nowrap;
-  color: color-mix(in oklab, var(--color-cloud) 58%, transparent);
+  color: color-mix(in oklab, var(--color-ink) 62%, transparent);
 }
 
 @media (min-width: 768px) {
@@ -239,6 +356,17 @@
   opacity: 0.035;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* `overlay` is a no-op on a near-white field: for a base above 0.5 it resolves
+   to `1 - 2(1-base)(1-blend)`, so at base 0.95 the whole noise range compresses
+   into the top 10% of the scale and the texture disappears. `multiply` puts the
+   same grain back as darkening, which is what film grain does on paper stock.
+   Lower opacity because multiply on a light field is the more visible of the
+   two operations, not because the grain should be weaker. */
+:root[data-theme='light'] .grain {
+  mix-blend-mode: multiply;
+  opacity: 0.02;
 }
 
 /* ───────────────────────── editorial type ───────────────────────── */
@@ -439,7 +567,7 @@
 
      This margin is the only way to buy that sentence any time. The outro block
      cannot simply be made taller: `BLOCKS` is the reconstruction's timeline,
-     and 100vh added there rescales all five beats (see `ProgressProvider`).
+     and 100vh added there rescales all three beats (see `ProgressProvider`).
      Added *after* the measured root, it costs page height and nothing else. */
   margin-top: calc(var(--seam-hold) + var(--seam-dissolve));
   padding-block: clamp(4rem, 8vh, 7rem) clamp(7rem, 16vh, 14rem);
@@ -517,7 +645,7 @@
    was one notch too low for it, and the comparison above is what missed it.
 
    Measured across the seam at 1440x900: `.section-lede` — the sentence under
-   each of the five beats — sets at 36px, and this line set at 34px. So the
+   each beat — sets at 36px, and this line set at 34px. So the
    heading that declares what the whole method produces arrived *smaller* than
    the captions the reader had just finished, and every piece of type on the
    page stepped down at exactly the moment the argument was supposed to turn.
@@ -1108,6 +1236,39 @@
   object-fit: contain;
 }
 
+/* The one `component` source on the page: the dense cloud, turned by hand.
+   See `evidence/views/DenseCloud.tsx`.
+
+   It fills the frame rather than being `contain`ed inside it, because unlike an
+   image it has no intrinsic ratio to preserve — it is drawn to whatever box it
+   is given, and the box is the figure's authored 16:9.
+
+   `touch-action: pan-y` is the load-bearing line and not a tidy-up. It is what
+   promises the page scroll back to the reader on a touch device: the browser
+   keeps every vertical drag and the view only ever sees horizontal ones, so a
+   thumb travelling up the plate scrolls past it exactly as it would over a
+   photograph. Take this out and a reader on a phone is trapped in the figure. */
+.cloud-view {
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+  /* The affordance. `grab`/`grabbing` is the only thing on the plate that says
+     this one can be turned, so it does real work rather than being polish. */
+  cursor: grab;
+}
+
+.cloud-view:active {
+  cursor: grabbing;
+}
+
+.cloud-view canvas {
+  display: block;
+  /* R3F sizes the backing store itself; this stops the canvas element's own
+     intrinsic 300x150 from briefly setting the frame's height on first paint. */
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .evidence__placeholder {
   position: absolute;
   inset: 0;
@@ -1214,7 +1375,8 @@
    to these two rather than set globally, because a global `:focus-visible` on a
    page with two controls is a rule written for a page that does not exist. */
 .plate__expand,
-.plate-view__close {
+.plate-view__close,
+.theme-toggle {
   font-family: var(--font-mono);
   font-size: 0.625rem;
   letter-spacing: 0.16em;
@@ -1230,15 +1392,70 @@
 }
 
 .plate__expand:hover,
-.plate-view__close:hover {
+.plate-view__close:hover,
+.theme-toggle:hover {
   color: var(--color-ink);
   border-color: color-mix(in oklab, var(--color-ink) 34%, transparent);
 }
 
 .plate__expand:focus-visible,
-.plate-view__close:focus-visible {
+.plate-view__close:focus-visible,
+.theme-toggle:focus-visible {
   outline: 1px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+/* Mid left, mirroring `ProgressRail` on the opposite edge, and fixed rather than
+   placed in the hero header: the header scrolls away with the hero and the
+   toggle has to remain reachable for the whole 810vh.
+
+   The corner this obviously wants is bottom left, opposite the loading
+   indicator. Measured against every element at seventeen scroll positions on a
+   1280x800 viewport, it collides at all seventeen — the hero standfirst and
+   specimen label sit there, and so does the left column of the offerings panel.
+   All four corners score 17/17. Mid left scores 2, against a display rule and
+   one bridge line, both hairlines. Mid *right* is cleaner still but the progress
+   rail already owns it above 1024px.
+
+   z-index 30 puts it above the offerings panel (11), which is opaque and would
+   otherwise swallow it for the entire second half of the page. Backdrop blur
+   because the only thing behind it is the WebGL specimen, and a 72% scrim over
+   a moving point cloud still reads as a moving point cloud. */
+.theme-toggle {
+  position: fixed;
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  backdrop-filter: blur(6px);
+}
+
+/* Below `sm` there is no collision-free position, and that is a property of the
+   page rather than a failure to find one. Six candidates were measured against
+   every text node at fourteen scroll positions across the full 15,000px
+   document at 375px wide; the counts were bottom-left 14/14, bottom-right
+   14/14, top-left 14/14, top-right 5/14, mid-left and mid-right 4/14. Nothing
+   reaches zero because the offerings section is a full-bleed text document —
+   at that width its copy occupies every band of the viewport.
+
+   Worth naming: the original design solves this by not having mobile chrome.
+   The progress rail, the only other persistent control, is `lg:block` and
+   simply does not exist below 1024px. A theme toggle cannot take that way out,
+   because a reader on a phone who has no control has no way back.
+
+   So this is the measured minimum rather than a clean answer, and the scrim is
+   raised to near-opaque to match: over the four positions where it does land on
+   copy it should read as a control sitting on top of the text, which is legible,
+   rather than a translucent panel mixing with it, which is not.
+
+   Only the horizontal edge changes here — the desktop rule is already mid
+   height, and the rail it is avoiding does not exist at this width. */
+@media (max-width: 639px) {
+  .theme-toggle {
+    left: auto;
+    right: 1.5rem;
+    background-color: color-mix(in oklab, var(--color-void) 96%, transparent);
+  }
 }
 
 /* In the corner of the frame, and present at rest rather than on hover. A
@@ -1338,4 +1555,177 @@ body:has(.plate-view[open]) {
   display: block;
   margin-top: 0.375rem;
   color: color-mix(in oklab, var(--color-ink) 42%, transparent);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CONTACT
+   ─────────────────────────────────────────────────────────────────────────────
+   The page's last section, sharing the offerings panel's frame: same z-index,
+   same opaque void ground, same 92rem measure and gutters, so the two read as
+   one document continuing rather than as a panel with a footer bolted under it.
+
+   No `margin-top` and no seam gradient of its own — both belong to `.offerings`,
+   which has already brought the reader off the specimen and onto the panel. A
+   second dissolve here would be dissolving something that is already opaque. */
+.contact {
+  position: relative;
+  z-index: 11;
+  background-color: var(--color-void);
+  /* Matching `.offerings`. Belt and braces — this is a sibling of `.document`
+     rather than a child, so it is not actually inside the page-wide
+     `pointer-events: none`, but the one thing on the page that must be
+     clickable should not depend on that staying true. */
+  pointer-events: auto;
+  /* Top padding only. `.offerings` already ends on its own generous bottom
+     padding, so the gap between the two sections is that, not a sum of both. */
+  padding-block: 0 clamp(6rem, 14vh, 11rem);
+}
+
+.contact__inner {
+  margin-inline: auto;
+  max-width: 92rem;
+  padding-inline: 1.5rem;
+  /* The hairline is the section break. Same weight as `.offering__bridge`'s
+     rule, which is the other place in the page where a line separates two parts
+     of one argument. */
+  border-top: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+  padding-top: clamp(4rem, 9vh, 7rem);
+}
+
+/* The start padding clears the theme toggle, and it is a measurement rather than
+   a margin that looked right.
+
+   That control is `position: fixed` at `left: 1.5rem; top: 50%`, so it occupies
+   x 24–80 at every desktop width, permanently. Its own comment records that the
+   spot was chosen by scoring collisions at seventeen scroll positions, where mid
+   left came out best at 2 — against a display rule and a bridge hairline. This
+   section changes that sum, because it is the end of the page: the reader's
+   terminal scroll position is somewhere they stop, not somewhere they pass
+   through. At the page gutter the eyebrow sat under the toggle at 1280x800,
+   1440x900 and 1536x864, the word CONTACT reading as "TACT" on all three.
+
+   Padding the block down out of the way does not fix it. The toggle is at
+   exactly H/2 and this content is placed by vh-based clamps, so the two scale
+   together and the overlap survives — which is why three different viewport
+   heights all failed the same way instead of one of them. Clearing the column is
+   independent of height; chasing it vertically is not.
+
+   Applied to the inner's padding rather than to a new wrapper, so the rule above
+   stays full-bleed and aligned with the offerings panel while only the text
+   moves. Scoped to `sm` and up because below 640 the toggle swaps to the right
+   edge, where it already measures clear — indenting there would just cost a
+   phone 80px of measure. */
+@media (min-width: 640px) {
+  .contact__inner {
+    padding-inline-start: 6.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .contact__inner {
+    padding-inline-end: 3rem;
+  }
+}
+
+/* One step below `.offerings__title`. The evidence panel's heading opens the
+   second half of the page; this one closes it, and a matching size would have
+   them arguing about which is the section. */
+.contact__title {
+  font-size: clamp(1.75rem, 3.6vw, 3.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+  margin: 1.25rem 0 0;
+  text-wrap: balance;
+}
+
+.contact__standfirst {
+  font-family: var(--font-editorial);
+  font-size: clamp(1.0625rem, 1.5vw, 1.375rem);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: color-mix(in oklab, var(--color-ink) 62%, transparent);
+  margin: 1.25rem 0 0;
+  max-width: 38ch;
+  text-wrap: pretty;
+}
+
+/* `align-items: baseline` so the hint sits on the button's text baseline rather
+   than on its border box, and `wrap` so that at 375px the hint drops under the
+   button instead of compressing it. */
+.contact__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.875rem 1.25rem;
+  margin-top: clamp(2.5rem, 5vh, 3.5rem);
+}
+
+/* The established control idiom — see the shared `.theme-toggle` rule. Repeated
+   rather than added to that selector list because this one is an anchor, needs
+   `display: inline-block` and `text-decoration: none` that the buttons do not,
+   and is the only control on the page a reader is actually being asked to press.
+   Folding it into a rule whose comment explains it was scoped to two chrome
+   buttons would make that comment wrong. */
+.contact__action {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: color-mix(in oklab, var(--color-ink) 78%, transparent);
+  background-color: transparent;
+  border: 1px solid color-mix(in oklab, var(--color-ink) 22%, transparent);
+  padding: 0.875rem 1.5rem;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.contact__action:hover {
+  color: var(--color-ink);
+  border-color: color-mix(in oklab, var(--color-accent) 60%, transparent);
+}
+
+.contact__action:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.contact__hint {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-ink) 40%, transparent);
+}
+
+/* Underlined at rest. It is an address as much as a control, so it should look
+   like the string it is and not like a second button competing with the one
+   above it. */
+.contact__direct {
+  display: inline-block;
+  margin-top: clamp(2.5rem, 5vh, 3.5rem);
+  font-family: var(--font-mono);
+  font-size: clamp(0.8125rem, 1vw, 0.9375rem);
+  letter-spacing: 0.02em;
+  color: color-mix(in oklab, var(--color-ink) 62%, transparent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--color-ink) 22%, transparent);
+  text-underline-offset: 0.3em;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
+}
+
+.contact__direct:hover {
+  color: var(--color-accent);
+  text-decoration-color: color-mix(in oklab, var(--color-accent) 55%, transparent);
+}
+
+.contact__direct:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 3px;
 }

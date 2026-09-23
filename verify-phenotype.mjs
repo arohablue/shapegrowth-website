@@ -16,16 +16,27 @@
 //
 // Bundles are rebuilt here, not imported from an artifact. A harness that reads
 // a stale bundle reports PASS against source that no longer exists.
+import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { Box3, PerspectiveCamera, Vector3 } from 'three'
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js'
-import { buildSrc, fromRoot } from './lib/esbuild-src.mjs'
 
-const phenotype = await buildSrc('src/experience/phenotype.ts', 'bundle-phenotype.mjs')
-const spline = await buildSrc('src/experience/cameraSpline.ts', 'bundle-camera.mjs')
-const derive = await buildSrc('src/experience/deriveSceneState.ts', 'bundle-derive.mjs')
-const normalize = await buildSrc('src/assets/normalize.ts', 'bundle-normalize.mjs')
-const content = await buildSrc('src/content.ts', 'bundle-content.mjs')
+const build = (entry, out) => {
+  execFileSync(
+    'npx',
+    ['esbuild', entry, '--bundle', '--format=esm', '--alias:@=./src', `--outfile=${out}`],
+    { stdio: 'inherit' },
+  )
+  return import(`./${out}?t=${Date.now()}`)
+}
+
+const phenotype = await build('src/experience/phenotype.ts', 'bundle-phenotype.mjs')
+const spline = await build('src/experience/cameraSpline.ts', 'bundle-camera.mjs')
+const derive = await build('src/experience/deriveSceneState.ts', 'bundle-derive.mjs')
+const normalize = await build('src/assets/normalize.ts', 'bundle-normalize.mjs')
+// The copy, for section 5 — the notice that has to sit on the frame alongside
+// the seven invented values.
+const content = await build('src/content.ts', 'bundle-content.mjs')
 
 const { PHENOTYPE_DISCLAIMER } = content
 const {
@@ -161,7 +172,7 @@ for (const bp of ['desktop', 'mobile']) {
 console.log('\n═══ 3. anchoring (against the real fixture) ═══')
 
 const env = Object.fromEntries(
-  readFileSync(fromRoot('.env.local'), 'utf8')
+  readFileSync('.env.local', 'utf8')
     .split('\n')
     .filter((l) => l.includes('=') && !l.trim().startsWith('#'))
     .map((l) => {
@@ -179,7 +190,7 @@ const transform = {
 }
 console.log(`  transform: ${JSON.stringify(transform)}`)
 
-const plyPath = fromRoot('public' + (env.VITE_POINTCLOUD_URL ?? '/models/fixture-scan.ply'))
+const plyPath = 'public' + (env.VITE_POINTCLOUD_URL ?? '/models/fixture-scan.ply')
 const buffer = readFileSync(plyPath)
 const source = new PLYLoader().parse(
   buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),

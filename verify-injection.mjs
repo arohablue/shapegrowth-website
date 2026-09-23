@@ -6,7 +6,6 @@
 // injected code reads are actually in scope at the injection point.
 import * as THREE from 'three'
 import { readFileSync } from 'node:fs'
-import { fromRoot } from './lib/esbuild-src.mjs'
 
 const lib = THREE.ShaderLib.physical
 const fail = []
@@ -50,7 +49,7 @@ for (const id of ['transformed']) {
 }
 
 // Varying names must not collide with three's own, or the shader fails to link.
-const src = stripComments(readFileSync(fromRoot('src/scene/MeshLayer.tsx'), 'utf8'))
+const src = stripComments(readFileSync('src/scene/MeshLayer.tsx', 'utf8'))
 const ours = [...src.matchAll(/varying\s+\w+\s+(\w+);/g)].map((m) => m[1])
 const unique = [...new Set(ours)]
 console.log(`\ninjected varyings: ${unique.join(', ')}`)
@@ -64,7 +63,7 @@ for (const v of unique) {
 
 // Same class of risk in the point cloud shader: `color`/USE_COLOR is three's,
 // and re-declaring it is a link error.
-const pc = stripComments(readFileSync(fromRoot('src/scene/shaders/pointCloud.ts'), 'utf8'))
+const pc = stripComments(readFileSync('src/scene/shaders/pointCloud.ts', 'utf8'))
 if (/attribute\s+vec3\s+color/.test(pc)) {
   fail.push('pointCloud declares `attribute vec3 color`, which three injects under USE_COLOR')
 }

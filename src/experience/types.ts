@@ -1,12 +1,21 @@
 import type { EasingName } from './easing'
 
 /**
- * The five beats of the pipeline, in order. These are the narrative AND the
+ * The three beats of the pipeline, in order. These are the narrative AND the
  * scene: each one owns a document block and a group of tracks in `timeline.ts`,
  * and the two are deliberately the same list so a beat cannot exist in the copy
  * without existing in the reconstruction.
+ *
+ * There were five. `geometry` and `surface` were beats of their own, each with a
+ * heading and a rail entry, and naming them made the page a five-concept
+ * explanation of a three-concept product. A reader does not buy a wireframe
+ * stage; they buy "photograph the plant, rebuild it, measure it". So the two
+ * middle names were removed and their *motion* was not: the wireframe still
+ * builds and the surface still closes, inside `reconstruct`, as things the
+ * reconstruction visibly does rather than as separate claims. The track table
+ * below is untouched — see the note over BLOCKS in `timeline.ts`.
  */
-export type StageId = 'capture' | 'reconstruct' | 'geometry' | 'surface' | 'phenotype'
+export type StageId = 'capture' | 'reconstruct' | 'phenotype'
 
 export type Breakpoint = 'mobile' | 'desktop'
 

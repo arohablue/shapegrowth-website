@@ -5,7 +5,10 @@ import { StageSection } from '@/ui/StageSection'
 import { ProgressRail } from '@/ui/ProgressRail'
 import { Outro } from '@/ui/Outro'
 import { Offerings } from '@/ui/Offerings'
+import { Contact } from '@/ui/Contact'
+import { ThemeToggle } from '@/ui/ThemeToggle'
 import { TimelineHUD, hudEnabled } from '@/dev/TimelineHUD'
+import { useTheme } from '@/theme/ThemeContext'
 import type { StageId } from '@/experience/types'
 
 /**
@@ -39,10 +42,10 @@ import type { StageId } from '@/experience/types'
  * have.
  *
  *
- * THE FIVE BEATS
- * ──────────────
+ * THE THREE BEATS
+ * ───────────────
  * Alternating the caption's horizontal position keeps the reading rhythm from
- * settling into a template; all five sit in the same clear bottom band, so the
+ * settling into a template; all three sit in the same clear bottom band, so the
  * side a caption takes never affects whether it covers the plant. See the header
  * of `StageSection.tsx` for the measurement.
  */
@@ -57,13 +60,12 @@ const AssetLoadingIndicator = lazy(() =>
 const SECTIONS: Array<{ id: StageId; align: 'left' | 'right' }> = [
   { id: 'capture', align: 'left' },
   { id: 'reconstruct', align: 'right' },
-  { id: 'geometry', align: 'left' },
-  { id: 'surface', align: 'right' },
   { id: 'phenotype', align: 'left' },
 ]
 
 export function App() {
   const [showHud] = useState(hudEnabled)
+  const { theme } = useTheme()
 
   // Warm the assets once the first paint is done. Kicking this off during the
   // initial render would put a multi-megabyte scan in contention with the
@@ -84,14 +86,32 @@ export function App() {
   }, [])
 
   return (
-    // `trailing` rather than a seventh child, and this is the one structural
+    // `trailing` rather than further children, and this is the one structural
     // rule of the page: the ScrollTrigger measures only what it is given as
     // `children`, so anything placed there becomes part of the reconstruction's
-    // 810vh and rescales all five beats. The offerings are a separate document
-    // that happens to follow. See the two-slot note in `ProgressProvider`.
-    <ProgressProvider trailing={<Offerings />}>
+    // 810vh and rescales all three beats. The offerings and the contact section
+    // are a separate document that happens to follow. See the two-slot note in
+    // `ProgressProvider`.
+    <ProgressProvider
+      trailing={
+        <>
+          <Offerings />
+          <Contact />
+        </>
+      }
+    >
+      {/* Keyed on the theme, which forces a full remount of the WebGL tree.
+          That is heavier than re-assigning uniforms and it is the right trade
+          here. Every layer builds its uniforms in a `useMemo`, and the cloud's
+          blending mode and depth-write flag are material construction
+          parameters, not live values — so a theme change has to rebuild the
+          material regardless. Remounting makes all of it correct by
+          construction instead of leaving nine layers each responsible for
+          noticing. It costs one WebGL context recreation per toggle, on an
+          action a reader takes approximately never, and the scan is already
+          parsed and cached by the loaders so nothing re-downloads. */}
       <Suspense fallback={null}>
-        <SceneCanvas />
+        <SceneCanvas key={theme} />
       </Suspense>
       <div className="legibility-veil" />
 
@@ -104,6 +124,7 @@ export function App() {
       </main>
 
       <ProgressRail />
+      <ThemeToggle />
       <Suspense fallback={null}>
         <AssetLoadingIndicator />
       </Suspense>

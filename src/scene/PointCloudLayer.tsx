@@ -11,7 +11,7 @@ import {
 } from 'three'
 import { sensorDirection } from '@/experience/captureRig'
 import type { RepresentationWeights } from '@/experience/representation'
-import { PALETTE } from '@/theme/palette'
+import { usePalette } from '@/theme/ThemeContext'
 import type { PointCloudConfig } from './pointCloudConfig'
 import { pointCloudFragmentShader, pointCloudVertexShader } from './shaders/pointCloud'
 
@@ -52,6 +52,7 @@ export function PointCloudLayer({
 }: Props) {
   const materialRef = useRef<ShaderMaterial>(null)
   const elapsed = useRef(0)
+  const palette = usePalette()
 
   // Attaching the targets to the geometry rather than passing them as a uniform
   // is the only workable option: it is one vec3 per point, which is buffer data,
@@ -74,8 +75,8 @@ export function PointCloudLayer({
       uPixelRatio: { value: dpr },
       uMaxPixelSize: { value: config.maxPixelSize },
       uSparkle: { value: config.sparkle },
-      uTint: { value: new Color(PALETTE.cloud) },
-      uVertexTint: { value: new Color(PALETTE.accent) },
+      uTint: { value: new Color(palette.cloud) },
+      uVertexTint: { value: new Color(palette.accent) },
       uOpacity: { value: 0 },
       uBrightness: { value: config.brightness },
       uDepthFadeNear: { value: config.depthFadeNear },

@@ -71,7 +71,7 @@ import type { EvidenceSource } from '@/evidence/registry'
  * The name of the stage or phase this figure belongs to, or null.
  *
  * Two sources, one rule. `stage` is a checked reference into `SECTION_COPY` —
- * the table the progress rail and the five scroll headings also read — so a
+ * the table the progress rail and the three scroll headings also read — so a
  * plate in offering 01 cannot be labelled with a beat that no longer matches the
  * animation above it. `phase` is offering 02's own sequence, which has no
  * counterpart in the scroll to point at. See the field docs in `figure.ts`.

@@ -13,21 +13,27 @@
 // The bundle is rebuilt here rather than by hand. A harness that imports a
 // stale artifact reports PASS against keyframes that are no longer in the
 // source, which is worse than having no harness at all.
+import { execFileSync } from 'node:child_process'
 import { PerspectiveCamera, Vector3 } from 'three'
-import { buildSrc } from './lib/esbuild-src.mjs'
 
-const { sampleCameraSpline, CAMERA_FOV } = await buildSrc(
-  'src/experience/cameraSpline.ts',
-  'bundle-camera.mjs',
+execFileSync(
+  'npx',
+  ['esbuild', 'src/experience/cameraSpline.ts', '--bundle', '--format=esm', '--alias:@=./src', '--outfile=bundle-camera.mjs'],
+  { stdio: 'inherit' },
 )
+const { sampleCameraSpline, CAMERA_FOV } = await import(`./bundle-camera.mjs?t=${Date.now()}`)
 
 // The aspect-fit solve is imported rather than reimplemented, so this harness
 // tests the framing the runtime actually uses. `framing.ts` also owns the
 // subject bounds, which used to be duplicated here — meaning the harness could
 // pass against bounds the app no longer used.
-const { solveFramingScale, SUBJECT_HALF_EXTENTS: HALF } = await buildSrc(
-  'src/experience/framing.ts',
-  'bundle-framing.mjs',
+execFileSync(
+  'npx',
+  ['esbuild', 'src/experience/framing.ts', '--bundle', '--format=esm', '--alias:@=./src', '--outfile=bundle-framing.mjs'],
+  { stdio: 'inherit' },
+)
+const { solveFramingScale, SUBJECT_HALF_EXTENTS: HALF } = await import(
+  `./bundle-framing.mjs?t=${Date.now()}`
 )
 
 const CORNERS = []

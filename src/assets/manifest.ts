@@ -36,7 +36,12 @@ export interface AssetTransform {
   readonly anchor: Anchor
   /** Applied after anchoring, in world units. */
   readonly yOffset: number
-  /** Yaw in radians, applied after the up-axis correction. Frames the best side. */
+  /**
+   * Yaw in radians about the scene's vertical, applied LAST — after the
+   * up-axis correction, the scale and the centring, so it spins the asset on
+   * the spot instead of swinging it around its own untransformed origin.
+   * Frames the best side; see the order note in `resolveNormalizationMatrix`.
+   */
   readonly yaw: number
 }
 

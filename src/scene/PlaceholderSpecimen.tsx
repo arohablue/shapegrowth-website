@@ -11,7 +11,7 @@ import {
   type ShaderMaterial,
 } from 'three'
 import { useProgressContext } from '@/progress/ProgressContext'
-import { PALETTE } from '@/theme/palette'
+import { usePalette } from '@/theme/ThemeContext'
 import { specimenFragmentShader, specimenVertexShader } from './shaders/specimenPoints'
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))
@@ -113,6 +113,7 @@ interface SpecimenProps {
 }
 
 export function PlaceholderSpecimen({ pointCount, pointSize, dpr }: SpecimenProps) {
+  const palette = usePalette()
   const { stateRef, reducedMotion } = useProgressContext()
   const pointsMaterialRef = useRef<ShaderMaterial>(null)
   const shellMaterialRef = useRef<LineBasicMaterial>(null)
@@ -142,8 +143,8 @@ export function PlaceholderSpecimen({ pointCount, pointSize, dpr }: SpecimenProp
       uPixelRatio: { value: dpr },
       uDrift: { value: 1 },
       uOpacity: { value: 1 },
-      uColorBase: { value: new Color(PALETTE.cloud) },
-      uColorAccent: { value: new Color(PALETTE.accent) },
+      uColorBase: { value: new Color(palette.cloud) },
+      uColorAccent: { value: new Color(palette.accent) },
     }),
     [],
   )
@@ -194,7 +195,7 @@ export function PlaceholderSpecimen({ pointCount, pointSize, dpr }: SpecimenProp
       <lineSegments geometry={shellGeometry} frustumCulled={false}>
         <lineBasicMaterial
           ref={shellMaterialRef}
-          color={PALETTE.accent}
+          color={palette.accent}
           transparent
           opacity={0}
           depthWrite={false}

@@ -12,7 +12,8 @@ import {
 } from 'three'
 import type { RepresentationWeights } from '@/experience/representation'
 import { lerp } from '@/experience/easing'
-import { PALETTE } from '@/theme/palette'
+import { ILLUMINANTS } from '@/theme/palette'
+import { useTheme } from '@/theme/ThemeContext'
 import type { MeshConfig } from './pointCloudConfig'
 
 interface Props {
@@ -46,6 +47,7 @@ export function MeshLayer({ object, config, weightsRef }: Props) {
   const groupRef = useRef<Object3D>(null)
   const keyLightRef = useRef<DirectionalLight>(null)
   const rimLightRef = useRef<DirectionalLight>(null)
+  const { palette, scene: sceneTuning } = useTheme()
 
   // Shared by reference with every injected program, so a single write here
   // reaches all of the mesh's materials. Identity must never change.
@@ -56,7 +58,7 @@ export function MeshLayer({ object, config, weightsRef }: Props) {
       uFrontGlow: { value: config.frontGlow },
       uMeshOpacity: { value: 0 },
       uFinal: { value: 0 },
-      uFrontColor: { value: new Color(PALETTE.accent) },
+      uFrontColor: { value: new Color(palette.accent) },
       uBaseY: { value: 0 },
       uSpanY: { value: 1 },
     }),
@@ -93,6 +95,24 @@ export function MeshLayer({ object, config, weightsRef }: Props) {
         // forces a recompile mid-scroll, which is a visible hitch.
         material.transparent = true
         material.depthWrite = true
+
+        // Re-base the foliage for themes that ask, which today is light only.
+        // Set here rather than in the frame loop because it is a property of the
+        // theme, not of the scroll — `Color.set` parses a string, and doing that
+        // sixty times a second to write the same value would be waste dressed up
+        // as animation. Safe against the loader's cache because the clone above
+        // has already happened.
+        //
+        // NOT when the mesh carries its own vertex colours. three multiplies
+        // `material.color` INTO the vertex colour rather than replacing it, so
+        // on the real scan — whose colour is sampled from the fused point cloud
+        // and whose glTF baseColorFactor is deliberately white so it passes
+        // through unmultiplied — this would scale every vertex by linear
+        // (0.11, 0.25, 0.06) and repaint the yellow flower head olive. That is
+        // a measured property of the plant being overwritten by a theme
+        // preference. The synthetic fixture has no COLOR_0 and does still want
+        // the re-base, which is why this is a capability check and not a flag.
+        if (sceneTuning.foliage && !material.vertexColors) material.color.set(sceneTuning.foliage)
 
         material.onBeforeCompile = (shader) => {
           Object.assign(shader.uniforms, uniforms)
@@ -180,7 +200,7 @@ export function MeshLayer({ object, config, weightsRef }: Props) {
     })
 
     return collected
-  }, [object, uniforms])
+  }, [object, uniforms, sceneTuning.foliage])
 
   useEffect(() => {
     return () => {
@@ -219,22 +239,38 @@ export function MeshLayer({ object, config, weightsRef }: Props) {
 
     // Lighting resolves with the plant. During the reveal the key is flat and
     // dim so the emissive front reads; by the final stage it is a proper key
-    // light and the form has depth.
-    if (keyLightRef.current) keyLightRef.current.intensity = lerp(0.55, 2.1, w.finalPlant)
-    if (rimLightRef.current) rimLightRef.current.intensity = lerp(0.25, 0.85, w.finalPlant)
+    // light and the form has depth. Both endpoints come from the theme — see
+    // `SCENE_TUNING`, where the light ramp is deliberately the shallower one.
+    const [keyRest, keyFinal] = sceneTuning.keyIntensity
+    const [rimRest, rimFinal] = sceneTuning.rimIntensity
+    if (keyLightRef.current) keyLightRef.current.intensity = lerp(keyRest, keyFinal, w.finalPlant)
+    if (rimLightRef.current) rimLightRef.current.intensity = lerp(rimRest, rimFinal, w.finalPlant)
   })
 
   return (
     <group ref={groupRef} visible={false}>
       <primitive object={object} />
-      <ambientLight intensity={0.32} color={PALETTE.cloud} />
-      <directionalLight ref={keyLightRef} position={[2.5, 4, 3]} intensity={0.55} color={PALETTE.ink} />
+      {/* The three colours here are `ILLUMINANTS`, not palette tokens. They are
+          lamps, and a lamp does not change colour because the page did — what
+          changes per theme is how hard they are driven. */}
+      <ambientLight intensity={sceneTuning.ambientIntensity} color={ILLUMINANTS.fill} />
+      <directionalLight
+        ref={keyLightRef}
+        position={[2.5, 4, 3]}
+        intensity={sceneTuning.keyIntensity[0]}
+        color={ILLUMINANTS.key}
+      />
       {/* Rim from behind and below-left, separating the surface from the void.
           It used to be the accent chartreuse, which tipped the finished plant
           toward a game-engine green and put the accent hue on the specimen —
-          the accent belongs to measurement, not to foliage. `cloud` is the
-          palette's own cool neutral and reads as bounce rather than as a gel. */}
-      <directionalLight ref={rimLightRef} position={[-3, 1.5, -2.5]} intensity={0.25} color={PALETTE.cloud} />
+          the accent belongs to measurement, not to foliage. The sage fill is
+          the palette's own cool neutral and reads as bounce rather than a gel. */}
+      <directionalLight
+        ref={rimLightRef}
+        position={[-3, 1.5, -2.5]}
+        intensity={sceneTuning.rimIntensity[0]}
+        color={ILLUMINANTS.fill}
+      />
     </group>
   )
 }

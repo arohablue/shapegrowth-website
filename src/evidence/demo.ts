@@ -10,8 +10,8 @@ import type { EvidenceSource } from '@/evidence/registry'
  *
  * This file exists so that the demo material is removable in one action. It is
  * spread into `EVIDENCE_SOURCES` in `registry.ts` on a single marked line:
- * delete the import and that line and the page returns to eleven labelled holes,
- * with no other edit anywhere. That is the whole reason for a second module
+ * delete the import and that line and every slot this file still holds returns
+ * to a labelled hole, with no other edit anywhere. That is the whole reason for a second module
  * rather than eleven entries typed into the registry directly — mixed in, the
  * demo entries would be indistinguishable from real ones within a week, and
  * removing them would be an archaeology exercise against `git log`.
@@ -57,33 +57,20 @@ import type { EvidenceSource } from '@/evidence/registry'
 export const DEMO_SOURCES: Partial<Record<string, EvidenceSource>> = {
   /* ── 01 / 3D RECONSTRUCTION ─────────────────────────────────────────────── */
 
-  /** DEMO ONLY — stands in for the real multi-view capture photograph. */
-  'source-data': {
-    type: 'image',
-    src: '/demo/reconstruction/source-data.svg',
-    alt: 'Placeholder schematic: six framed panels in a grid, each showing the same drawn plant turned to a different viewpoint and labelled VIEW 01 to VIEW 06. Drawn, not photographed.',
-  },
-
-  /** DEMO ONLY — stands in for the real reconstructed point cloud export. */
-  'reconstruction-output': {
-    type: 'image',
-    src: '/demo/reconstruction/reconstruction-output.svg',
-    alt: 'Placeholder schematic: a dense cloud of small dots filling the shape of the same drawn plant, dots nearer the viewer drawn larger and brighter. Stands in for a point cloud.',
-  },
-
-  /** DEMO ONLY — stands in for the real recovered surface wireframe. */
-  'geometry-output': {
-    type: 'image',
-    src: '/demo/reconstruction/geometry-output.svg',
-    alt: 'Placeholder schematic: the same drawn plant as a triangulated wireframe, with a quadrilateral mesh over every leaf blade, rings of edges along the stem, and each vertex marked as a small dot.',
-  },
-
-  /** DEMO ONLY — stands in for the real closed, organ-separated model. */
-  'final-model': {
-    type: 'image',
-    src: '/demo/reconstruction/final-model.svg',
-    alt: 'Placeholder schematic: the same drawn plant as filled, shaded surfaces, each leaf blade a separate organ shaded by depth and distinct from the stem.',
-  },
+  // `source-data` and `reconstruction-output` stood here. Both are now filled
+  // for real, from the COLMAP sunflower scan — see the REAL block in
+  // `registry.ts`. They are deleted rather than left underneath the real
+  // entries: the registry spread means a superseded demo never renders, so
+  // keeping it would be dead code that still reads as a live placeholder to
+  // anyone auditing what is and is not yet evidenced.
+  //
+  // `geometry-output` and `final-model` also stood here, for the SURFACE
+  // TOPOLOGY and RECONSTRUCTED SURFACE MODEL plates. Those plates were removed
+  // when the page went from five beats to three; a demo with no slot to fill is
+  // dead weight in a file whose whole purpose is to empty out.
+  //
+  // The SVGs for all four are still in `public/demo/reconstruction/` and are
+  // now unreferenced.
 
   /** DEMO ONLY — stands in for the real trait extraction figure. */
   'phenotyping-output': {

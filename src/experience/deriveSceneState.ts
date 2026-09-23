@@ -27,7 +27,8 @@ export const track = (id: TrackId, p: number): number => {
  * ────────────────────────────────────────────────────────────────────────────
  * THE STAGE API
  * ────────────────────────────────────────────────────────────────────────────
- * Named accessors for the transformation's five beats. They are thin on
+ * Named accessors for the transformation's five tracks — not its three beats,
+ * which are a narrative division and live in `STAGE_ORDER`. They are thin on
  * purpose: each is `track()` against a window in `TRACKS`, so the timing stays
  * configurable in exactly one place while callers get a readable name instead of
  * a string key.
@@ -55,7 +56,7 @@ export const resolveActiveStage = (p: number): StageId => {
     if (centreVh >= range.startVh && centreVh < range.endVh) return range.id
   }
   // Only reachable in the hero and the outro, which own no beat: clamp to the
-  // nearest end of the narrative rather than inventing a sixth stage.
+  // nearest end of the narrative rather than inventing a fourth stage.
   return centreVh < BLOCK_RANGES[1]!.startVh ? 'capture' : 'phenotype'
 }
 

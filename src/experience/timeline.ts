@@ -27,37 +27,34 @@ export interface Block {
 }
 
 /**
- * One block per beat, and there used to be a sixth: an `introduction` section
- * that carried an argument about destructive phenotyping but had no scene event
- * of its own. Removing it is what made the page a single narrative rather than
- * an essay with a demo attached — every section now owns a visible
- * transformation, and the copy stopped lagging the scene by a full block. See
- * the alignment table under TRACKS.
+ * One block per beat. There used to be five beats and near-uniform heights;
+ * `geometry` and `surface` have since been folded into `reconstruct` because
+ * they were names for things the reconstruction does, not separate claims about
+ * the product. See the note on `StageId`.
  *
- * Heights are near-uniform on purpose. Uneven blocks were tried in order to sit
- * each heading exactly on its track's midpoint, and the arithmetic forces
- * absurd shapes — one 60vh section next to a 228vh one — because the middle
- * tracks overlap heavily while the narrative wants five even breaths. Uniform
- * blocks land every heading inside its own beat anyway (verified in
- * `verify-narrative.mjs`), which is all that was actually required.
+ * The important property of the numbers below is what they preserve. 185 + 405 +
+ * 120 = 710, which is what 140 + 140 + 140 + 140 + 150 came to, so TOTAL_VH is
+ * still 910 and SCROLLABLE_VH is still 810. Every window in TRACKS and every
+ * keyframe in the camera spline is authored in that progress space, so merging
+ * three blocks into one moved not a single frame of the reconstruction. This was
+ * a change to the document and the labels; the scene did not notice.
+ *
+ * Heights are no longer uniform, because with three beats they no longer can be.
+ * The old uniformity was a way of admitting that the five names were evenly
+ * spaced over unevenly spaced events; with the names gone the blocks can simply
+ * match the events. Each one now covers exactly the tracks it is talking about —
+ * see the alignment table under TRACKS, which for the first time needs no
+ * apology about where a boundary falls.
  */
 export const BLOCKS: readonly Block[] = [
   { id: 'hero', vh: 100 },
-  { id: 'capture', vh: 140 },
-  { id: 'reconstruct', vh: 140 },
-  { id: 'geometry', vh: 140 },
-  { id: 'surface', vh: 140 },
-  { id: 'phenotype', vh: 150 },
+  { id: 'capture', vh: 185 },
+  { id: 'reconstruct', vh: 405 },
+  { id: 'phenotype', vh: 120 },
   { id: 'outro', vh: 100 },
 ] as const
 
-export const STAGE_ORDER: readonly StageId[] = [
-  'capture',
-  'reconstruct',
-  'geometry',
-  'surface',
-  'phenotype',
-] as const
+export const STAGE_ORDER: readonly StageId[] = ['capture', 'reconstruct', 'phenotype'] as const
 
 export const TOTAL_VH = BLOCKS.reduce((sum, b) => sum + b.vh, 0)
 
@@ -112,27 +109,32 @@ export const progressToVh = (p: number): number => p * SCROLLABLE_VH
  * numbers here and nothing else. There is deliberately no second table: two
  * tables is how you get animations that fight each other.
  *
- * The windows used to LEAD the narrative sections by roughly one section, to
- * stop the reader scrolling past a static frame during the old `introduction`
- * block. With that block gone the two are directly aligned instead, and this
- * table is the reason the page reads as one continuous account rather than
- * captions arriving next to unrelated motion:
+ * Each section owns exactly the tracks it is talking about. Under the old
+ * five-block layout this table needed caveats — `pointCloud` finished inside
+ * RECONSTRUCT's block while belonging to the capture beat, and SURFACE had to
+ * hold two tracks because there was no name for "the last third". With three
+ * blocks sized to the events, the boundaries fall where the handoffs already
+ * were:
  *
  *   section     owns p       the tracks that resolve inside it
  *   ───────────────────────────────────────────────────────────────────────
- *   CAPTURE     0.123→0.296  scan 0.05→0.30, the rig's whole orbit
- *   RECONSTRUCT 0.296→0.469  vertex 0.33→0.50 — samples registering onto
- *                            the reconstruction's real vertices
- *   GEOMETRY    0.469→0.642  geometry 0.40→0.65, the wireframe building
- *   SURFACE     0.642→0.815  mesh 0.55→0.75 then finalPlant 0.70→0.85
- *   PHENOTYPE   0.815→1.000  phenotype 0.85→1.00, the measurement pass
+ *   CAPTURE     0.123→0.352  rig 0.00→0.30, scan 0.03→0.18, and the whole of
+ *                            pointCloud 0.15→0.35 — a scan *produces* samples,
+ *                            so watching them accumulate under the orbiting rig
+ *                            is the capture beat, not a later one
+ *   RECONSTRUCT 0.352→0.852  vertex 0.33→0.50, geometry 0.40→0.65,
+ *                            mesh 0.55→0.75, finalPlant 0.70→0.85 — the four
+ *                            tracks that turn a scatter of samples into one
+ *                            solid plant, under one heading because they are
+ *                            one act
+ *   PHENOTYPE   0.852→1.000  phenotype 0.85→1.00, the measurement pass
  *
- * Note where `pointCloud` (0.15→0.35) sits: it forms during CAPTURE, not during
- * RECONSTRUCT, and that is correct rather than an off-by-one. A scan *produces*
- * samples, so watching them accumulate under the orbiting rig is the capture
- * beat. Reconstruction is the later act of resolving that scatter into one
- * coherent registered body, which is the `vertex` track — hence RECONSTRUCT's
- * line is about spatial information, not about points appearing.
+ * RECONSTRUCT is half the page under a single caption, and that is the cost of
+ * the merge, paid deliberately. Three headings over this stretch described the
+ * mechanism; one describes the outcome. The stretch is not silent — it is the
+ * densest run of motion in the piece, four overlapping tracks with no gap
+ * between them — and a reader scrolling it is watching the thing happen rather
+ * than reading about it happening.
  *
  * On easing choice — this is not cosmetic. `easeInOutCubic` has zero slope at
  * BOTH ends, which is right for something that appears out of nothing and wrong
@@ -159,17 +161,17 @@ export const progressToVh = (p: number): number => p * SCROLLABLE_VH
  *
  * Reference block boundaries (from BLOCKS above; SCROLLABLE_VH = 810):
  *   hero         0.000 → 0.123
- *   capture      0.123 → 0.296
- *   reconstruct  0.296 → 0.469
- *   geometry     0.469 → 0.642
- *   surface      0.642 → 0.815
- *   phenotype    0.815 → 1.000
+ *   capture      0.123 → 0.352
+ *   reconstruct  0.352 → 0.852
+ *   phenotype    0.852 → 1.000
  *   outro        1.000 → 1.123   (never scrolled through — see SCROLLABLE_VH)
  *
  * Each section's copy reaches full strength at its block's centre, which lands
- * at p = 0.148, 0.321, 0.494, 0.667, 0.846 respectively. Those five numbers are
- * asserted against the table above in `verify-narrative.mjs`; if a block height
- * changes here and a heading drifts out of its own beat, that harness fails.
+ * at p = 0.238, 0.602, 0.926 respectively — the rig mid-orbit with the cloud
+ * building, the wireframe complete with the surface starting to close, and the
+ * measurement pass half drawn. Those three numbers are asserted against the
+ * table above in `verify-narrative.mjs`; if a block height changes here and a
+ * heading drifts out of its own beat, that harness fails.
  */
 export const TRACKS = {
   /**
