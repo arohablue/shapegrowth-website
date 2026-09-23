@@ -193,7 +193,8 @@
       "Bash(\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --headless=new --use-angle=swiftshader --enable-unsafe-swiftshader --hide-scrollbars --force-prefers-reduced-motion --remote-debugging-port=9333 --user-data-dir=/tmp/cdp-rm about:blank)",
       "Bash(VW=1440 VH=900 TAG=rm STOPS='[[\"a\",9600],[\"b\",11500]]' node /tmp/audit.mjs)",
       "Bash(\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --headless=new --use-angle=swiftshader --enable-unsafe-swiftshader --hide-scrollbars --remote-debugging-port=9333 --user-data-dir=/tmp/cdp-hero about:blank)",
-      "Bash(node /tmp/hero.mjs)"
+      "Bash(node /tmp/hero.mjs)",
+      "Bash(node scripts/build-reconstruction-assets.mjs)"
     ]
   }
 }
