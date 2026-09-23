@@ -1,0 +1,1341 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-void: #070908;
+  --color-ink: #eae8e1;
+  --color-cloud: #96a79b;
+  --color-accent: #9bd07f;
+
+  --font-display: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+  --font-editorial: 'Instrument Serif', ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    /* Native scroll only. No smooth-scroll and no scroll hijacking — both fight
+       trackpad inertia and break keyboard paging. */
+    background-color: var(--color-void);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-void);
+    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 30%, transparent);
+    color: var(--color-ink);
+  }
+}
+
+/* ───────────────────────── layout shell ───────────────────────── */
+
+.scene-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  /* Fixed rather than sticky: sticky inside a long document forces the compositor
+     to re-evaluate containment on every scroll tick in Safari, which shows up as
+     micro-jank. Fixed is promoted once and left alone. */
+  pointer-events: none;
+}
+
+.document {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.document a,
+.document button {
+  pointer-events: auto;
+}
+
+/* A slow vertical gradient keeps type legible over the brightest part of the
+   cloud without resorting to a flat scrim.
+
+   The stops follow the measured layout rather than taste. All editorial copy
+   now sits in the bottom band and the hero's chrome in the top one, while the
+   specimen projects entirely into rows 2-6 of 9 — so weight belongs at the two
+   ends and the midband can stay almost absent. Heavier at the bottom than the
+   top because the bottom carries a serif sentence at 36px over the plant's
+   lower canopy; the top carries an 11px tracked eyebrow over nothing. */
+.legibility-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-void) 58%, transparent) 0%,
+    color-mix(in oklab, var(--color-void) 8%, transparent) 32%,
+    color-mix(in oklab, var(--color-void) 8%, transparent) 62%,
+    color-mix(in oklab, var(--color-void) 74%, transparent) 100%
+  );
+}
+
+/* Mobile used to darken the MIDBAND to 38%, because the copy went full-width
+   and landed directly on the brightest part of the canopy. It no longer does —
+   the caption sits in the bottom third on both breakpoints, and the specimen
+   projects into the middle third only, so those two regions are now disjoint.
+   The 38% midband is therefore pure loss: it was dimming the plant to protect
+   type that is not there any more.
+
+   What mobile genuinely still needs is a stronger bottom, because the caption
+   is full-width there and the fov is wider (52 vs 38), which pushes more of the
+   lower canopy into the same band. Weight moved from the middle to the end. */
+@media (max-width: 767px) {
+  .legibility-veil {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-void) 60%, transparent) 0%,
+      color-mix(in oklab, var(--color-void) 14%, transparent) 30%,
+      color-mix(in oklab, var(--color-void) 16%, transparent) 58%,
+      color-mix(in oklab, var(--color-void) 84%, transparent) 100%
+    );
+  }
+}
+
+/* ───────────────────────── measurement annotations ───────────────────────── */
+
+/* z-index 2, above the legibility veil: the veil exists to hold the specimen
+   back behind the editorial copy, and these are annotations *of* the specimen —
+   dimming them with it would cost the one thing they have to be, which is
+   legible. Sits below `.document` in the stack because at 1280px the copy
+   column and the annotated silhouette do not overlap, and where they ever do
+   the sentence wins. */
+.annotation-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  /* Contain layout/paint so seven per-frame transform writes cannot invalidate
+     anything outside this element. */
+  contain: layout paint;
+}
+
+.annotation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Transform-only motion, and no `will-change`: seven simultaneously promoted
+     layers over a full-screen WebGL canvas is a measurable compositor cost for
+     elements that are absent for 85% of the page. Transform and opacity are
+     already off the main thread without the hint. */
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.annotation__label {
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: color-mix(in oklab, var(--color-ink) 46%, transparent);
+}
+
+/* The reading itself. Tabular figures are the whole point — see the note in
+   AnnotationLabels.tsx. Ink rather than accent: seven accent-green numbers on a
+   near-monochrome frame is the "bright neon UI" the brief rules out, and the
+   accent is already doing work as the drawing tip and the anchor marker. */
+.annotation__value {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklab, var(--color-ink) 92%, transparent);
+}
+
+.annotation__unit {
+  margin-left: 0.28em;
+  font-size: 0.6875em;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: color-mix(in oklab, var(--color-cloud) 78%, transparent);
+}
+
+/* SCHEMATIC — NOT MEASURED.
+
+   The seven readings are invented, and this is what says so on the frame itself
+   rather than in a file nobody screenshots. Its opacity is written every frame
+   as the strongest opacity any reading reaches, so it cannot be present without
+   them or absent with them — see the `peak` accumulator in AnnotationLabels.tsx.
+
+   Set in `.evidence__kind`'s register — mono, 0.5rem, 0.24em, uppercased here
+   rather than in the copy — because that is already this project's voice for
+   "what you are looking at is a placeholder", and the demo plates below use it
+   for the same job. A second treatment invented for the same meaning would read
+   as a different kind of statement.
+
+   Deliberately quieter than the thing it qualifies: cloud at 58% against the
+   readings' 92% ink. It has to be found, not announced — a notice that competed
+   with the values would be a banner across the specimen, and the specimen is the
+   page. It is also the reason this is not accented: the accent is the drawing
+   tip and the anchor marker, and borrowing it here would read as a seventh
+   measurement rather than as a note about them.
+
+   Top left is the one corner nothing else occupies while the stage is open —
+   the beat's heading is fixed to the bottom, the progress rail to the right
+   edge. Positioned by CSS only, so it takes no part in the projection and
+   cannot enter the label-collision budget. Margins match the stage section's
+   `px-6 / md:px-12` so it sits on the same optical margin as the page's text. */
+.annotation__note {
+  position: absolute;
+  top: clamp(1.25rem, 3.5vh, 2.25rem);
+  left: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  color: color-mix(in oklab, var(--color-cloud) 58%, transparent);
+}
+
+@media (min-width: 768px) {
+  .annotation__note {
+    left: 3rem;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Slightly smaller, and the tracking comes in with it — 0.22em on a 9px label
+     is ~2px of space per letter, which at mobile widths pushes "STEM DIAMETER"
+     wider than the gap between the silhouette and the viewport edge. */
+  .annotation__label {
+    font-size: 0.5rem;
+    letter-spacing: 0.16em;
+  }
+  .annotation__value {
+    font-size: 0.75rem;
+  }
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ───────────────────────── editorial type ───────────────────────── */
+
+.display {
+  /* 12ch of uppercase Inter Tight at ~0.58em average advance needs ~11.5vw to
+     fill a 92vw measure. The clamp ceiling stops it exploding on ultrawide. */
+  font-size: clamp(3rem, 11.4vw, 13.5rem);
+  line-height: 0.83;
+  letter-spacing: -0.045em;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 0;
+  /* Optical alignment: uppercase letterforms sit a hair right of the true
+     margin because of side bearings. */
+  text-indent: -0.035em;
+}
+
+.display__line {
+  display: block;
+}
+
+.display__editorial {
+  font-family: var(--font-editorial);
+  font-weight: 400;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: -0.02em;
+  /* The serif has a smaller cap-height than the grotesque; scale it up so the
+     two lines share an optical size rather than a nominal one. */
+  font-size: 1.1em;
+  line-height: 0.86;
+}
+
+.display__stop {
+  color: var(--color-accent);
+}
+
+.eyebrow {
+  font-size: clamp(0.625rem, 0.72vw, 0.75rem);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-ink) 55%, transparent);
+}
+
+.section-index {
+  font-family: var(--font-mono);
+  font-size: clamp(0.625rem, 0.7vw, 0.75rem);
+  letter-spacing: 0.2em;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The title used to be clamp(1.75rem, 4.6vw, 4rem) at weight 600 with -0.035em —
+   the same costume as `.display`. Two levels of the hierarchy dressed
+   identically means neither leads, and at 4rem uppercase it also out-shouted the
+   serif lede, which is the sentence the reader is actually meant to hear.
+
+   It is now a caption label, sharing a baseline with the plate number rather
+   than sitting above a stacked heading. The tracking is what carries it at this
+   size: 0.14em of uppercase Inter Tight reads as an instrument label, which is
+   the same register as `.annotation__label` on the measurement layer. That
+   rhyme is the point — it makes the editorial and measurement type look like
+   one document instead of two.
+
+   -0.035em was outright wrong at the bottom of the old clamp: caps have no
+   descender/ascender interplay to close up, so tight negative tracking on small
+   uppercase just collides the stems. */
+.section-title {
+  font-size: clamp(1rem, 1.3vw, 1.25rem);
+  line-height: 1;
+  letter-spacing: 0.14em;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin: 0;
+  color: color-mix(in oklab, var(--color-ink) 90%, transparent);
+}
+
+/* The sentence, and the only thing on the page allowed to be a sentence. It
+   leads the caption because the brief's five lines ARE the explanation — there
+   is no body paragraph under it to defer to.
+
+   `text-wrap: balance` rather than `pretty`: these are 3-8 word lines where a
+   single short last line is the whole risk, and balance is the property that
+   evens the rag across so few lines. */
+.section-lede {
+  font-family: var(--font-editorial);
+  font-size: clamp(1.375rem, 2.5vw, 2.25rem);
+  line-height: 1.22;
+  letter-spacing: -0.015em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+/* Short viewports are the binding constraint on the caption band, not narrow
+   ones. The specimen's projected extent ends at ~78% of viewport height, so the
+   caption has ~150px at 900px tall and less below that. Trimming the lede is
+   the right lever: it is the tallest element by far, and one step down still
+   leaves it clearly leading the label above it. */
+@media (max-height: 860px) and (min-width: 768px) {
+  .section-lede {
+    font-size: clamp(1.25rem, 1.9vw, 1.75rem);
+  }
+}
+
+.section-body {
+  font-size: clamp(0.9375rem, 1.05vw, 1.0625rem);
+  line-height: 1.62;
+  letter-spacing: -0.006em;
+  color: color-mix(in oklab, var(--color-ink) 62%, transparent);
+  margin: 0;
+  max-width: 42ch;
+  text-wrap: pretty;
+}
+
+.meta {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklab, var(--color-ink) 40%, transparent);
+}
+
+/* Sections are moved by transform only — never by properties that trigger
+   layout. The compositor handles these on its own thread. */
+.reveal {
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto;
+  }
+  .grain {
+    display: none;
+  }
+}
+
+
+/* ───────────────────────── offerings index ─────────────────────────
+
+   The record that follows the reconstruction. Type, hairlines and reserved
+   rectangles — no fills, no radii, no shadows, nothing that would make these
+   read as cards. See the header of `Offerings.tsx` for why.
+
+   z-index 11 and an opaque background are load-bearing rather than cosmetic.
+   Five separate fixed layers are still on screen when the experience ends — the
+   canvas (0), the legibility veil (1), the measurement annotations (2), the
+   grain (2) and the progress rail (10) — and every one of them would otherwise
+   sit on top of this content permanently, the rail frozen at 100% and seven
+   annotation labels floating over the figures. Scrolling an opaque panel over
+   the lot is the whole hand-off: no observer, no fade, no new state. */
+/* The seam is two distances, not one, and the first attempt at it used a single
+   number on the reasoning that the dissolve should fill the space above the
+   panel exactly. That is wrong, and measuring it is what showed why: with the
+   gradient's transparent end landing exactly on the viewport bottom at p=1, the
+   closing sentence — which sits 71px up from that edge — is already inside the
+   gradient after 100px of scroll. It got one wheel notch at full strength.
+
+   So they are separate, and the margin is derived from both rather than typed
+   as a third number that could drift out of step with them:
+
+     --seam-hold      how far the reader can scroll past the end of the
+                      experience with the closing frame still untouched.
+     --seam-dissolve  how far the gradient takes to go from clear to solid.
+
+   Held at 30vh because the sentence enters the gradient `hold + 71px` after
+   progress reaches 1; 30vh buys ~340px, which is a deliberate pause rather than
+   a pixel of grace. Dissolved over 55vh because the frame being taken down is a
+   whole screen of specimen, seven annotations and a rail — anything much
+   shorter reads as a wipe rather than the scene receding. */
+:root {
+  --seam-hold: 30vh;
+  --seam-dissolve: 55vh;
+}
+
+.offerings {
+  position: relative;
+  z-index: 11;
+  background-color: var(--color-void);
+  /* Re-enables pointer events, which `.document` switches off page-wide so the
+     canvas stays interactive underneath. Nothing here is interactive yet, but
+     text selection is — and copy you cannot select reads as an image. */
+  pointer-events: auto;
+  /* The hold. Measured: the reconstruction's measured root ends at document
+     y=8190 at 1440x900, and experienceProgress reaches 1 at scroll 7290 —
+     whose viewport bottom is y=8190 exactly. So the panel's top edge arrived
+     at the foot of the screen on the same pixel the experience finished, and
+     `Outro.tsx` — whose fade `verify-narrative.mjs` checks reaches 0.999 at
+     p=1 — was legible for about 30px of scroll before this element began
+     covering it. The closing line is the last sentence of the page; it was
+     being deleted by a layout coincidence.
+
+     This margin is the only way to buy that sentence any time. The outro block
+     cannot simply be made taller: `BLOCKS` is the reconstruction's timeline,
+     and 100vh added there rescales all five beats (see `ProgressProvider`).
+     Added *after* the measured root, it costs page height and nothing else. */
+  margin-top: calc(var(--seam-hold) + var(--seam-dissolve));
+  padding-block: clamp(4rem, 8vh, 7rem) clamp(7rem, 16vh, 14rem);
+}
+
+/* The dissolve, and the reason there is no longer a rule here.
+
+   A `border-top` hairline was the seam's only marker, on the reasoning that the
+   shift from a specimen on the void to a ruled index needs no help. What it
+   actually did was sharpen a cut: the panel is opaque and rises from the foot
+   of the screen, so its top edge travelled up through the finished plant like a
+   blade — photographed at scroll 7920 it had the stem severed mid-internode and
+   the LEAF ANGLE annotation sliced through its own glyphs.
+
+   This gradient occupies the margin above the panel and takes the whole
+   demonstration down together — canvas, veil, annotations, grain and the rail
+   are all below z-index 11, so one element dissolves all five at once. That is
+   the same argument the opaque panel already made, continued: still no
+   observer, no tween and no new state, just a second thing stacking order gets
+   for free.
+
+   It is anchored to the panel and grows upward, so the hold above it is
+   whatever the margin does not spend here — which is why the margin is a
+   `calc` of the two and not a number of its own. */
+.offerings::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 100%;
+  height: var(--seam-dissolve);
+  background: linear-gradient(to bottom, transparent, var(--color-void));
+  pointer-events: none;
+}
+
+.offerings__inner {
+  margin-inline: auto;
+  max-width: 92rem;
+  padding-inline: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .offerings__inner {
+    padding-inline: 3rem;
+  }
+}
+
+/* Widened from 44ch, which was a measure set for the standfirst and inherited by
+   the heading. At the heading's new 40px, 44ch resolved to a 407px box and broke
+   "What the method produces" as "What the / method produces" — `text-wrap:
+   balance` doing exactly what it is for, on a line that did not want balancing.
+   A two-line ragged heading reads as a header that ran out of room; this line is
+   the turn in the argument and it should land as one statement.
+
+   The standfirst is unaffected: it carries its own `max-width: 38ch`, so this
+   only releases the heading. */
+.offerings__masthead {
+  max-width: 54ch;
+  margin-bottom: clamp(4rem, 9vh, 7.5rem);
+}
+
+/* Demoted from clamp(1.75rem, 3.4vw, 3rem).
+
+   The old size was argued as "well below `.display`, because the hero owns the
+   page's one large statement" — right principle, wrong comparison. The heading
+   it actually competes with is not the hero, which is nine screens away and
+   forgotten; it is `.offering__index`, the 01 and 02 set in mono at 3.25rem
+   directly beneath it. At 3rem this line was the second-largest thing in the
+   section and read as a title page for it, which is precisely the effect the
+   seam had to lose: the reader met a masthead, then a numbered offering with
+   its own title, lede and bridge, before reaching a single figure.
+
+   At 2.125rem it was larger than `.offering__title` (1.75rem) and smaller than
+   the index it precedes, which is the correct standing for a line that turns
+   the argument rather than opening a document. That standing holds; the size
+   was one notch too low for it, and the comparison above is what missed it.
+
+   Measured across the seam at 1440x900: `.section-lede` — the sentence under
+   each of the five beats — sets at 36px, and this line set at 34px. So the
+   heading that declares what the whole method produces arrived *smaller* than
+   the captions the reader had just finished, and every piece of type on the
+   page stepped down at exactly the moment the argument was supposed to turn.
+   The evidence read as an appendix because it was typeset as one.
+
+   2.5rem is 40px: above `.section-lede`, still below `.offering__index` at
+   52px, so the original ordering against the index is intact and the inversion
+   against the stage is gone.
+
+   The viewport term had to move with the ceiling, which is the part that is easy
+   to miss. Raising the maximum alone changed nothing at 1440, because 2.5vw is
+   36px there and the clamp's middle term was the one binding — the heading came
+   out exactly level with `.section-lede` instead of above it, which is a tie
+   rather than a turn. 2.8vw reaches 40px at 1440 and the ceiling takes over
+   above it. */
+.offerings__title {
+  font-size: clamp(1.5rem, 2.8vw, 2.5rem);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  font-weight: 500;
+  margin: 1.25rem 0 0;
+  text-wrap: balance;
+}
+
+.offerings__standfirst {
+  font-family: var(--font-editorial);
+  font-size: clamp(1.0625rem, 1.5vw, 1.375rem);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: color-mix(in oklab, var(--color-ink) 62%, transparent);
+  margin: 1.25rem 0 0;
+  max-width: 38ch;
+  text-wrap: pretty;
+}
+
+/* ── one offering ── */
+
+.offering + .offering {
+  margin-top: clamp(5rem, 11vh, 9rem);
+  padding-top: clamp(5rem, 11vh, 9rem);
+  border-top: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+}
+
+.offering__head {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(1.25rem, 3vw, 3rem);
+  margin-bottom: clamp(3rem, 6vh, 4.5rem);
+}
+
+/* The only place on this page a number is set large. It is the index of the
+   offering, and setting it in the mono face ties it to the plate numbers and the
+   annotation readouts rather than to the editorial type. */
+.offering__index {
+  font-family: var(--font-mono);
+  font-size: clamp(1.75rem, 3.6vw, 3.25rem);
+  line-height: 0.9;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: color-mix(in oklab, var(--color-accent) 80%, transparent);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.offering__headline {
+  max-width: 52ch;
+}
+
+.offering__title {
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.offering__lede {
+  font-family: var(--font-editorial);
+  font-size: clamp(1.125rem, 1.9vw, 1.625rem);
+  line-height: 1.32;
+  letter-spacing: -0.015em;
+  color: color-mix(in oklab, var(--color-ink) 78%, transparent);
+  margin: 0.875rem 0 0;
+  max-width: 34ch;
+  text-wrap: balance;
+}
+
+/* ── the arc ──
+
+   The offering's chain, pinned at the top of the sticky stage with the term that
+   matches the figure below it marked. It is the section's whole wayfinding: no
+   rail, no stepper, no dots.
+
+   The terms do not move and nothing is measured against them, so the marking is
+   a colour change and nothing else. Anything that resized or repositioned the
+   current term would reflow the line under it on every step — six words jittering
+   in place is precisely the excessive UI this section exists without, and it
+   would do it directly above the figure. */
+.offering__spec {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  /* Row gap only. The horizontal spacing belongs to the separator, which has to
+     sit at a fixed distance from the two terms it joins. */
+  row-gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding-bottom: 0.875rem;
+  /* The same hairline the steps carry under their own rubric, so the two columns
+     start on one line across the page. */
+  border-bottom: 1px solid color-mix(in oklab, var(--color-ink) 12%, transparent);
+}
+
+.offering__arc-term {
+  /* Dimmer than `.meta`'s own 40%, so the marked term has somewhere to go. The
+     unmarked terms still have to be legible — the arc is the sequence, and a
+     reader who can only read one word of it has a stepper. */
+  color: color-mix(in oklab, var(--color-ink) 30%, transparent);
+  transition: color 480ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.offering__arc-term[data-active='true'] {
+  color: color-mix(in oklab, var(--color-accent) 92%, transparent);
+}
+
+.offering__arc-sep {
+  display: inline-block;
+  padding-inline: 0.5rem;
+  /* Never marked, at any point. The arrows are the relation between the terms,
+     not steps in their own right, and highlighting one would imply the reader is
+     between two stages rather than at one. */
+  color: color-mix(in oklab, var(--color-ink) 18%, transparent);
+}
+
+/* ── the hand-off line ──
+
+   Sits between the offering's head and its first plate, on its own rule. The
+   rule is there to mark a change of register — statement above, evidence below —
+   and it is the only thing separating them, because a heading would announce a
+   new section when this is explicitly a continuation of the one above.
+
+   Each sentence is its own block, so the line breaks are the ones that were
+   written rather than the ones the measure happened to produce. `text-wrap:
+   balance` is the fallback for the narrow viewports where a sentence genuinely
+   cannot fit on one line: it splits such a line near its middle instead of
+   leaving one orphaned word under a full one. */
+.offering__bridge {
+  font-family: var(--font-editorial);
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: color-mix(in oklab, var(--color-ink) 52%, transparent);
+  margin: clamp(3rem, 6vh, 4.5rem) 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+  max-width: 44ch;
+}
+
+.offering__bridge-line {
+  display: block;
+  text-wrap: balance;
+}
+
+/* ── the sequence: a sticky stage and a column of steps ──
+
+   The stage holds every plate in the offering, in one grid cell, and pins while
+   the steps scroll past it. See the header of `Offerings.tsx` for why the
+   previous layout — one plate per row down the full measure — could not state
+   the sequence: the plate was taller than the viewport, so no two were ever on
+   screen together and the chain was never visible as a chain.
+
+   The stage is first in source order and sits in the first column, so the figure
+   is met before the words about it. */
+/* The stage's share is up from 1.45fr, and the gap is down from a 5rem ceiling.
+
+   Not a taste change: measured at 1440x900 the frame came out 753x423 inside a
+   1344px measure, so the plate held 25% of the viewport's area directly after
+   nine screens in which the specimen held most of it. The height budget on
+   `.offering__stage-box` was never the constraint — it allows 1077px of width
+   and the column was handing over 753 — so the figure was being starved by the
+   grid, not by the cap that exists to size it.
+
+   1.8fr with a 4rem gap gives the stage 832px and the steps 462px. The steps
+   column is the one to watch: at 462px and 19px type it carries ~52 characters,
+   which is inside a comfortable measure, and `.offering__step-body` caps at
+   34rem anyway, so the column was never using the width it was given. */
+.offering__sequence {
+  margin-top: clamp(3rem, 7vh, 5.5rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+  gap: clamp(2rem, 3.5vw, 4rem);
+  align-items: start;
+}
+
+.offering__stage {
+  position: sticky;
+  /* Pinned below the top of the viewport rather than at it, so the stage sits
+     roughly on the same centre line as the step being read beside it. Pinning at
+     the top left the figure high and the prose low, with the bottom third of the
+     screen empty — two things being read together should sit at one height.
+     An exact centring would have to know the stage's own height, which is
+     aspect-derived; this is close enough at every viewport and needs no JS.
+
+     Raised from `clamp(2.5rem, 13vh, 7.5rem)`, which was still pinning high:
+     measured at 1440x900 the plate occupied y=165 to y=628 and left 272px of
+     empty screen beneath it, so the figure read as having been pushed up out of
+     the way rather than placed. At 18vh, and with the wider column above, the
+     plate now runs y=208 to y=716 in the same 900px window: 208px of air above
+     it and 184px below, which is as close to seated as this gets without CSS
+     knowing a height it cannot compute. The 10rem ceiling keeps it from running
+     away on a very tall window, where 18vh would push the figure past the
+     middle and leave the step beside it stranded at the top. */
+  top: clamp(2.5rem, 18vh, 10rem);
+  /* Without this the grid item stretches to the full row height and `sticky`
+     has nothing to travel within, which looks exactly like sticky not being
+     supported. `align-items: start` on the parent already does it; it is
+     repeated here because this is the declaration that would be missed if the
+     parent's alignment were ever changed for the steps column's sake. */
+  align-self: start;
+  z-index: 1;
+  background-color: var(--color-void);
+}
+
+/* Every plate occupies this one cell. The cell's height is the tallest of them,
+   which is why the frame keeps its reserved `aspect-ratio` — a plate that
+   collapsed before its asset landed would make the stage change size as the
+   reader scrolled through it.
+
+   `max-width` rather than `max-height`: the box is sized by its aspect ratio, so
+   clamping the height would leave the width alone and silently widen the frame
+   past the ratio the figure declares. Clamping the width clamps both.
+
+   `--stage-aspect` is set per offering by `Offerings.tsx` as the narrowest ratio
+   among that offering's plates, which is the one that keeps all of them inside
+   the height budget. It used to be a literal `16 / 9` — the ratio every figure
+   happened to declare because the demo schematics were drawn that way — so the
+   first real portrait figure would have overflowed the cap. The fallback is that
+   old constant, and it only applies if the inline property is missing. */
+.offering__stage-box {
+  display: grid;
+  max-width: calc((78vh - 6rem) * var(--stage-aspect, 1.7778));
+  margin-inline: auto;
+}
+
+/* The crossfade, and the only motion in the section.
+
+   Opacity alone, with a barely-there lift. The figures are drawings of a
+   specimen at successive stages of the same pipeline and they are registered to
+   each other, so a plain dissolve reads as one thing changing; anything with a
+   direction — a slide, a wipe, a scale — reads as two separate pictures being
+   swapped by a carousel.
+
+   `pointer-events` and not `visibility: hidden`. Hiding would drop the inactive
+   plates out of the accessibility tree, leaving a screen reader user with one
+   figure where the page claims six. They stay in the tree, in order, and the
+   only focusable thing on a plate — the Enlarge button — is not rendered at all
+   unless the plate is the active one. See `Figure.tsx`. */
+.plate {
+  margin: 0;
+  grid-area: 1 / 1;
+  transition:
+    opacity 560ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 560ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.plate[data-active='false'] {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, 0.5rem, 0);
+}
+
+.plate[data-active='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── the steps ──
+
+   One block per plate, each tall enough that it is alone at the centre of the
+   viewport for a while. The height is what paces the sequence: it is how long a
+   figure holds the stage, so it is set in viewport heights rather than rems.
+   `justify-content: center` puts the text on the centre line the observer is
+   watching, so the step being read and the step driving the stage are the same
+   step rather than two that happen to be close. */
+.offering__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 12vh;
+}
+
+/* Dimmed rather than hidden when inactive. The whole sequence stays readable —
+   this is a scientific argument and a reader must be able to go back a step
+   without scrolling to reactivate it — but the current step is unambiguous.
+
+   Down from 62vh, and this is the single number that decided how the section
+   read. Measured at 1440x900: a step block was 558px tall and its head and body
+   together were 99px, so 82% of every block was empty. Because the text is
+   centred in the block, that void was split evenly above and below it — 230px of
+   black between one sentence and the next, five times per offering. The effect
+   was that each figure arrived, changed, and then waited alone; the sequence
+   read as six animations played in turn rather than as one argument advancing,
+   which is the specific failure this pacing has to avoid.
+
+   50vh puts the block at 450px, and the larger `.offering__step-body` below
+   raises the content it holds to 106-135px, so the two changes compound: fill
+   goes from 18% to 24-30% and the black between one sentence and the next falls
+   from 459px to 315px. That is still a deliberate hold — the crossfade below
+   keeps its full 560ms and no step arrives early — but 315px is inside a single
+   screen, so the step just read is still visible, dimmed, when the next one
+   lights. The sequence stops being a series of events and becomes a column. */
+.offering__step {
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: opacity 480ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.offering__step[data-active='false'] {
+  opacity: 0.32;
+}
+
+.offering__step-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.875rem;
+  margin: 0 0 1rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--color-ink) 12%, transparent);
+}
+
+/* Cloud rather than accent. A back-reference to a stage the reader has already
+   watched should not be the brightest thing in the column. */
+.offering__step-stage {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-cloud) 78%, transparent);
+}
+
+/* The cross-reference to the plate on the stage, repeated from its caption. It
+   is the only thing that makes a step legible on its own, which is how the
+   steps arrive for anyone reading the figures and the steps as two runs. */
+.offering__step-fig {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-ink) 34%, transparent);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+
+/* What the figure demonstrates. The one piece of plain prose in the sequence, so
+   it is the one thing not set in mono — a column entirely in monospace reads as
+   instrumentation rather than as writing, and these sentences are writing.
+
+   Up from `clamp(1rem, 1.15vw, 1.125rem)` at 66% ink. Measured at 1440x900 that
+   resolved to 16.6px against the 36px of `.section-lede` above the seam — the
+   prose explaining each figure was set at under half the size of the prose
+   explaining each beat, and dimmer. It is meant to be subordinate to the figure
+   beside it, not to the section the reader has left. At 19px and 74% it is
+   still plainly the quieter of the two registers and still well under the
+   stage's lede, but it now reads as the body text of an argument rather than as
+   a caption someone left at default size. */
+.offering__step-body {
+  font-family: var(--font-editorial);
+  font-size: clamp(1.0625rem, 1.3vw, 1.1875rem);
+  line-height: 1.55;
+  letter-spacing: -0.008em;
+  color: color-mix(in oklab, var(--color-ink) 74%, transparent);
+  margin: 0;
+  max-width: 34rem;
+  text-wrap: pretty;
+}
+
+/* One column below the point at which the stage and a readable measure stop
+   fitting side by side. The stage still pins, now at the top of the viewport
+   with the steps scrolling underneath it — which needs the opaque background and
+   the z-index declared above, or the prose would slide across the figure. */
+@media (max-width: 899px) {
+  .offering__sequence {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .offering__stage {
+    top: 0;
+    /* Tight. The step being read is centred on the viewport, so every pixel the
+       pinned stage spends on padding is a pixel it takes out of the gap between
+       the figure and the first line of prose under it — at 375x812 that gap was
+       measured at -4px, i.e. the rubric sat behind the figure, before this came
+       down from 1.25rem. */
+    padding-block: 0.5rem 0.75rem;
+  }
+
+  /* In one column the figure and the prose share the viewport's height rather
+     than its width, so the frame has to be capped against the height or it
+     grows with the column and pushes the step's rubric behind itself. Measured:
+     at 768x1024 the uncapped frame was 378px tall and the rubric sat 25px under
+     the pinned stage. 30vh leaves the whole step clear at every size between
+     320px and the 899px breakpoint.
+
+     Expressed as a width because the box is sized by its aspect ratio — see the
+     note on `.offering__stage-box`. Narrow phones are limited by the column
+     before this applies at all, so it changes nothing at 375px. */
+  .offering__stage-box {
+    max-width: calc(30vh * var(--stage-aspect, 1.7778));
+  }
+
+  .offering__steps {
+    padding-top: 2rem;
+  }
+
+  /* The same correction as the desktop rule, and worse here before it: at
+     375x812 a 52vh block was 422px holding the same ~99px of content, but the
+     stage is pinned at the top of the viewport rather than beside the text, so
+     the void was not split — it fell entirely between one step's last line and
+     the next step's rubric, as ~300px of black under a 184px figure. 42vh
+     leaves 341px, which still centres the step under the pinned stage without
+     the page appearing to have ended. */
+  .offering__step {
+    min-height: 42vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The evidence sections revert to the layout they had before the sticky stage:
+     one plate per row down the full measure, every figure visible at once,
+     nothing pinned and nothing fading.
+
+     This is a real alternative layout rather than `transition: none`, because
+     the stage is not decoration — one figure is on screen at a time and the
+     other five are at zero opacity, so suppressing only the animation would
+     leave five figures permanently invisible. Unstacking the grid cell is the
+     whole change: `grid-auto-flow: row` turns one cell holding six plates into
+     six rows holding one each, and the frames keep the `aspect-ratio` they
+     already carry.
+
+     `useActiveStep` checks the same query, never creates its observer, and
+     reports every step as active — which matters beyond the styling here: the
+     Enlarge control renders only on an active plate, so a component that left
+     `active` on the first plate would show the run of six with the control on
+     one of them. The two halves have to agree, and the media query is the single
+     source they agree on. Declared after the rules it overrides rather than with
+     `!important`; these are all single-class selectors of equal weight. */
+  .offering__sequence {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .offering__stage {
+    position: static;
+  }
+
+  .offering__stage-box {
+    grid-auto-flow: row;
+    gap: clamp(4rem, 10vh, 8rem);
+    max-width: none;
+  }
+
+  .plate {
+    grid-area: auto;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition: none;
+  }
+
+  /* The steps stop being scroll positions and become the captions they always
+     were, so they sit at their natural height under the run of plates, all at
+     full strength. */
+  .offering__steps {
+    padding: clamp(4rem, 10vh, 8rem) 0 0;
+  }
+
+  .offering__step {
+    min-height: 0;
+    opacity: 1;
+    transition: none;
+  }
+
+  .offering__step + .offering__step {
+    margin-top: 2.5rem;
+  }
+
+  .offering__arc-term {
+    transition: none;
+  }
+}
+
+/* Hanging figure number, the way a journal sets one: the label occupies a fixed
+   column and every line of the caption aligns past it, so a wrapped sentence
+   never runs back underneath `Fig. 04`.
+
+   Capped at 68ch rather than running the measure. The figure above it is over
+   1300px wide at desktop, and a caption set to that width is unreadable — the
+   mismatch between a wide figure and a narrow caption under it is not an
+   accident of the layout, it is the layout. */
+.plate__caption {
+  display: grid;
+  /* Wide enough for `Fig. 02.06` at this tracking. Measured, not guessed — the
+     label must not wrap, because a wrapped figure number stops reading as one. */
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 0.875rem;
+  margin-top: clamp(1.25rem, 2.5vh, 1.75rem);
+  max-width: 68ch;
+}
+
+/* Accent, and the only accent on the plate. It is carrying the sequence — the
+   reader should be able to find the fifth figure by scanning this column alone. */
+.plate__fig {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-accent) 85%, transparent);
+  font-variant-numeric: tabular-nums;
+  /* Optically aligned with the cap-height of the title beside it rather than its
+     line box, which sits the small mono label slightly low otherwise. */
+  padding-top: 0.15rem;
+}
+
+.plate__legend {
+  min-width: 0;
+
+  /* ONE measure for the whole caption, in rem rather than ch.
+
+     The caption stacks the title, the key and the apparatus in two faces at
+     three sizes — title at 11px mono, key at 13px Inter, method and reference at
+     10px mono. Capping each in `ch` gave each of them its own idea of where the
+     right edge is: 58ch measured 483px on the prose, 436px on the key and 408px
+     on the notes, so a filled plate had three ragged right edges that looked
+     like a mistake rather than a choice.
+
+     `ch` has now caused three separate measure bugs in this file, all the same
+     one: it resolves against the element it is declared on, so the moment two
+     elements in a block disagree about font-size the cap stops being shared.
+     A length in rem is the same number everywhere, which is the only property
+     that actually matters for a common right edge. 30rem lands within 3px of
+     where the interpretation's 58ch already sat, so nothing above moved. */
+  --plate-measure: 30rem;
+}
+
+/* Caption scale, not heading scale. This is a `<h4>` for the document outline,
+   and it is set at the size the rest of the caption is set at — one step up in
+   weight and tracked out, nothing more. Making it look like a heading would put
+   it in competition with the figure it is describing. */
+.plate__title {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin: 0;
+  color: color-mix(in oklab, var(--color-ink) 88%, transparent);
+}
+
+
+/* ── one evidence slot ──
+
+   The two-column `.offering__evidence` grid and the `.evidence` head that went
+   with it are gone: both offerings are plate sequences now, so there is one way
+   for a piece of evidence to look. See the header of `EvidenceSlot.tsx`. */
+
+/* The reserved rectangle. A hairline and nothing else — the frame is there to
+   say "a result belongs here", not to decorate the result. */
+.evidence__frame {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--color-ink) 10%, transparent);
+  background-color: color-mix(in oklab, var(--color-ink) 2%, transparent);
+}
+
+.evidence__media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* `contain`, not `cover`. The frame's aspect ratio is authored and the asset's
+     is whatever the instrument or the plotting library produced, so the two will
+     sometimes disagree — and when they do, `cover` silently crops the edges off
+     a plot, a scale bar off a micrograph, or the apex off a leaf. Letterboxing
+     is ugly; cropping evidence is wrong, and it is wrong invisibly. Authoring a
+     raw ratio on the figure is how a plate avoids both. */
+  object-fit: contain;
+}
+
+.evidence__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.evidence__kind {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-ink) 28%, transparent);
+}
+
+/* Legible but unmistakably provisional. It is not dimmed into the background,
+   because a placeholder that blends in is a placeholder that ships. */
+.evidence__pending {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  line-height: 1.7;
+  letter-spacing: 0.1em;
+  color: color-mix(in oklab, var(--color-cloud) 72%, transparent);
+  max-width: 26ch;
+}
+
+/* ── the apparatus: key, method, reference ──
+
+   Rendered only when the step carries one, which today is never. The whole
+   block is set below the interpretation with no rule between them — a second
+   hairline inside a caption that is already under a hairline is the chart junk
+   this section exists to not have. Separation is done with space and with the
+   drop in weight, which is enough because the type changes face as well. */
+.plate__apparatus {
+  margin-top: 0.875rem;
+}
+
+/* The figure's key. Prose face, because it is read while looking at the plate
+   and switching to mono here would make it scan as metadata. One notch dimmer
+   and one notch smaller than the interpretation it sits under. */
+.plate__key {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  letter-spacing: -0.002em;
+  color: color-mix(in oklab, var(--color-ink) 42%, transparent);
+  margin: 0;
+  max-width: var(--plate-measure);
+  text-wrap: pretty;
+}
+
+/* Method and reference. A hanging label, so the two notes are told apart by a
+   word in the margin rather than by a heading, a rule or an icon — which is the
+   whole difference between apparatus and chrome.
+
+   The label column is inside the legend, so it is a second indent level nested
+   under the figure-number column rather than the same one. That is deliberate:
+   `Fig. 02.03` indexes the plate and `Method` indexes a line within the plate,
+   and setting them on one edge would say they were peers. */
+.plate__note {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  line-height: 1.7;
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--color-ink) 38%, transparent);
+  margin: 0.5rem 0 0;
+  max-width: var(--plate-measure);
+}
+
+.plate__note-label {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-ink) 24%, transparent);
+}
+
+/* On a phone the plate caption has already spent 5.5rem of a 327px measure on
+   the figure-number column. A second 4rem hanging indent inside it leaves the
+   note itself 153px — about 25 characters of mono to the line, which is not a
+   measure, it is a column of fragments. Below 768px the label goes above its
+   note instead, which costs one line and buys the whole width back. */
+@media (max-width: 767px) {
+  .plate__note {
+    display: block;
+  }
+
+  .plate__note-label {
+    display: block;
+  }
+}
+
+/* ── the enlarge control and the enlarged view ──
+
+   These two buttons are the first focusable elements this page has ever had.
+   Until now it was a document you scrolled, so there was no focus ring anywhere
+   in this stylesheet and nothing needed one; adding a control without adding the
+   ring would have meant a keyboard user tabbing into something invisible. Scoped
+   to these two rather than set globally, because a global `:focus-visible` on a
+   page with two controls is a rule written for a page that does not exist. */
+.plate__expand,
+.plate-view__close {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-ink) 62%, transparent);
+  background-color: color-mix(in oklab, var(--color-void) 72%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-ink) 16%, transparent);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.plate__expand:hover,
+.plate-view__close:hover {
+  color: var(--color-ink);
+  border-color: color-mix(in oklab, var(--color-ink) 34%, transparent);
+}
+
+.plate__expand:focus-visible,
+.plate-view__close:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* In the corner of the frame, and present at rest rather than on hover. A
+   control that only appears on hover does not exist for a keyboard, a
+   screen reader or a touchscreen, and this is the one piece of chrome on the
+   plate, so it is set at the same weight as the placeholder note opposite it. */
+/* Bottom *left*, which is the unusual half of this. Every one of the eleven demo
+   schematics carries its `DEMO` watermark at x=1570 y=874 of a 1600x900 board —
+   the bottom-right corner — and this control was landing exactly on top of it,
+   so the provisional marking was being covered by the one piece of chrome on the
+   plate. That is the wrong thing to hide while the assets are still temporary.
+   Left rather than moving eleven assets, and it stays right when real figures
+   arrive: a scale bar, a credit or a panel letter goes bottom-right by
+   convention too, so this corner is the one a figure is least likely to want. */
+.plate__expand {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+}
+
+.plate-view {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: var(--color-ink);
+}
+
+.plate-view::backdrop {
+  background-color: color-mix(in oklab, var(--color-void) 94%, transparent);
+}
+
+/* The page behind a modal should not scroll. `:has` rather than a class toggled
+   from JavaScript, because the element's own `[open]` is already the state and a
+   second copy of it in React can only ever be the one that is wrong. */
+body:has(.plate-view[open]) {
+  overflow: hidden;
+}
+
+.plate-view__inner {
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: clamp(1rem, 2.5vh, 2rem);
+  padding: clamp(3.5rem, 7vh, 5rem) clamp(1.25rem, 4vw, 3.5rem) clamp(1.5rem, 4vh, 2.5rem);
+}
+
+.plate-view__close {
+  position: absolute;
+  top: clamp(1rem, 2.5vh, 1.75rem);
+  right: clamp(1.25rem, 4vw, 3.5rem);
+}
+
+.plate-view__frame {
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.evidence__media--expanded {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* One line under the enlarged figure: the number, the title, and the panel key
+   if there is one. Not the full caption — the reader has already read it on the
+   plate, and an enlarged view that reprints the whole legend is a second page
+   rather than a closer look. */
+.plate-view__caption {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: color-mix(in oklab, var(--color-ink) 64%, transparent);
+  margin: 0;
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+
+.plate-view__fig {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklab, var(--color-accent) 85%, transparent);
+  margin-right: 0.875rem;
+}
+
+.plate-view__key {
+  display: block;
+  margin-top: 0.375rem;
+  color: color-mix(in oklab, var(--color-ink) 42%, transparent);
+}
