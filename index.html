@@ -1,9 +1,46 @@
 <!doctype html>
-<html lang="en">
+<!-- `data-theme` is authored as the default so the document is never briefly
+     themeless: if the script below is blocked by CSP or fails, the page renders
+     light rather than unstyled. -->
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#070908" />
+    <meta name="theme-color" content="#f2f0e8" />
+
+    <!--
+      Theme boot. Must stay INLINE, SYNCHRONOUS, and ABOVE the stylesheet.
+
+      This is the whole anti-flash mechanism and each of those three properties
+      is doing work. Inline, because an external file is a network round trip
+      the first paint would wait on or race. Synchronous, because a `defer`ed or
+      module script runs after the document has been parsed and therefore after
+      the browser is free to paint — a returning dark-mode reader would get a
+      frame of light first. Above the stylesheet, because it only sets an
+      attribute and the CSS that reads it must be matched against the final
+      value, not re-matched afterwards.
+
+      Duplicating the key and the default from `src/theme/theme.ts` is the cost
+      of running before the bundle exists. Nothing checks that the copies agree,
+      so a change to either constant has to be made in both places.
+
+      Note what is absent: any reference to `prefers-color-scheme`. The default
+      is light for everyone who has not chosen, including readers whose OS is
+      dark. Only an explicit selection is honoured.
+    -->
+    <script>
+      ;(function () {
+        try {
+          var stored = window.localStorage.getItem('phenotyping:theme')
+          if (stored === 'dark' || stored === 'light') {
+            document.documentElement.dataset.theme = stored
+          }
+        } catch (e) {
+          /* Storage unreadable (Lockdown mode, blocked third-party context).
+             The authored `data-theme="light"` above already stands. */
+        }
+      })()
+    </script>
     <title>See Plants Differently — Non-destructive Plant Phenotyping</title>
     <meta
       name="description"

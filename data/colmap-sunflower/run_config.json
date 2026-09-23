@@ -1,0 +1,10 @@
+{
+  "crop": "Sunflower",
+  "sample": "1",
+  "image_source": "RGB",
+  "max_image_size": 1600,
+  "max_sift_features": 8192,
+  "registered_images": 66,
+  "total_images": 102,
+  "sparse_model": "/content/PAA_COLMAP/Sunflower/1_20260920_135031/sparse/1"
+}
