@@ -30,8 +30,8 @@ import type { ScientificFigure } from './evidence/figure'
  * WHAT WILL PUSH BACK IF YOU CHANGE IT
  * ────────────────────────────────────
  * Some of this text is load-bearing on layout, and rather than leave that as a
- * trap the constraints are enforced by `verify-narrative.mjs` and
- * `verify-phenotype.mjs`. Run `node verify-narrative.mjs` after a copy edit.
+ * trap the constraints are enforced by `scripts/verify-narrative.mjs` and
+ * `scripts/verify-phenotype.mjs`. Run `npm run verify` after a copy edit.
  * It will tell you, by name, if:
  *
  *   • a lede runs past 60 characters or a spec past 34 (they are set in a fixed
