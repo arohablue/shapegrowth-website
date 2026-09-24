@@ -687,7 +687,7 @@ export const OFFERINGS: readonly Offering[] = [
         label: 'Multi-view image acquisition',
         stage: 'capture',
         summary:
-          'Multiple viewpoints provide the visual observations used for 3D reconstruction. The specimen is photographed where it stands.',
+          'Images are captured from multiple viewpoints to reconstruct the plant in 3D. The plant is photographed in its original position.',
         category: 'photograph',
         aspect: 'wide',
         placeholder: '[REAL SOURCE IMAGE — TO BE INSERTED]',
@@ -702,7 +702,7 @@ export const OFFERINGS: readonly Offering[] = [
           // half held: screened Poisson leaves 1,646 boundary edges across 35
           // components, so the surface is not closed, and nothing in this
           // pipeline segments organs — no leaf, stem or head is ever labelled.
-          'Camera positions and a dense point cloud are recovered from correspondences between the images. The views resolve into a single coordinate frame, and the samples into a continuous surface.',
+          'Camera poses and a dense point cloud are estimated from image correspondences. The images are aligned in a common coordinate frame, and the point cloud is converted into a continuous surface.',
         category: 'point-cloud',
         // No `expandable`, and it USED to be set, back when this slot held a
         // still. The enlarge control exists so a reader can get closer to dense
@@ -719,7 +719,7 @@ export const OFFERINGS: readonly Offering[] = [
         label: 'Trait extraction',
         stage: 'phenotype',
         summary:
-          'Traits are measured directly from the reconstructed surface. Each value keeps the span on the model it was derived from.',
+          'The 3D model is used to measure plant height, leaf area, leaf length, and leaf orientation. These measurements are derived directly from the reconstructed plant geometry.',
         category: 'diagram',
         aspect: 'wide',
         placeholder: '[REAL RESEARCH FIGURE — TO BE INSERTED]',
