@@ -157,18 +157,6 @@ function OfferingSequence({ offering }: { offering: Offering }) {
             is the same ordering the plate itself uses; a reader who meets the
             prose first is reading a page that describes its illustrations. */}
         <div className="offering__stage">
-          {/* The arc is pinned with the figure rather than set at the offering's
-              head. At the head it was correct and useless: the head is the one
-              part of the offering that is off screen for the entire time the
-              sequence is being read, so the chain was visible only before the
-              reader had anything to place in it. On the stage it is the caption
-              to the frame — the whole sequence, permanently, with the term that
-              matches what is currently in the frame marked.
-
-              -1 under reduced motion: no term is current when every plate is on
-              screen at once, and six accented terms would be no marking at all.
-              The arc falls back to the printed-page version of itself. */}
-          <Arc spec={offering.spec} active={reduced ? -1 : active} />
           <div className="offering__stage-box" style={stageStyle(offering)}>
             {offering.evidence.map((figure, i) => (
               <Figure
@@ -240,40 +228,6 @@ function stageStyle(offering: Offering): CSSProperties {
   // React's style handling, and `calc()` silently producing nothing is an
   // invisible failure. A string cannot be unit-mangled by anything.
   return { '--stage-aspect': Math.min(...ratios).toFixed(4) } as CSSProperties
-}
-
-/**
- * The chain at the offering's head, with the current term marked.
- *
- * Split from `offering.spec` rather than rebuilt from the plates. `spec` is the
- * authored chain and `verify-narrative.mjs` already splits it on the same
- * separator to assert, term for term, that it matches the plates — so the split
- * is a checked contract here rather than a guess about a string's shape, and
- * deriving the terms a second way would be a second thing to keep in step.
- *
- * `aria-hidden` on the separators only. The terms are read; the arrows are
- * decoration that would otherwise be announced as "right arrow" six times. The
- * marking is presentational and is deliberately not announced at all: a screen
- * reader user gets the sequence from the ordered list below, in order, which is
- * a better account of it than a live region firing on every scroll.
- */
-function Arc({ spec, active }: { spec: string; active: number }) {
-  const terms = spec.split('→').map((term) => term.trim())
-
-  return (
-    <p className="meta offering__spec">
-      {terms.map((term, i) => (
-        <span key={term} className="offering__arc-term" data-active={i === active}>
-          {term}
-          {i < terms.length - 1 ? (
-            <span className="offering__arc-sep" aria-hidden="true">
-              →
-            </span>
-          ) : null}
-        </span>
-      ))}
-    </p>
-  )
 }
 
 /**

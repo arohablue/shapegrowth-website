@@ -517,112 +517,218 @@ const STAGE_CHAIN = Object.values(SECTION_COPY)
  *
  * WHAT THE SEQUENCE HAS TO SAY, IN ORDER
  * ──────────────────────────────────────
- * TIME → REPRESENT → MAP → TRACK → GROWTH → QUANTIFY.
+ * OBSERVE → SEGMENT → TRACK → MAP → GROWTH → QUANTIFY.
  *
- * One leaf as recorded across observations; that leaf described as a boundary;
- * the boundary carried into a normalised frame; the same leaf matched to itself
- * across observations inside that frame; the difference between them resolved as
- * a field; the field checked against something measured independently.
+ * A rosette as it was actually recorded; one frame of it resolved into labelled
+ * organs; one of those organs followed across the series and measured; the two
+ * observations of it carried onto a shared disk so their points correspond; the
+ * difference between them resolved as a displacement field; the field put to a
+ * test it can fail.
  *
- * Three of these were renamed from verbs to the thing the step produces — TIME,
- * GROWTH and QUANTIFY were OBSERVE, MEASURE and VALIDATE. The sequence did not
- * change and the argument below is unaffected; the words are now what the stage
- * rubric shows in the sticky figure stage, where they are read as an arc rather
- * than one at a time, and an arc of six imperatives reads as instructions to the
- * reader rather than as the shape of a pipeline.
+ * WHY MAP NO LONGER COMES BEFORE TRACK
+ * ────────────────────────────────────
+ * It used to, and the note in this place argued for it at some length: two
+ * observations of a leaf differ in size, posture and camera angle at once, so
+ * correspondence is only well posed after both have been carried into a frame
+ * where those differences are gone — which made the map the thing that gives
+ * TRACK an answer, and therefore the thing to read first.
  *
- * WHY MAP COMES BEFORE TRACK
- * ──────────────────────────
- * It is the one ordering in the six that is not obvious, and getting it the
- * other way round is the default assumption — track the leaf first, then
- * analyse the shapes you tracked. The pipeline runs the other way, and the
- * reason is the whole argument of the section. Two observations of a leaf
- * differ in size, posture and camera angle all at once; correspondence between
- * them is only well posed once both have been carried into a frame where those
- * differences are already removed. The conformal map is what makes TRACK a
- * question with an answer, so it has to be read first.
+ * That argument is sound about *point* correspondence and wrong about this
+ * dataset. Nothing on these plates tracks anything: the leaf is followed by the
+ * dataset's own ground-truth instance labels, which are given, and which owe
+ * nothing to any map. Ordering MAP first to justify a step that does not need
+ * justifying put the hardest plate third and left the reader meeting a Riemann
+ * map before they had been shown a single leaf measured twice. TRACK now
+ * establishes the identity and the two dates; MAP is what gets asked next,
+ * which is how the two frames of one leaf are put into correspondence.
  *
- * Each step is only legible as a consequence of the one above it, which is why
- * these are plates in a fixed order rather than six parallel capabilities. The
- * interpretation on every plate is written to name what the previous step made
- * possible — that is what carries the reader from TIME to QUANTIFY without the
- * page ever asserting a result.
+ * WHAT CHANGED IN THE COPY
+ * ────────────────────────
+ * The note that used to end this block said nothing here is measured — no
+ * species, no interval, no count, no unit — because every sentence had to stay
+ * true of whatever figure eventually landed above it. Six figures have now
+ * landed. The constraint has not been relaxed so much as discharged: `summary`
+ * still carries no quantity, because it is the line that has to survive the
+ * plate being rebuilt for another specimen, and the measurements have moved to
+ * `caption` and `metadata`, which describe a particular figure and are checked
+ * by `verify-narrative.mjs` against a real entry in `registry.ts`.
  *
- * Nothing here is measured. No species, no interval, no count, no unit, no
- * equation, no correlation. Every sentence stays true of whatever figure
- * eventually lands in the frame above it; see the `summary` doc above for why
- * that constraint is the whole design. VALIDATE is the plate where this matters
- * most and is stated most carefully: it says what the comparison is *for*, and
- * says nothing whatever about how it came out.
+ * Every number in those fields is computed by `scripts/build-leaf-dynamics-
+ * plates.py` from these frames. None is quoted from a paper — specifically, the
+ * 92% agreement Alim et al. report is nowhere on this page, and the number that
+ * is here instead is a tie the conformal map did not win. Units are px and px²
+ * throughout, because PhenoLeaf-TS ships no spatial calibration and a growth
+ * rate in mm per day would be invented at the point of writing it down.
  */
 const DYNAMICS_EVIDENCE: readonly ScientificFigure[] = [
   {
     id: 'leaf-observation',
     index: '01',
-    phase: 'Time',
-    label: 'Original leaf observation',
+    phase: 'Observe',
+    label: 'Rosette growth time series',
     summary:
-      'A single leaf as it was recorded, before anything has been fitted to it. Every later plate refers back to this frame, so it is shown first and unaltered.',
+      'The whole recorded series for one rosette, playable and scrubbable, with every frame carrying its own timestamp. The nominally six-hourly cadence drifts by up to an hour either way, which is a property of the experiment rather than noise to be tidied.',
     category: 'photograph',
+    // No `expandable`, on the same reasoning as `dense-reconstruction`: this
+    // slot holds a view the reader already drives, so the control would open a
+    // modal containing a second copy of the thing that was already answering
+    // the question. `aspect: 'wide'` is load-bearing rather than cosmetic —
+    // `stageStyle` takes the *minimum* ratio across the offering, so a near-
+    // square declared here would shrink the desktop stage for all six plates.
+    // The crop is near-square and pillarboxes inside this frame; that side
+    // gutter is where the controls live, which is why no image pixel is ever
+    // covered. Below 900px there is no gutter and 16/9 leaves too little
+    // height for a rail, so the stylesheet squares this frame up on its own —
+    // see `.plate:is(#leaf-observation, #leaf-segmentation) .evidence__frame`.
+    // That override is deliberately not authored here, because it must not
+    // reach `stageStyle`.
     aspect: 'wide',
-    placeholder: '[REAL LEAF OBSERVATION — TO BE INSERTED]',
+    caption:
+      'Every recorded frame at its own timestamp, read from the filename. Play runs the series; the scrubber steps one observation at a time; Compare sets the first frame beside the current one. Nothing is interpolated — each position is a photograph that was taken.',
+    metadata: [
+      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21' },
+      { label: 'Series', value: '97 frames, 2022-08-09 17:03 to 2022-09-02 17:05 (24 days)' },
+      { label: 'Cadence', value: 'nominally 6 h; measured interval 4.99\u20137.00 h' },
+      { label: 'Delivery', value: 'one 2920\u00d72870 sprite atlas, 779 KB, decoded off the main thread' },
+      { label: 'Units', value: 'px \u2014 the dataset carries no spatial calibration' },
+    ],
+    reference:
+      'PhenoLeaf-TS dataset, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
+    placeholder: '[REAL LEAF OBSERVATION \u2014 TO BE INSERTED]',
   },
   {
-    id: 'leaf-boundary',
+    id: 'leaf-segmentation',
     index: '02',
-    phase: 'Represent',
-    label: 'Boundary and shape representation',
+    phase: 'Segment',
+    label: 'Instance segmentation of the rosette',
     summary:
-      'The blade is separated from its surroundings and described as an outline and a surface. The leaf stops being an image and becomes an object with a geometry.',
+      'One frame in three states: the photograph, the dataset\u2019s own instance labels drawn over it, and a single leaf separated from its neighbours. No segmentation model was run here \u2014 the masks are ground truth that ships with the dataset.',
     category: 'segmentation',
+    // No `expandable`, and `aspect: 'wide'` for the same two reasons spelled
+    // out on `leaf-observation` above.
     aspect: 'wide',
-    placeholder: '[REAL BOUNDARY EXTRACTION — TO BE INSERTED]',
-  },
-  {
-    id: 'conformal-mapping',
-    index: '03',
-    phase: 'Map',
-    label: 'Conformal parameterisation',
-    summary:
-      'The curved blade is carried onto a planar domain with angles preserved. Leaves that differ in size, posture and viewing angle are brought into one normalised frame.',
-    category: 'map',
-    expandable: true,
-    aspect: 'wide',
-    placeholder: '[REAL CONFORMAL MAP — TO BE INSERTED]',
+    caption:
+      'Outline colours are the dataset\u2019s own label RGBs, so the tint identifying a leaf here is the same one identifying it on the plates below. A leaf can be chosen on the image or from the list; its area and perimeter are measured from the mask. Instances present in fewer than three frames are dropped \u2014 one such blip exists in this series, a 22 px\u00b2 label appearing in a single frame of 97.',
+    metadata: [
+      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21' },
+      { label: 'Frame shown', value: '96 of 97 \u2014 2022-09-02 17:05' },
+      { label: 'Instances shown', value: '15 on this frame, of 17 that survive the 3-frame filter' },
+      { label: 'Mask source', value: 'dataset ground-truth instance labels, exact-RGB' },
+      { label: 'Contours', value: 'marching squares, Douglas\u2013Peucker simplified to 1.2 px' },
+    ],
+    reference:
+      'PhenoLeaf-TS dataset, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
+    placeholder: '[REAL SEGMENTATION OVERLAY \u2014 TO BE INSERTED]',
   },
   {
     id: 'leaf-tracking',
-    index: '04',
+    index: '03',
     phase: 'Track',
-    label: 'Leaf correspondence across observations',
+    label: 'One leaf measured at two dates',
     summary:
-      'The same leaf is matched to itself between observations, and its normalised frames are put into register. A point on the blade can then be followed rather than found again.',
+      'The same blade is followed across widely separated frames by the dataset\u2019s own ground-truth instance labels, not by a tracker run in this study. Its area, perimeter and bounding box are measured from the masks and reported in pixels.',
     category: 'segmentation',
+    expandable: true,
     aspect: 'wide',
-    placeholder: '[REAL TRACKING RESULT — TO BE INSERTED]',
+    caption:
+      'Left and centre: leaf 5 at frames 27 and 56, outlined from its instance mask. Right: the two contours on a common centroid and long axis at their true relative sizes \u2014 not rescaled, so the grey ring inside the red one is the whole of the earlier leaf. Growth is a band around the entire margin rather than extension in one direction.',
+    metadata: [
+      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21, leaf 5' },
+      { label: 'Correspondence', value: 'dataset ground-truth instance labels (not computed here)' },
+      { label: 'Frames', value: '27 and 56 \u2014 2022-08-16 12:03 to 2022-08-23 17:03, 173 h apart' },
+      { label: 'Area', value: '917 \u2192 3962 px\u00b2' },
+      { label: 'Perimeter', value: '132 \u2192 352 px' },
+      { label: 'Continuity', value: '17 instances pass the 3-frame filter; 16 have no gaps' },
+    ],
+    reference:
+      'PhenoLeaf-TS dataset, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
+    placeholder: '[REAL TRACKING RESULT \u2014 TO BE INSERTED]',
+  },
+  {
+    id: 'conformal-mapping',
+    index: '04',
+    phase: 'Map',
+    label: 'Riemann map between successive outlines',
+    summary:
+      'Each blade is carried onto the unit disk by its own Riemann map, and the two disks are rotated into register so the composition sends the earlier leaf to the later one. This is the construction Alim and colleagues used to ask whether leaf growth is conformal.',
+    category: 'map',
+    expandable: true,
+    aspect: 'wide',
+    caption:
+      'Left and right: the two blades, each meshed and shaded by where its Riemann map sends it. Centre: the shared disk \u2014 matching hue is the same point of it, so the colours are the correspondence rather than decoration. Both maps wind exactly once around the boundary with no inverted triangles, which is what makes them bijections onto the disk rather than merely harmonic.',
+    metadata: [
+      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21, leaf 5' },
+      { label: 'Frames', value: '50 \u2192 56 \u2014 35 h apart, +10.5% area' },
+      {
+        label: 'Method',
+        value: 'Green\u2019s-function Riemann map: one cotangent-Laplacian Dirichlet solve for u, one Poisson solve for its harmonic conjugate',
+      },
+      { label: 'Meshes', value: '664 and 742 vertices; winding 1.000, 0.000% inverted on both' },
+      {
+        label: 'Alignment',
+        value: 'two landmarks \u2014 petiole attachment and tip \u2014 with the remaining rotation least-squares fitted over the margin at \u22126.6\u00b0',
+      },
+      {
+        label: 'Departure from the paper',
+        value: 'Alim et al. pin three landmarks and exhaust the M\u00f6bius group; two are robust on these masks, so the composed map is harmonic-exact and only approximately conformal',
+      },
+    ],
+    reference:
+      'Method after Alim, Armon, Shraiman & Boudaoud, Phys. Biol. 13(5) 05LT01 (2016). Specimen: PhenoLeaf-TS, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
+    placeholder: '[REAL CONFORMAL MAP \u2014 TO BE INSERTED]',
   },
   {
     id: 'growth-field',
     index: '05',
     phase: 'Growth',
-    label: 'Growth and displacement field',
+    label: 'Predicted and measured displacement',
     summary:
-      'The difference between registered observations is resolved across the blade. Change is described per region of the surface rather than as one number for the leaf.',
+      'The aligned map predicts where every interior point of the earlier blade should travel; block matching measures where the texture actually went. Both are shown with rigid motion removed, and the measured field is shown because it was run, not because it is evidence.',
     category: 'field',
     expandable: true,
     aspect: 'wide',
-    placeholder: '[REAL GROWTH FIELD — TO BE INSERTED]',
+    caption:
+      'Left: displacement predicted by the composed conformal map. Centre: displacement measured by block matching over the same interval. Right: the measurement tested against itself \u2014 the same field measured over an interval twice as long should come out about twice as large, and it comes out the same size. A displacement that barely depends on how long you waited is not measuring a rate, so the two fields are not correlated against each other on this page.',
+    metadata: [
+      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21, leaf 5, frames 50 \u2192 56' },
+      { label: 'Predicted', value: 'f = \u03c6\u207b\u00b9 \u2218 M \u2218 \u03c6 at 548 of 552 interior vertices' },
+      { label: 'Measured', value: 'block matching, 16 px window / 4 px step / \u00b112 px search; 157 of 189 windows kept' },
+      { label: 'Nested-interval test', value: 'direction r = +0.65, magnitude 0.99\u00d7 where 2.1\u00d7 was expected' },
+      {
+        label: 'Why the correlation is withheld',
+        value: 'the blade spans 84\u00d7115 px with no resolvable venation; correlation peaks are high (median 0.91) but clear their nearest rival by only 0.03 and are ambiguous at 67% of sites',
+      },
+    ],
+    reference:
+      'Method after Alim, Armon, Shraiman & Boudaoud, Phys. Biol. 13(5) 05LT01 (2016). Specimen: PhenoLeaf-TS, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
+    placeholder: '[REAL GROWTH FIELD \u2014 TO BE INSERTED]',
   },
   {
     id: 'quantitative-validation',
     index: '06',
     phase: 'Quantify',
-    label: 'Quantitative comparison',
+    label: 'Held-out test of the conformal map',
     summary:
-      'The recovered field will be set against independent measurements of the same leaves. This is the plate that decides whether the five above it hold.',
+      'The map is built from two frames and asked to predict a third it was never shown, scored against that frame\u2019s real mask and against three baselines that encode no growth model at all. The result is reported as it came out.',
     category: 'plot',
+    expandable: true,
     aspect: 'wide',
-    placeholder: '[REAL VALIDATION COMPARISON — TO BE INSERTED]',
+    caption:
+      'Left: one triple \u2014 the dotted and dashed contours are what the map was given, the green mask is what the middle date actually was, and the blue line is where the map put it. Right: held-out overlap for eight triples against three baselines. The conformal map clears a static leaf by a wide margin and does not separate from the arc-length correspondence it was meant to improve on; that difference is smaller than its own scatter, and is reported rather than rounded into a result.',
+    metadata: [
+      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21, leaf 5' },
+      { label: 'Test', value: 'build the map from t\u2080 to t\u2082, predict t\u2081, score IoU against t\u2081\u2019s real mask' },
+      { label: 'Median IoU', value: 'conformal 0.758, arc-length null 0.757, uniform dilation 0.677, no growth 0.675' },
+      { label: 'Conformal \u2212 arc-length', value: '+0.003 \u00b1 0.011 over 8 triples, ahead in 5' },
+      { label: 'Conformal \u2212 no growth', value: '+0.108, ahead in 6 of 8' },
+      {
+        label: 'Not shown',
+        value: 'the predicted-against-measured correlation Alim et al. report. It is not available at this resolution \u2014 see the plate above \u2014 and theirs is not ours to quote',
+      },
+    ],
+    reference:
+      'Test designed here; the map it scores is after Alim, Armon, Shraiman & Boudaoud, Phys. Biol. 13(5) 05LT01 (2016). Specimen: PhenoLeaf-TS, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
+    placeholder: '[REAL VALIDATION COMPARISON \u2014 TO BE INSERTED]',
   },
 ]
 
@@ -759,6 +865,63 @@ export const OFFERINGS: readonly Offering[] = [
       'We can track that change.',
     ],
     evidence: DYNAMICS_EVIDENCE,
+  },
+]
+
+/**
+ * ════════════════════════════════════════════════════════════════════════════
+ * ABOUT — THE TWO FOUNDERS
+ * ════════════════════════════════════════════════════════════════════════════
+ * A trailing sibling like `OFFERINGS_COPY` and `CONTACT_COPY` above and below
+ * it — not a `BLOCKS` entry, so it costs page height and nothing else. See the
+ * two-slot note in `ProgressProvider`.
+ *
+ * `FOUNDERS` is the one centralised place this information lives. Editing a
+ * bio, swapping in a photo, or adding a LinkedIn link later is a change to this
+ * array and nothing else — no component, no stylesheet, no layout edit.
+ *
+ * Every field below is a placeholder, deliberately. This file does not invent
+ * a name, a title or a credential — the brackets stay until the real copy
+ * arrives, the same discipline `evidence/registry.ts` applies to a figure that
+ * has no asset yet.
+ */
+export interface Founder {
+  readonly id: string
+  /** `01` | `02` — the founder's position in the pair, not a headcount. */
+  readonly index: string
+  readonly name: string
+  readonly role: string
+  /** Two to three sentences. Background, contribution, nothing invented. */
+  readonly bio: string
+  /** Path under `public/`, e.g. `/team/jane.jpg`. `null` renders the placeholder frame. */
+  readonly image: string | null
+  /** Full profile URL. `null` omits the link rather than showing a dead one. */
+  readonly linkedin: string | null
+}
+
+export const ABOUT_COPY = {
+  eyebrow: 'About',
+  title: 'About Shape Growth',
+} as const
+
+export const FOUNDERS: readonly Founder[] = [
+  {
+    id: 'founder-01',
+    index: '01',
+    name: '[NAME]',
+    role: '[ROLE]',
+    bio: '[SHORT BIO]',
+    image: null,
+    linkedin: null,
+  },
+  {
+    id: 'founder-02',
+    index: '02',
+    name: '[NAME]',
+    role: '[ROLE]',
+    bio: '[SHORT BIO]',
+    image: null,
+    linkedin: null,
   },
 ]
 

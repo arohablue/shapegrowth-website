@@ -104,8 +104,20 @@ export type EvidenceSource =
        * reconstruction, so anything imported eagerly here lands in the critical
        * path of a page the reader may never scroll to. See the lazy boundary in
        * `App.tsx` for the same reasoning applied to the scene itself.
+       *
+       * `active` is passed by `Media`, and is true only for the plate currently
+       * on the stage. Optional, because a view is free to ignore it — the point
+       * cloud does, it turns whether or not it is the one being discussed.
+       *
+       * The two leaf-dynamics views do not ignore it, and the prop exists
+       * because of them: six plates share one grid cell and five of them sit at
+       * `opacity: 0`, so a view that animates unconditionally runs a render loop
+       * and a 97-frame atlas for a figure nobody is looking at. It is also what
+       * keeps their controls out of the tab order while they are invisible,
+       * which is the same promise `.plate__expand` already makes by not
+       * rendering at all when the plate is inactive.
        */
-      readonly component: ComponentType
+      readonly component: ComponentType<{ readonly active?: boolean }>
       /**
        * The accessible name for the rendered output. Applied to the wrapper as
        * `role="img"` + `aria-label`, because a canvas that draws a point cloud
@@ -237,6 +249,99 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     component: lazy(() => import('@/evidence/views/DenseCloud')),
     alt:
       'An interactive three-dimensional view of the reconstructed sunflower, drawn as a dense cloud of individually coloured points recovered from the photographs. The stem, the leaf blades and the yellow flower head are all resolved, and the plant turns slowly so it is seen from every side. Dragging across it rotates the plant; a pinch moves the viewpoint closer or further away.',
+    aspect: 'wide',
+  },
+
+  /* ── 02 / LEAF DYNAMICS ─────────────────────────────────────────────────────
+   * All six come out of the PhenoLeaf-TS dataset, specimen Col-0 / rep_21,
+   * staged in `data/leaf-morphology/` and built by
+   *
+   *   scripts/build-leaf-dynamics-plates.py
+   *
+   * (run through the isolated venv noted in that script's header — none of
+   * numpy/scipy/scikit-image/matplotlib/triangle is installed in system
+   * Python). One command writes all of it: four JPEG plates, the sprite atlas,
+   * its poster, and the geometry manifest the two interactive views read. Their
+   * demo counterparts have been deleted from `demo.ts` rather than left
+   * underneath, for the same reason as offering 01's.
+   *
+   * `quantitative-validation` used to be the exception here, and the comment in
+   * this place used to explain why it had to stay a demo: there was no
+   * independent measurement to validate the predicted displacement against.
+   * That turned out to be the right diagnosis and the wrong conclusion. There
+   * is still no independent measurement — block matching cannot resolve a blade
+   * that spans 84 × 115 px with no visible venation — but a prediction can be
+   * held out against the dataset's OWN later mask, which is a real test that
+   * needs no second instrument. The plate reports how that came out, including
+   * the part where the conformal map does not separate from a much dumber
+   * baseline. See the head of `conformal_growth.py`.
+   *
+   * TWO OF THE SIX ARE COMPONENTS, AND THE OTHER FOUR ARE NOT
+   * ─────────────────────────────────────────────────────────
+   * `leaf-observation` and `leaf-segmentation` are interactive because their
+   * claims are about a sequence and about states of one frame — a strip of five
+   * stills cannot show an irregular six-hourly cadence, and a fixed overlay
+   * cannot show a leaf being separated from its neighbours.
+   *
+   * `leaf-tracking` was the third candidate and is deliberately still an image.
+   * Its claim is "this identity persists and these numbers change", which is a
+   * two-panel composite with a table under it; interactivity there buys a frame
+   * selector whose only payoff is more rows of a table nobody holds in their
+   * head, at the cost of a second hit-test and a second reduced-motion story. */
+
+  /* Plate 01. The full 97-frame series as a sprite atlas, played or scrubbed.
+   * Not a `<video>`: `currentTime` seeks snap to the nearest keyframe, so the
+   * frame on screen would not be the frame the timestamp names — and with a
+   * cadence that really runs 4.99–7.00 h between observations, the timestamp IS
+   * the content. See the head of `views/leaf-dynamics/sheets.ts`. */
+  'leaf-observation': {
+    type: 'component',
+    component: lazy(() => import('@/evidence/views/leaf-dynamics/ObserveSeries')),
+    alt:
+      'An interactive time series of one Arabidopsis plant photographed from directly above, ninety-seven times over twenty-four days. The sequence can be played or scrubbed frame by frame, and each frame shows its own recorded date and time. Across the series a pair of small round cotyledons on bare soil is joined by successively larger leaves until the pot is filled by a dense rosette, every leaf rocking slightly between one six-hourly observation and the next.',
+    aspect: 'wide',
+  },
+
+  /* Plate 02. One frame in three states, over the same atlas the plate above
+   * loads — the module-level bitmap cache in `sheets.ts` is what makes the
+   * second of these two views cost nothing. */
+  'leaf-segmentation': {
+    type: 'component',
+    component: lazy(() => import('@/evidence/views/leaf-dynamics/SegmentReveal')),
+    alt:
+      'An interactive view of one overhead photograph of a mature Arabidopsis rosette in three states. First the photograph alone; then every individually labelled leaf outlined and tinted in its own flat colour, each tagged L2, L4, L5 and upward; then one chosen leaf left in full colour while the rest of the rosette fades behind a pale scrim. A leaf can be chosen by clicking it or from a list, and its measured area and perimeter in pixels are shown beside it.',
+    aspect: 'wide',
+  },
+
+  'leaf-tracking': {
+    type: 'image',
+    src: '/evidence/leaf-dynamics/leaf-tracking.jpg',
+    alt:
+      'Three panels. Left and centre: close crops of the same leaf at two dates a week apart, each outlined in yellow from its own instance mask and tagged L5; the later crop shows a blade several times larger on a long stalk. Right: the two outlines redrawn on a common centre and axis at their true relative sizes, the earlier one small and grey inside the later one in red, so the growth is a wide band of new tissue around the whole margin rather than an extension in one direction. A small table underneath gives area, perimeter and bounding box for both dates, in pixels.',
+    aspect: 'wide',
+  },
+
+  'conformal-mapping': {
+    type: 'image',
+    src: '/evidence/leaf-dynamics/conformal-mapping.jpg',
+    alt:
+      'Three panels. Left and right: the same leaf at two dates thirty-five hours apart, each covered by a fine triangular mesh and shaded in a continuous wheel of colour — pale blue, violet, red and cream — that winds once around a dark point near the base of the blade. Centre: a circle shaded with the identical colour wheel. The colours are the correspondence: a patch of blade carrying a given hue on the left carries the same hue on the right, because both have been mapped onto that one shared disk.',
+    aspect: 'wide',
+  },
+
+  'growth-field': {
+    type: 'image',
+    src: '/evidence/leaf-dynamics/growth-field.jpg',
+    alt:
+      'Three panels. Left: a leaf outlined in yellow, filled with long blue strokes that fan outward from the base across the whole blade — the displacement the conformal map predicts. Centre: the same leaf with short red strokes from block matching, sparser, much shorter, and pointing in markedly less consistent directions. Right: a scatter plot of the measured displacement over a long interval against the same measurement over the half interval, with the cloud of points lying along the dashed line marked \u2018if it did not scale at all\u2019 rather than the solid line marked \u2018if it scaled with time\u2019.',
+    aspect: 'wide',
+  },
+
+  'quantitative-validation': {
+    type: 'image',
+    src: '/evidence/leaf-dynamics/quantitative-validation.jpg',
+    alt:
+      'Two panels. Left: four outlines of one leaf drawn over each other — a dotted earlier contour, a dashed later contour, a solid green filled shape that is the real mask of the middle date, and a blue line where the conformal map predicted that middle date would fall. The blue line sits outside the green shape nearly everywhere, over-predicting the margin. Right: a grouped bar chart of held-out overlap for eight such triples, with four bars each for the conformal map, an arc-length correspondence, uniform dilation and no growth at all. The first two bars are almost exactly level in every group.',
     aspect: 'wide',
   },
 }

@@ -734,52 +734,6 @@
   text-wrap: balance;
 }
 
-/* ── the arc ──
-
-   The offering's chain, pinned at the top of the sticky stage with the term that
-   matches the figure below it marked. It is the section's whole wayfinding: no
-   rail, no stepper, no dots.
-
-   The terms do not move and nothing is measured against them, so the marking is
-   a colour change and nothing else. Anything that resized or repositioned the
-   current term would reflow the line under it on every step — six words jittering
-   in place is precisely the excessive UI this section exists without, and it
-   would do it directly above the figure. */
-.offering__spec {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  /* Row gap only. The horizontal spacing belongs to the separator, which has to
-     sit at a fixed distance from the two terms it joins. */
-  row-gap: 0.5rem;
-  margin: 0 0 1rem;
-  padding-bottom: 0.875rem;
-  /* The same hairline the steps carry under their own rubric, so the two columns
-     start on one line across the page. */
-  border-bottom: 1px solid color-mix(in oklab, var(--color-ink) 12%, transparent);
-}
-
-.offering__arc-term {
-  /* Dimmer than `.meta`'s own 40%, so the marked term has somewhere to go. The
-     unmarked terms still have to be legible — the arc is the sequence, and a
-     reader who can only read one word of it has a stepper. */
-  color: color-mix(in oklab, var(--color-ink) 30%, transparent);
-  transition: color 480ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.offering__arc-term[data-active='true'] {
-  color: color-mix(in oklab, var(--color-accent) 92%, transparent);
-}
-
-.offering__arc-sep {
-  display: inline-block;
-  padding-inline: 0.5rem;
-  /* Never marked, at any point. The arrows are the relation between the terms,
-     not steps in their own right, and highlighting one would imply the reader is
-     between two stages rather than at one. */
-  color: color-mix(in oklab, var(--color-ink) 18%, transparent);
-}
-
 /* ── the hand-off line ──
 
    Sits between the offering's head and its first plate, on its own rule. The
@@ -1132,80 +1086,7 @@
   .offering__step + .offering__step {
     margin-top: 2.5rem;
   }
-
-  .offering__arc-term {
-    transition: none;
-  }
 }
-
-/* Hanging figure number, the way a journal sets one: the label occupies a fixed
-   column and every line of the caption aligns past it, so a wrapped sentence
-   never runs back underneath `Fig. 04`.
-
-   Capped at 68ch rather than running the measure. The figure above it is over
-   1300px wide at desktop, and a caption set to that width is unreadable — the
-   mismatch between a wide figure and a narrow caption under it is not an
-   accident of the layout, it is the layout. */
-.plate__caption {
-  display: grid;
-  /* Wide enough for `Fig. 02.06` at this tracking. Measured, not guessed — the
-     label must not wrap, because a wrapped figure number stops reading as one. */
-  grid-template-columns: 5.5rem minmax(0, 1fr);
-  gap: 0.875rem;
-  margin-top: clamp(1.25rem, 2.5vh, 1.75rem);
-  max-width: 68ch;
-}
-
-/* Accent, and the only accent on the plate. It is carrying the sequence — the
-   reader should be able to find the fifth figure by scanning this column alone. */
-.plate__fig {
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: color-mix(in oklab, var(--color-accent) 85%, transparent);
-  font-variant-numeric: tabular-nums;
-  /* Optically aligned with the cap-height of the title beside it rather than its
-     line box, which sits the small mono label slightly low otherwise. */
-  padding-top: 0.15rem;
-}
-
-.plate__legend {
-  min-width: 0;
-
-  /* ONE measure for the whole caption, in rem rather than ch.
-
-     The caption stacks the title, the key and the apparatus in two faces at
-     three sizes — title at 11px mono, key at 13px Inter, method and reference at
-     10px mono. Capping each in `ch` gave each of them its own idea of where the
-     right edge is: 58ch measured 483px on the prose, 436px on the key and 408px
-     on the notes, so a filled plate had three ragged right edges that looked
-     like a mistake rather than a choice.
-
-     `ch` has now caused three separate measure bugs in this file, all the same
-     one: it resolves against the element it is declared on, so the moment two
-     elements in a block disagree about font-size the cap stops being shared.
-     A length in rem is the same number everywhere, which is the only property
-     that actually matters for a common right edge. 30rem lands within 3px of
-     where the interpretation's 58ch already sat, so nothing above moved. */
-  --plate-measure: 30rem;
-}
-
-/* Caption scale, not heading scale. This is a `<h4>` for the document outline,
-   and it is set at the size the rest of the caption is set at — one step up in
-   weight and tracked out, nothing more. Making it look like a heading would put
-   it in competition with the figure it is describing. */
-.plate__title {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  line-height: 1.5;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-weight: 500;
-  margin: 0;
-  color: color-mix(in oklab, var(--color-ink) 88%, transparent);
-}
-
 
 /* ── one evidence slot ──
 
@@ -1300,72 +1181,6 @@
   max-width: 26ch;
 }
 
-/* ── the apparatus: key, method, reference ──
-
-   Rendered only when the step carries one, which today is never. The whole
-   block is set below the interpretation with no rule between them — a second
-   hairline inside a caption that is already under a hairline is the chart junk
-   this section exists to not have. Separation is done with space and with the
-   drop in weight, which is enough because the type changes face as well. */
-.plate__apparatus {
-  margin-top: 0.875rem;
-}
-
-/* The figure's key. Prose face, because it is read while looking at the plate
-   and switching to mono here would make it scan as metadata. One notch dimmer
-   and one notch smaller than the interpretation it sits under. */
-.plate__key {
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  letter-spacing: -0.002em;
-  color: color-mix(in oklab, var(--color-ink) 42%, transparent);
-  margin: 0;
-  max-width: var(--plate-measure);
-  text-wrap: pretty;
-}
-
-/* Method and reference. A hanging label, so the two notes are told apart by a
-   word in the margin rather than by a heading, a rule or an icon — which is the
-   whole difference between apparatus and chrome.
-
-   The label column is inside the legend, so it is a second indent level nested
-   under the figure-number column rather than the same one. That is deliberate:
-   `Fig. 02.03` indexes the plate and `Method` indexes a line within the plate,
-   and setting them on one edge would say they were peers. */
-.plate__note {
-  display: grid;
-  grid-template-columns: 4rem minmax(0, 1fr);
-  gap: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  line-height: 1.7;
-  letter-spacing: 0.06em;
-  color: color-mix(in oklab, var(--color-ink) 38%, transparent);
-  margin: 0.5rem 0 0;
-  max-width: var(--plate-measure);
-}
-
-.plate__note-label {
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: color-mix(in oklab, var(--color-ink) 24%, transparent);
-}
-
-/* On a phone the plate caption has already spent 5.5rem of a 327px measure on
-   the figure-number column. A second 4rem hanging indent inside it leaves the
-   note itself 153px — about 25 characters of mono to the line, which is not a
-   measure, it is a column of fragments. Below 768px the label goes above its
-   note instead, which costs one line and buys the whole width back. */
-@media (max-width: 767px) {
-  .plate__note {
-    display: block;
-  }
-
-  .plate__note-label {
-    display: block;
-  }
-}
-
 /* ── the enlarge control and the enlarged view ──
 
    These two buttons are the first focusable elements this page has ever had.
@@ -1375,6 +1190,7 @@
    to these two rather than set globally, because a global `:focus-visible` on a
    page with two controls is a rule written for a page that does not exist. */
 .plate__expand,
+.plate__control,
 .plate-view__close,
 .theme-toggle {
   font-family: var(--font-mono);
@@ -1392,13 +1208,22 @@
 }
 
 .plate__expand:hover,
+.plate__control:hover,
 .plate-view__close:hover,
 .theme-toggle:hover {
   color: var(--color-ink);
   border-color: color-mix(in oklab, var(--color-ink) 34%, transparent);
 }
 
+/* `:focus-within` on the controls, not `:focus-visible`. Two of the three kinds
+   of `.plate__control` are a `<label>` wrapping the real control — a visually
+   hidden radio, or a `<select>` stripped of its native chrome — so the element
+   that takes focus is never the one that is painted. A label cannot match
+   `:focus-visible`, and without this the keyboard user moving through the
+   segmentation states would see no ring at all. */
 .plate__expand:focus-visible,
+.plate__control:focus-visible,
+.plate__control:focus-within,
 .plate-view__close:focus-visible,
 .theme-toggle:focus-visible {
   outline: 1px solid var(--color-accent);
@@ -1475,6 +1300,277 @@
   left: 0.75rem;
   bottom: 0.75rem;
 }
+
+/* ── the leaf-dynamics plates ──
+   `evidence/views/leaf-dynamics/`. Two of offering 02's six plates are canvases
+   the reader drives: a 97-frame series and a three-state segmentation reveal.
+
+   Everything here is chrome *over* the plate. Nothing is added above or below
+   the image — that rule has not moved, and it is why these controls are inside
+   the frame rather than under it. */
+
+/* The host. Mirrors `.cloud-view` and for the same reasons, including the
+   `touch-action: pan-y` that hands vertical drags back to the page. */
+.plate__view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+
+/* Segment hit-tests the pointer against the contour rings and writes `pointer`
+   onto this element when it is over one, so the resting state has to be
+   something to return to. */
+.plate__view--pickable {
+  cursor: default;
+}
+
+/* Sized imperatively — `measurePlate` gives the backing store the box in device
+   pixels and the element the same box in CSS pixels, and the image is placed
+   inside that by the fit rect, which is what leaves room for the rail. So this
+   deliberately does *not* carry `.cloud-view canvas`'s `width: 100% !important`:
+   that rule exists to stop R3F's own sizing fighting the layout, and here it
+   would overwrite a measurement this component depends on. */
+.plate__view canvas {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* The degradation path, and also the first paint. A failed chunk, a failed
+   atlas fetch or a browser without `createImageBitmap` renders this alone; it
+   is a real photograph of the specimen, under the accessible name the registry
+   already supplies on the wrapper, so the plate stays correct rather than
+   becoming an empty rectangle. */
+.plate__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* The rail.
+
+   The crop these plates ship is 292x287 and the frame is 16:9, so the image
+   pillarboxes and 21.4% of the frame's width is empty on each side. The rail is
+   that gutter: at this width it covers no image pixels at all, which is the
+   whole argument for putting controls on top of a figure rather than beneath
+   it. `measurePlate` then subtracts the rail's measured width from the box it
+   fits the image into, so even the shifted centre stays clear of it.
+
+   Visible at rest, never hover-revealed — the same point `.plate__expand`
+   already makes one rule up: chrome that appears on hover does not exist for a
+   keyboard, a screen reader or a thumb. */
+.plate__chrome {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 21%;
+  min-width: 8.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.75rem;
+}
+
+/* Timestamps and pixel counts. Not uppercased, unlike every other piece of mono
+   on the page — these read `09 Aug · 17:03` and `L8 · 3962 px²`, and capitals
+   would turn a month and a unit into something that has to be decoded. */
+.plate__readout {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: color-mix(in oklab, var(--color-ink) 72%, transparent);
+  background-color: color-mix(in oklab, var(--color-void) 72%, transparent);
+  padding: 0.375rem 0.5rem;
+  /* Reserve the line. The text is written imperatively on every scrubbed frame,
+     and without a floor the rail would resize itself the moment the first one
+     lands — which, since `measurePlate` reads the rail, would re-fit the image
+     underneath it. */
+  min-height: 2rem;
+}
+
+.plate__control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  /* The tap-target floor, applied at every width rather than only on touch.
+     A pointer that misses is a pointer that misses. */
+  min-height: 2.75rem;
+  text-align: center;
+  user-select: none;
+}
+
+/* One state for both kinds of pressed control: `aria-pressed` on Observe's Play
+   and Compare buttons, a checked radio inside Segment's labels. The accent edge
+   is the only colour in the rail, so there is never a question about which of
+   the three segmentation states is showing. */
+.plate__control[aria-pressed='true'],
+.plate__control:has(input:checked) {
+  color: var(--color-ink);
+  border-color: color-mix(in oklab, var(--color-accent) 64%, transparent);
+  background-color: color-mix(in oklab, var(--color-void) 88%, transparent);
+}
+
+/* A `<fieldset>` for the roving arrow keys a radio group gives for free, with
+   its default border, padding and margin taken back off. */
+.plate__stages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+/* Native `<select>` stripped back to the label's own type, so the leaf picker
+   looks like the buttons beside it rather than like an operating system. The
+   caret is drawn back on, because a control that opens a list must say so. */
+.plate__control--select select {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  background-color: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  appearance: none;
+  text-align: center;
+}
+
+.plate__control--select select:focus {
+  outline: none;
+}
+
+/* The popup is painted by the platform, not by this stylesheet, so its items
+   need colours that do not assume the frame's scrim behind them. */
+.plate__control--select option {
+  color: var(--color-ink);
+  background-color: var(--color-void);
+}
+
+.plate__control--select::after {
+  content: '\25BE';
+  font-size: 0.75em;
+  line-height: 1;
+}
+
+/* 97 frames on one track. `accent-color` is enough: the native control already
+   has the keyboard behaviour the plate wants — arrows step a frame, Home and
+   End jump to the first and last observation — and a re-skinned one would have
+   to re-earn all of it. The stamp rides on `aria-valuetext`, set in JS. */
+.plate__scrub {
+  width: 100%;
+  min-height: 2.75rem;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.plate__scrub:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Reachable, unreadable. The radios and the select's own name are driven by the
+   visible label text wrapping them, so the input itself must leave the page
+   without leaving the accessibility tree. */
+.plate__vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+  border: 0;
+}
+
+/* Below this width there is no gutter to hide in: the frame is narrow enough
+   that the image is height-limited and the empty space is above and below it
+   instead. So the rail wraps to the bottom, and `measurePlate` — which reads
+   the rail's own measured width, not this breakpoint — switches to subtracting
+   its height, lifting the image clear rather than letting the rail sit on it.
+   The breakpoint is therefore written once, here. */
+@media (max-width: 899px) {
+  /* The plates that carry a rail get a squarer frame, and only here.
+
+     Measured at 375px: the column leaves the frame 327px wide, the authored
+     16/9 makes it 184px tall, and the wrapped rail measures 148px of that. The
+     specimen would get 36px. Every way of dividing 184px between a 44px tap
+     target and a near-square photograph produces a figure too small to be
+     evidence of anything, so the frame is what has to give.
+
+     It is done here rather than by authoring `aspect` on the figure because
+     `stageStyle` takes the *minimum* ratio across the offering to size the
+     sticky stage: a square declared in `content.ts` would shrink the desktop
+     stage for all six plates to pay for a mobile problem. At this width the
+     stage-box is bounded by the column rather than by that calculation, so the
+     ratio can be changed here and nothing above 900px moves.
+
+     `!important` beats `Frame`'s inline `aspect-ratio`, which is the only way
+     to override it from a stylesheet — the same bind, and the same remedy, as
+     `.cloud-view canvas`. `measurePlate` reads the result rather than this
+     number, so the two cannot disagree.
+
+     Named by plate rather than written as `:has(.plate__chrome)`, which is the
+     obvious form and is wrong: the rail is rendered by a lazily-imported view
+     behind an IntersectionObserver, so a `:has()` rule would be false at first
+     paint and true a moment later, and the sticky stage — one grid cell holding
+     all six plates — would grow 143px under the reader as the section arrived.
+     The two ids are already the page's anchor contract, so naming them here
+     adds no new coupling, and the ratio is settled before the first frame.
+
+     The cost is that the four static plates in this offering float in a taller
+     box on narrow viewports, since they share that one grid cell. That is empty
+     frame background under a correctly-sized figure, which is a cheaper fault
+     than a 36px specimen. */
+  .plate:is(#leaf-observation, #leaf-segmentation) .evidence__frame {
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  .plate__chrome {
+    inset: auto 0 0 0;
+    width: auto;
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem;
+  }
+
+  .plate__stages {
+    flex-direction: row;
+  }
+
+  /* Its own line. At 375px the frame is about 340px wide and a track sharing a
+     row with three buttons is too short to land a frame on. */
+  .plate__scrub {
+    flex: 1 1 100%;
+  }
+}
+
+/* There is deliberately no rule moving `.plate__expand` clear of the wrapped
+   rail. The two never coexist: Enlarge is drawn only for a figure carrying
+   `expandable: true`, and the two plates that wear this chrome do not set it,
+   for the reason `dense-reconstruction` already gives — a plate the reader can
+   already drive in place does not need a modal holding a second copy of it. A
+   rule guarding a combination that cannot arise reads as evidence that it can. */
 
 .plate-view {
   width: 100vw;
@@ -1555,6 +1651,161 @@ body:has(.plate-view[open]) {
   display: block;
   margin-top: 0.375rem;
   color: color-mix(in oklab, var(--color-ink) 42%, transparent);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ABOUT / TEAM
+   ─────────────────────────────────────────────────────────────────────────────
+   Sits between the evidence panel and the closing invitation: same z-index,
+   same opaque void ground, same 92rem measure and gutters as both neighbours,
+   so the three read as one continuing document rather than a panel with a team
+   page inserted into it.
+
+   No `margin-top` and no seam gradient of its own, for the same reason
+   `.contact` has none — `.offerings` already did that work bringing the reader
+   off the specimen. This section only needs the hairline-plus-padding break
+   every section change after that point already uses (see `.offering +
+   .offering` and `.contact__inner`'s own border-top). */
+.about {
+  position: relative;
+  z-index: 11;
+  background-color: var(--color-void);
+  pointer-events: auto;
+  padding-block: 0 clamp(6rem, 14vh, 11rem);
+}
+
+.about__inner {
+  margin-inline: auto;
+  max-width: 92rem;
+  padding-inline: 1.5rem;
+  border-top: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+  padding-top: clamp(4rem, 9vh, 7rem);
+}
+
+@media (min-width: 768px) {
+  .about__inner {
+    padding-inline: 3rem;
+  }
+}
+
+.about__masthead {
+  max-width: 54ch;
+  margin-bottom: clamp(3rem, 7vh, 5rem);
+}
+
+/* Same standing as `.offerings__title`: this section turns the argument from
+   method to the people building it, not a closing statement, so it is set one
+   notch below `.contact__title`, which still owns the page's last word. */
+.about__title {
+  font-size: clamp(1.5rem, 2.8vw, 2.5rem);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  font-weight: 500;
+  margin: 1.25rem 0 0;
+  text-wrap: balance;
+}
+
+.about__founders {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(3rem, 8vh, 4.5rem);
+}
+
+@media (min-width: 768px) {
+  .about__founders {
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(3rem, 6vw, 5rem);
+  }
+}
+
+.founder {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* The stacked (mobile) break between the pair. On desktop the grid gap alone
+   is enough — two columns read as a pair without a rule drawn between them —
+   so the hairline is scoped to the single-column layout, the same way
+   `.offering + .offering` only exists because that list never goes to two
+   columns. */
+.founder + .founder {
+  margin-top: clamp(3rem, 8vh, 4.5rem);
+  padding-top: clamp(3rem, 8vh, 4.5rem);
+  border-top: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+}
+
+@media (min-width: 768px) {
+  .founder + .founder {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
+/* The elegant placeholder. No fill pattern, no icon, no initials drawn from a
+   name that is itself a bracketed placeholder — just the frame the real
+   photograph will later sit inside, at the aspect ratio it will be cropped to. */
+.founder__portrait {
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 4 / 5;
+  border: 1px solid color-mix(in oklab, var(--color-ink) 16%, transparent);
+  background-color: color-mix(in oklab, var(--color-ink) 4%, transparent);
+  margin-bottom: 1.5rem;
+}
+
+.founder__photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.founder__tag {
+  color: color-mix(in oklab, var(--color-accent) 80%, transparent);
+}
+
+.founder__name {
+  font-size: clamp(1.375rem, 1.9vw, 1.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  margin: 0.875rem 0 0;
+}
+
+.founder__role {
+  margin: 0.375rem 0 0;
+}
+
+.founder__bio {
+  margin-top: 1.25rem;
+  max-width: 36ch;
+}
+
+.founder__link {
+  display: inline-block;
+  margin-top: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: color-mix(in oklab, var(--color-ink) 62%, transparent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--color-ink) 22%, transparent);
+  text-underline-offset: 0.3em;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
+}
+
+.founder__link:hover {
+  color: var(--color-accent);
+  text-decoration-color: color-mix(in oklab, var(--color-accent) 55%, transparent);
+}
+
+.founder__link:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

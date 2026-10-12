@@ -30,30 +30,27 @@ import type { EvidenceSource } from '@/evidence/registry'
  * grid states the opposite.
  *
  * What is left is what a journal figure does. The figure occupies the measure
- * with its number and title set underneath at caption scale, so the figure is
- * the largest thing in the viewport and every word on the plate is subordinate
- * to it.
+ * on its own, so the figure is the largest thing in the viewport and nothing
+ * on the plate competes with it.
  *
  *
  * WHAT THIS COMPONENT STOPPED OWNING
  * ──────────────────────────────────
- * Two things that used to be on the plate now sit outside it, because the plates
- * are stacked into one sticky stage and only one of them is on screen at a time
- * (see `Offerings.tsx`).
+ * The plate used to carry its own caption — figure number, title and apparatus
+ * set underneath the image in a `<figcaption>`. That is gone. The plates are
+ * stacked into one sticky stage and only one is on screen at a time (see
+ * `Offerings.tsx`), with a column of steps scrolling beside it, and every word
+ * about a figure now lives in that column rather than on the plate itself:
  *
- *   - The stage rubric, which was a hairline above the figure. One word visible
- *     at a time never read as a sequence; it is now a term in the arc at the
- *     offering's head and a heading on the scrolling step beside the stage,
- *     both of which show the whole chain with the current term marked.
- *   - The interpretation — `figure.summary` — which is now the body of that
- *     step. It is the thing the reader is reading *while* the figure is on the
+ *   - The stage rubric and the figure number, which read as a heading on the
+ *     scrolling step beside the stage.
+ *   - The interpretation — `figure.summary` — which is the body of that step.
+ *     It is the thing the reader is reading *while* the figure is on the
  *     stage, so it belongs in the column that scrolls, not on the plate that
  *     holds still.
  *
- * What stays on the plate is what has to travel with the image and would be
- * meaningless detached from it: `Fig. 02.04`, the figure's own title, and the
- * apparatus. The `<figcaption>` binding survives intact, which is the reason to
- * be careful about where the split falls rather than splitting on length.
+ * Nothing stays on the plate. The image is the whole plate; identification and
+ * interpretation are entirely the side column's job.
  *
  *
  * WHY THE BOX EXISTS BEFORE THE CONTENT DOES
@@ -89,42 +86,23 @@ export function rubricOf(figure: ScientificFigure): string | null {
  * The published-figure setting, and the only one.
  *
  *
- * WHY THE FIGURE COMES FIRST
- * ──────────────────────────
+ * WHY THE FIGURE IS THE WHOLE PLATE
+ * ─────────────────────────────────
  * An earlier arrangement put the title and the description in a side column to
  * the LEFT of the figure, which meant the reading order was prose, then image.
- * That is a page describing its illustrations. A journal plate is the other way
- * round — the figure occupies the measure, and everything written about it sits
- * underneath it in a caption, because the figure is the evidence and the words
- * are the apparatus for reading it.
- *
- * So the order here is exactly the hierarchy, top to bottom:
- *
- *   1. the figure, full measure, the largest thing in the viewport
- *   2. `Fig. 01.01` and the short scientific title, on one baseline
- *   3. one or two sentences on what the figure demonstrates
- *   4. the apparatus — key, metadata, reference — only if the figure has them
- *
- * Levels 2–4 are one `<figcaption>`, set at caption scale — smaller than the
- * body type anywhere else on the page. The temptation is to make the title large
- * because it is a heading; that would make it compete with the figure, and the
- * whole point of the setting is that nothing does.
+ * That is a page describing its illustrations. The side column that remains —
+ * the scrolling steps in `Offerings.tsx` — carries the figure number, the stage
+ * rubric and the interpretation instead, so the plate itself is nothing but the
+ * reserved frame and its contents: no number, no title, no apparatus printed
+ * under the image. The figure is the evidence; the words about it live beside
+ * it, not under it.
  *
  *
- * SEMANTICS
- * ─────────
- * `<figure>` + `<figcaption>` rather than divs, so the caption is programmatically
- * bound to the image instead of merely sitting under it. The title inside the
- * caption is a real `<h4>`, continuing `h2` (section) → `h3` (offering) → `h4`
- * (plate), which is what lets a screen reader user jump between plates from the
- * heading list. It is set at 11px; a heading's level and its size are unrelated,
- * and only one of them is addressed to the reader.
- *
- *
- * WHAT IS ABOVE THE FIGURE
- * ────────────────────────
- * Nothing. The hairline that used to carry the stage name is gone; see the top
- * of this file.
+ * WHAT IS ABOVE AND BELOW THE FIGURE
+ * ───────────────────────────────────
+ * Nothing, on either side. The hairline and arc that used to sit above the
+ * stage, and the `<figcaption>` that used to sit under each plate, are both
+ * gone; see the top of this file and `Offerings.tsx`.
  */
 export function Figure({
   figure,
@@ -161,14 +139,6 @@ export function Figure({
   return (
     <figure id={figure.id} className="plate" data-active={active}>
       <Frame figure={figure} source={source} number={number} interactive={active} />
-
-      <figcaption className="plate__caption">
-        <span className="plate__fig">{number}</span>
-        <div className="plate__legend">
-          <h4 className="plate__title">{figure.label}</h4>
-          <Apparatus figure={figure} />
-        </div>
-      </figcaption>
     </figure>
   )
 }
@@ -203,7 +173,7 @@ function Frame({
 
   return (
     <div className="evidence__frame" style={{ aspectRatio: ratio }}>
-      {source ? <Media source={source} /> : <Placeholder figure={figure} />}
+      {source ? <Media source={source} active={interactive} /> : <Placeholder figure={figure} />}
 
       {offerExpand ? (
         <>
@@ -298,7 +268,10 @@ function ExpandedView({
             Close
           </button>
           <div className="plate-view__frame">
-            <Media source={source} expanded />
+            {/* `active` unconditionally: the enlarged view only renders while
+                the dialog is open, and a plate the reader has deliberately
+                opened full-screen is as active as a plate gets. */}
+            <Media source={source} expanded active />
           </div>
           <p className="plate-view__caption">
             <span className="plate-view__fig">{number}</span>
@@ -315,7 +288,26 @@ function ExpandedView({
  * The asset itself. Switches on the source's own `type`, never on anything the
  * figure declares — the file knows what it is, and the two cannot disagree.
  */
-function Media({ source, expanded = false }: { source: EvidenceSource; expanded?: boolean }) {
+function Media({
+  source,
+  expanded = false,
+  active = false,
+}: {
+  source: EvidenceSource
+  expanded?: boolean
+  /**
+   * Whether this plate is the one on the stage. Only the `component` case can
+   * do anything with it — an image is drawn by the browser whether or not
+   * anyone is looking at it, and a view that animates is not.
+   *
+   * This used to stop at `Frame`, which took `interactive` and spent it on the
+   * Enlarge button alone. That was invisible while the only component on the
+   * page was the point cloud, which turns regardless; it stopped being
+   * invisible the moment a view existed that should not be decoding a 97-frame
+   * atlas and running a render loop at `opacity: 0`.
+   */
+  active?: boolean
+}) {
   const className = expanded ? 'evidence__media evidence__media--expanded' : 'evidence__media'
 
   if (source.type === 'component') {
@@ -324,7 +316,7 @@ function Media({ source, expanded = false }: { source: EvidenceSource; expanded?
     // wrapper carries one. Without this a point cloud is an empty element.
     return (
       <div className={className} role="img" aria-label={source.alt}>
-        <View />
+        <View active={active} />
       </div>
     )
   }
@@ -360,49 +352,6 @@ function Media({ source, expanded = false }: { source: EvidenceSource; expanded?
       // modal the reader just opened is worse than a moment of nothing.
       loading={expanded ? 'eager' : 'lazy'}
     />
-  )
-}
-
-/**
- * Level 4: the apparatus — the figure's key, its metadata, and where it came
- * from. All optional, in that order, and the whole block disappears if the
- * figure carries none of them.
- *
- * Two registers rather than three. `caption` is prose about the plate and is set
- * in the prose face, one notch dimmer than the interpretation above it, because
- * it is read *while* looking at the figure. `metadata` and `reference` are set
- * in mono micro-type with a hanging label, because they are apparatus: a reader
- * either goes looking for them or never sees them, and the label is what makes
- * them findable at a glance without a heading.
- *
- * The labels are real spans and not `::before` content, so they are selectable
- * and survive being copied out of the page — which is the main thing anyone does
- * with a citation.
- *
- * All of it is undefined on all eleven plates today. That is enforced, not
- * incidental: see the field docs in `figure.ts` for why a plausible wrong line
- * here is the failure mode this section is built to make impossible.
- */
-function Apparatus({ figure }: { figure: ScientificFigure }) {
-  const rows = figure.metadata ?? []
-  if (!figure.caption && rows.length === 0 && !figure.reference) return null
-
-  return (
-    <div className="plate__apparatus">
-      {figure.caption ? <p className="plate__key">{figure.caption}</p> : null}
-      {rows.map((row) => (
-        <p key={row.label} className="plate__note">
-          <span className="plate__note-label">{row.label}</span>
-          {row.value}
-        </p>
-      ))}
-      {figure.reference ? (
-        <p className="plate__note">
-          <span className="plate__note-label">Ref.</span>
-          {figure.reference}
-        </p>
-      ) : null}
-    </div>
   )
 }
 

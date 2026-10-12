@@ -5,6 +5,7 @@ import { StageSection } from '@/ui/StageSection'
 import { ProgressRail } from '@/ui/ProgressRail'
 import { Outro } from '@/ui/Outro'
 import { Offerings } from '@/ui/Offerings'
+import { About } from '@/ui/About'
 import { Contact } from '@/ui/Contact'
 import { ThemeToggle } from '@/ui/ThemeToggle'
 import { TimelineHUD, hudEnabled } from '@/dev/TimelineHUD'
@@ -96,6 +97,7 @@ export function App() {
       trailing={
         <>
           <Offerings />
+          <About />
           <Contact />
         </>
       }

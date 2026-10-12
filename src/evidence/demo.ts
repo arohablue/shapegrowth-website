@@ -81,59 +81,23 @@ export const DEMO_SOURCES: Partial<Record<string, EvidenceSource>> = {
 
   /* ── 02 / LEAF DYNAMICS / CONFORMAL GROWTH ──────────────────────────────── */
 
-  /** DEMO ONLY — stands in for the real recorded time series of one leaf. */
-  'leaf-observation': {
-    type: 'image',
-    src: '/demo/conformal/leaf-observation.svg',
-    alt: 'Placeholder schematic: five framed panels in a row, each showing the same drawn leaf a little larger and flatter than the last, labelled T 01 to T 05, above an arrow marked OBSERVATION INDEX. The panels carry indices only — no interval and no date.',
-  },
-
-  /** DEMO ONLY — stands in for the real segmentation and shape representation. */
-  'leaf-boundary': {
-    type: 'image',
-    src: '/demo/conformal/leaf-boundary.svg',
-    alt: 'Placeholder schematic: the same drawn leaf twice — on the left a soft veined blade labelled IMAGE, on the right the same blade reduced to a heavy traced outline with vertices marked along it and chords across the interior, labelled CONTOUR AND SURFACE. An inset magnifies one stretch of the boundary with its vertices and outward normals.',
-  },
-
-  /**
-   * DEMO ONLY — stands in for the real conformal parameterisation figure.
-   * Conceptual illustration of what normalisation does. The right-hand grid is
-   * regular because it was drawn regular; nothing was computed or solved.
-   */
-  'conformal-mapping': {
-    type: 'image',
-    src: '/demo/conformal/conformal-mapping.svg',
-    alt: 'Placeholder schematic: on the left a curved leaf carrying a grid that follows its surface, on the right a plain rectangle carrying a regular grid, joined by an arrow marked NORMALISE. One cell is highlighted on each side and a right-angle marker sits on each. A conceptual drawing of the idea, not the output of a mapping.',
-  },
-
-  /** DEMO ONLY — stands in for the real correspondence/tracking result. */
-  'leaf-tracking': {
-    type: 'image',
-    src: '/demo/conformal/leaf-tracking.svg',
-    alt: 'Placeholder schematic: three framed panels labelled T 01 to T 03, each showing the same three leaves on a stem, larger in each successive panel. Every leaf carries a tag reading L1, L2 or L3, and dashed links between the panels carry each tag forward to the next frame.',
-  },
-
-  /**
-   * DEMO ONLY — stands in for the real growth or displacement field. Every arrow
-   * is the same length and points away from the stalk: a geometric construction,
-   * not a measured field. A field with varying magnitude would be
-   * indistinguishable from a result.
-   */
-  'growth-field': {
-    type: 'image',
-    src: '/demo/conformal/growth-field.svg',
-    alt: 'Placeholder schematic: a leaf outline filled with a lattice of arrows, all of identical length, each pointing away from the stalk. A key beside it reads DIRECTION, UNIFORM MAGNITUDE and SCHEMATIC FIELD. The directions are constructed, not measured.',
-  },
-
-  /**
-   * DEMO ONLY — stands in for the real quantitative comparison plot. Chart
-   * furniture with nothing measured inside it: the markers sit on a perfectly
-   * regular lattice and the bars are all one height, neither of which is a shape
-   * data can take.
-   */
-  'quantitative-validation': {
-    type: 'image',
-    src: '/demo/conformal/quantitative-validation.svg',
-    alt: 'Placeholder schematic: a two-panel chart template with no data. The left panel is a scatter frame whose markers sit on a perfectly regular lattice; the right panel is a bar frame whose bars are all the same height. Axes are named but carry no values, and a note beneath reads that axes, series and scale are placeholders.',
-  },
+  // Nothing. All six leaf-dynamics plates are filled for real from the
+  // PhenoLeaf-TS dataset, specimen Col-0 / rep_21 — see the REAL block in
+  // `registry.ts`. Deleted rather than left underneath, same reasoning as
+  // offering 01's two deletions above: a superseded demo never renders once the
+  // registry has a real entry at that key, so keeping it here would just be dead
+  // code that still reads as an open placeholder to anyone auditing the page.
+  //
+  // `quantitative-validation` was the last one standing, and the note in this
+  // place argued it had to stay: there is no independent instrument measurement
+  // in this dataset to validate a recovered displacement field against, and
+  // inventing one was out of the question. That was true and is still true. What
+  // changed is that it turned out not to be the only available test — a map
+  // built from two frames can be made to predict a third it never saw, and
+  // scored against that frame's own mask. The plate now reports how that went,
+  // which includes the part where the conformal map does not clearly beat a
+  // much simpler correspondence.
+  //
+  // The SVGs for all six are still in `public/demo/conformal/` and are now
+  // unreferenced.
 }
