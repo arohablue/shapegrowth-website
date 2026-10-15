@@ -802,11 +802,16 @@ function Legend({ hostRef, mode, record, manifest, theme, vectorScale, drawn, re
       {/* The specimen on screen, named from the same object the points came
           from. Always present and never mode-dependent: it is the answer to
           "what am I looking at", and the selector above cannot be that answer
-          because the selector shows what was asked for. */}
+          because the selector shows what was asked for.
+
+          One line, and it has to stay one line. At 375px this block is capped
+          at 174px and every wrapped line is 19px of plant. `one day apart` and
+          `per scan` were both restating what the two dates and the word
+          `points` already say, and they cost a second line to do it. Nothing
+          measured left this line — the specimen, the interval and the point
+          count are all still here. */}
       <p className="growth-legend__line">
-        {record.label} · {record.interval.from} → {record.interval.to},{' '}
-        {record.interval.days === 1 ? 'one day apart' : `${record.interval.days} days apart`} ·{' '}
-        {d.n_points} points per scan
+        {record.label} · {record.interval.from} → {record.interval.to} · {d.n_points} points
       </p>
 
       {reading ? (
@@ -829,6 +834,16 @@ function Legend({ hostRef, mode, record, manifest, theme, vectorScale, drawn, re
           : null}
         {mode === 'deformation'
           ? `det J · ramp saturates at p95 ${d.detJ.p95.toFixed(2)}`
+          : null}
+        {/* The folded count rides whichever line is already on screen rather
+            than holding one of its own. It must appear in every mode — a count
+            that shows up only when it is non-zero cannot tell the reader the
+            check was made and passed — but DEFORMATION already states it in the
+            `≤ 0 invalid` swatch and REGISTERED states it on the fit line below,
+            and printing it three times in one block is how the block got to be
+            the largest object on the figure. */}
+        {mode !== 'deformation' && mode !== 'registered'
+          ? ` · ${d.detJ.count_non_positive}/${d.n_points} folded`
           : null}
       </p>
 
@@ -859,9 +874,9 @@ function Legend({ hostRef, mode, record, manifest, theme, vectorScale, drawn, re
         </ul>
       ) : null}
 
-      {/* How far this registration is to be trusted, in every mode rather than
-          only in REGISTERED. Two numbers now, and the cut is worth recording
-          because it used to be four.
+      {/* How far this registration is to be trusted. REGISTERED only now, and
+          the cut is worth recording because this line used to carry four
+          numbers in all five modes.
 
           It carried the displacement mean and the det J median as well, and
           both were already on screen wherever they meant anything: the mode
@@ -874,13 +889,19 @@ function Legend({ hostRef, mode, record, manifest, theme, vectorScale, drawn, re
           primary thing. Removing a duplicate is not the same as removing a
           caveat, and nothing here is now stated in only one place.
 
-          What stays is the pair that is not stated anywhere else. The surface
-          distance before and after is the whole claim the registration makes,
-          and the folded count is the one number that decides whether any of the
-          rest can be read — which is why it is still on this line in every
-          mode, including the zero, and not left to the DEFORMATION swatches
-          alone. A count that appears only when it is non-zero cannot tell the
-          reader the check was made and passed.
+          The surface distance before and after is the whole claim the
+          registration makes, so it belongs to the mode that draws that claim.
+          In the other four it was describing something not on screen, at the
+          cost of two wrapped lines — and two wrapped lines here is the
+          difference between a legend that fits its cap and one that has to be
+          scrolled.
+
+          The folded count is NOT mode-dependent and has not become so. It is
+          the one number that decides whether any of the rest can be read, so it
+          appears in all five modes including the zero: here in REGISTERED, in
+          the `≤ 0 invalid` swatch in DEFORMATION, and appended to the mode line
+          in the other three. A count that appears only when it is non-zero
+          cannot tell the reader the check was made and passed.
 
           BELOW the mode block rather than above it, which it used to be. The
           order here decides what a reader sees without scrolling, and on T02 in
@@ -890,11 +911,13 @@ function Legend({ hostRef, mode, record, manifest, theme, vectorScale, drawn, re
 
           The reading order is better for it independently of the arithmetic:
           what am I looking at, what do the colours mean, how far to trust it. */}
-      <p className="growth-legend__line">
-        Fit · surface distance {record.fit.chamfer_before.toFixed(2)} →{' '}
-        {record.fit.chamfer_after.toFixed(2)} {units} · {d.detJ.count_non_positive} of {d.n_points}{' '}
-        folded
-      </p>
+      {mode === 'registered' ? (
+        <p className="growth-legend__line">
+          Surface distance {record.fit.chamfer_before.toFixed(2)} →{' '}
+          {record.fit.chamfer_after.toFixed(2)} {units} · {d.detJ.count_non_positive}/{d.n_points}{' '}
+          folded
+        </p>
+      ) : null}
 
       {/* The exporter's own sentence about THIS specimen, in the exporter's own
           words, in every mode. Three of the four carry one and M05 does not,
