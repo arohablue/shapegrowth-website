@@ -750,27 +750,8 @@ function useSpecimen(near: boolean, selected: string): SpecimenState {
 
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`
 
-/**
- * The exporter's own caveat for the mode on screen, or nothing.
- *
- * Found by its opening words rather than by index, so reordering `caveats` in
- * the manifest cannot silently put the determinant's warning under the
- * displacement field. A rewrite that changes the opening returns `null`, which
- * drops the line rather than printing the wrong one.
- *
- * This is the obligation the manifest's own header states — that a view built
- * on it puts the caveats on screen rather than beside the code — honoured one
- * mode at a time. All four are in `manifest.caveats` whatever is showing.
- */
-function caveatFor(mode: Mode, caveats: readonly string[]): string | null {
-  const find = (prefix: string) => caveats.find((c) => c.startsWith(prefix)) ?? null
-  if (mode === 'displacement') return find('Displacement is the estimated motion')
-  if (mode === 'deformation') return find('det J describes')
-  if (mode === 'registered') return find('Point correspondence')
-  return null
-}
 
-function Legend({ hostRef, mode, record, manifest, theme, vectorScale, drawn, reading, failure }: {
+function Legend({ hostRef, mode, record, manifest, theme, vectorScale, reading, failure }: {
   /** Measured by the view, which gives the scene the band below it on mobile. */
   hostRef: RefObject<HTMLDivElement | null>
   mode: Mode
@@ -778,14 +759,11 @@ function Legend({ hostRef, mode, record, manifest, theme, vectorScale, drawn, re
   manifest: PlantGrowthManifest
   theme: Theme
   vectorScale: number
-  drawn: number
   /** A specimen being read that is not this one, named rather than spun. */
   reading: string | null
   failure: { readonly id: string; readonly message: string } | null
 }) {
   const d = record.diagnostics
-  const units = manifest.units
-  const caveat = caveatFor(mode, manifest.caveats)
   // Straight off the ramp the points are drawn from, rather than transcribed
   // into the stylesheet. A swatch that can disagree with the scale it is
   // labelling is worse than no swatch.
@@ -799,19 +777,57 @@ function Legend({ hostRef, mode, record, manifest, theme, vectorScale, drawn, re
 
   return (
     <div ref={hostRef} className="growth-legend">
-      {/* The specimen on screen, named from the same object the points came
-          from. Always present and never mode-dependent: it is the answer to
-          "what am I looking at", and the selector above cannot be that answer
-          because the selector shows what was asked for.
+      {/* ONE line: which specimen, and what the image is showing. Nothing else.
+          It is the answer to "what am I looking at", and the selector above
+          cannot be that answer because the selector shows what was ASKED for.
 
-          One line, and it has to stay one line. At 375px this block is capped
-          at 174px and every wrapped line is 19px of plant. `one day apart` and
-          `per scan` were both restating what the two dates and the word
-          `points` already say, and they cost a second line to do it. Nothing
-          measured left this line — the specimen, the interval and the point
-          count are all still here. */}
+          This block used to carry six: the identity, the mode, a vector count,
+          a fit line and two paragraphs of prose. At 375px that was 246px of a
+          545px frame on M05 and 355px on T02, over a plant that the whole plate
+          exists to show — the legend had become the primary object.
+
+          WHERE THE PROSE WENT, because it was not deleted. The four caveat
+          sentences in `plant-growth/manifest.json` are the same four sentences
+          the step summaries in `content.ts` carry, by construction — see the
+          header comment on GROWTH_FIELDS_EVIDENCE. On a narrated beat the
+          paragraph stating that displacement contains bending, drooping and
+          registration error is already on screen beside the figure, so the copy
+          inside the frame was a second rendering of text the reader had just
+          read. On EXPLORE the reader is choosing modes and that prose is in the
+          steps immediately above. Nothing stopped being said; it stopped being
+          said twice, on top of the plant.
+
+          What is NOT delegated to the prose column is the det J colour ramp,
+          which is a key to pixels on screen rather than a sentence about them,
+          and no paragraph can substitute for it. It stays, in DEFORMATION only
+          — see the swatches below. */}
       <p className="growth-legend__line">
-        {record.label} · {record.interval.from} → {record.interval.to} · {d.n_points} points
+        {record.label} ·{' '}
+        {mode === 'source' ? `day t, ${record.interval.from}` : null}
+        {mode === 'target' ? `day t+1, ${record.interval.to}` : null}
+        {mode === 'registered' ? 'warped day t over day t+1' : null}
+        {/* No median and no max. `content.ts` already rules that the study's
+            quantities belong in a step's `caption` and `metadata` rather than
+            in the line read as a claim about the figure, and those two were
+            the difference between one line and two. */}
+        {mode === 'displacement' ? 'estimated motion' : null}
+        {/* "proxy", not "is". det J is a cautious stand-in for local expansion,
+            and the word carries that. Where the ramp saturates moved down to
+            the expanding swatch: it is a fact about the colours, so it belongs
+            on the key to the colours. On T02 it was also the difference between
+            one line and two at 375px. */}
+        {mode === 'deformation' ? 'det J, local expansion proxy' : null}
+        {/* The one thing that is never implied by the picture. A vector drawn
+            at ×2 is twice the length it was measured at, and a reader who takes
+            it for the measurement has been misled by the figure rather than by
+            the copy — so the exaggeration is named wherever it is in force, and
+            says nothing when the vectors are true length. Three words, because
+            the fieldset these come from is already named "Vector display scale,
+            visual only" and this only has to stop the misreading, not teach it
+            from scratch. The drawn-vector count went with the long form: how
+            many are drawn is a sampling fact the density control states, not a
+            thing a reader can misread off the image. */}
+        {mode === 'displacement' && vectorScale !== 1 ? ` · ×${vectorScale} visual only` : null}
       </p>
 
       {reading ? (
@@ -825,40 +841,13 @@ function Legend({ hostRef, mode, record, manifest, theme, vectorScale, drawn, re
         </p>
       ) : null}
 
-      <p className="growth-legend__line">
-        {mode === 'source' ? `Day t — ${record.interval.from}` : null}
-        {mode === 'target' ? `Day t+1 — ${record.interval.to}` : null}
-        {mode === 'registered' ? 'Warped day t drawn over day t+1' : null}
-        {mode === 'displacement'
-          ? `Estimated motion · median ${d.displacement.median.toFixed(1)}, p95 ${d.displacement.p95.toFixed(1)}, max ${d.displacement.max.toFixed(1)} ${units}`
-          : null}
-        {mode === 'deformation'
-          ? `det J · ramp saturates at p95 ${d.detJ.p95.toFixed(2)}`
-          : null}
-        {/* The folded count rides whichever line is already on screen rather
-            than holding one of its own. It must appear in every mode — a count
-            that shows up only when it is non-zero cannot tell the reader the
-            check was made and passed — but DEFORMATION already states it in the
-            `≤ 0 invalid` swatch and REGISTERED states it on the fit line below,
-            and printing it three times in one block is how the block got to be
-            the largest object on the figure. */}
-        {mode !== 'deformation' && mode !== 'registered'
-          ? ` · ${d.detJ.count_non_positive}/${d.n_points} folded`
-          : null}
-      </p>
-
-      {mode === 'displacement' ? (
-        <p className="growth-legend__line">
-          {drawn} of {d.n_points} vectors drawn at ×{vectorScale}
-          {vectorScale === 1 ? ' (true length)' : ' (visual scale — not measured length)'}
-        </p>
-      ) : null}
 
       {mode === 'deformation' ? (
         <ul className="growth-swatches">
           <li className="growth-swatch">
             <span className="growth-swatch__chip" style={{ backgroundColor: ramp.expand }} />
-            {'>'} 1 expanding · {pct(d.detJ.frac_expanding)}
+            {'>'} 1 expanding · {pct(d.detJ.frac_expanding)} · colour caps at p95{' '}
+            {d.detJ.p95.toFixed(2)}
           </li>
           <li className="growth-swatch">
             <span className="growth-swatch__chip" style={{ backgroundColor: ramp.compress }} />0 to 1
@@ -874,75 +863,6 @@ function Legend({ hostRef, mode, record, manifest, theme, vectorScale, drawn, re
         </ul>
       ) : null}
 
-      {/* How far this registration is to be trusted. REGISTERED only now, and
-          the cut is worth recording because this line used to carry four
-          numbers in all five modes.
-
-          It carried the displacement mean and the det J median as well, and
-          both were already on screen wherever they meant anything: the mode
-          line reports displacement median, p95 and max in DISPLACEMENT, and det
-          J p95 with three swatches of distribution in DEFORMATION. In the other
-          three modes they described a field that was not being drawn. So they
-          were a second, blunter copy of the statistic beside them, costing two
-          wrapped lines of a block that at 375px is capped at 174px — the single
-          largest text object on a figure whose brief is that the plant is the
-          primary thing. Removing a duplicate is not the same as removing a
-          caveat, and nothing here is now stated in only one place.
-
-          The surface distance before and after is the whole claim the
-          registration makes, so it belongs to the mode that draws that claim.
-          In the other four it was describing something not on screen, at the
-          cost of two wrapped lines — and two wrapped lines here is the
-          difference between a legend that fits its cap and one that has to be
-          scrolled.
-
-          The folded count is NOT mode-dependent and has not become so. It is
-          the one number that decides whether any of the rest can be read, so it
-          appears in all five modes including the zero: here in REGISTERED, in
-          the `≤ 0 invalid` swatch in DEFORMATION, and appended to the mode line
-          in the other three. A count that appears only when it is non-zero
-          cannot tell the reader the check was made and passed.
-
-          BELOW the mode block rather than above it, which it used to be. The
-          order here decides what a reader sees without scrolling, and on T02 in
-          DEFORMATION the old order pushed the `≤ 0 invalid` swatch 24px under
-          the fold. That is the one row that must not need a gesture to reach:
-          it is the key to the crimson already on screen.
-
-          The reading order is better for it independently of the arithmetic:
-          what am I looking at, what do the colours mean, how far to trust it. */}
-      {mode === 'registered' ? (
-        <p className="growth-legend__line">
-          Surface distance {record.fit.chamfer_before.toFixed(2)} →{' '}
-          {record.fit.chamfer_after.toFixed(2)} {units} · {d.detJ.count_non_positive}/{d.n_points}{' '}
-          folded
-        </p>
-      ) : null}
-
-      {/* The exporter's own sentence about THIS specimen, in the exporter's own
-          words, in every mode. Three of the four carry one and M05 does not,
-          which is the shape of the thing: a note exists where the registration
-          needs qualifying, so its absence is a statement too.
-
-          Flagged, not hidden, when the quality is `problematic` — T02 is in the
-          selector precisely so a reader can meet a failed registration, and a
-          failure case that arrives unannounced is a trap rather than a lesson.
-          The quality comes off the record, so nothing here decides which
-          specimens are sound; the exporter already did, from the fit. */}
-      {record.note ? (
-        <p
-          className={
-            record.quality === 'problematic'
-              ? 'growth-legend__caveat growth-legend__caveat--flag'
-              : 'growth-legend__caveat'
-          }
-        >
-          {record.quality === 'problematic' ? <strong>Problematic registration. </strong> : null}
-          {record.note}
-        </p>
-      ) : null}
-
-      {caveat ? <p className="growth-legend__caveat">{caveat}</p> : null}
     </div>
   )
 }
@@ -1284,7 +1204,6 @@ export default function GrowthFieldView({
 
   const stride = DENSITIES[strideIndex]!.stride
   const vectorScale = VECTOR_SCALES[scaleIndex]!
-  const drawn = shown ? Math.ceil(shown.record.diagnostics.n_points / stride) : 0
 
   return (
     <div
@@ -1471,7 +1390,6 @@ export default function GrowthFieldView({
             manifest={shown.manifest}
             theme={theme}
             vectorScale={vectorScale}
-            drawn={drawn}
             // Named only while they are about a specimen other than the one on
             // screen. The first read of all has nothing to sit beside, and is
             // reported by the full-frame status above instead.
