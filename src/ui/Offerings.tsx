@@ -120,6 +120,7 @@ function OfferingSequence({ offering }: { offering: Offering }) {
   // also decides whether a plate offers its Enlarge control, and a run of six
   // visible figures with the control on the first is a bug, not a style.
   const isActive = (i: number) => reduced || i === active
+  const continuous = isContinuous(offering)
 
   return (
     <article id={offering.id} className="offering">
@@ -158,14 +159,32 @@ function OfferingSequence({ offering }: { offering: Offering }) {
             prose first is reading a page that describes its illustrations. */}
         <div className="offering__stage">
           <div className="offering__stage-box" style={stageStyle(offering)}>
-            {offering.evidence.map((figure, i) => (
+            {continuous ? (
+              // ONE plate, whose figure changes under it. Deliberately not
+              // keyed: React reconciles it by position, the element type is the
+              // same `lazy` component at every beat, and so the view is never
+              // unmounted. That is the whole mechanism — see `isContinuous`.
+              //
+              // Under reduced motion there is no scroll-driven beat to show, so
+              // the stage goes to the last step, which is the one with the
+              // controls. The reader reaches all six representations through
+              // the rail instead of through the scroll, which is the same
+              // material by a route that does not move on its own.
               <Figure
-                key={figure.id}
-                figure={figure}
+                figure={offering.evidence[reduced ? offering.evidence.length - 1 : active]!}
                 offeringIndex={offering.index}
-                active={isActive(i)}
+                active
               />
-            ))}
+            ) : (
+              offering.evidence.map((figure, i) => (
+                <Figure
+                  key={figure.id}
+                  figure={figure}
+                  offeringIndex={offering.index}
+                  active={isActive(i)}
+                />
+              ))
+            )}
           </div>
         </div>
 
@@ -194,6 +213,48 @@ function OfferingSequence({ offering }: { offering: Offering }) {
       </div>
     </article>
   )
+}
+
+/**
+ * Whether this offering's plates are N readings of ONE figure rather than N
+ * figures — in which case the stage mounts that figure once and lets the
+ * reader's position in the column choose what it shows.
+ *
+ * Offering 02 is the case it exists for. Its six plates are six
+ * representations of one pair of scans, all filled by `GrowthFieldView`, and
+ * the scroll through them is the DAY t → DAY t+1 → REGISTRATION → DISPLACEMENT
+ * → DEFORMATION → EXPLORE sequence. Offering 01 is three unrelated figures and
+ * is unaffected.
+ *
+ *
+ * WHY IT IS DERIVED AND NOT DECLARED
+ * ──────────────────────────────────
+ * The alternative was a flag on `Offering` saying `continuous: true`, which is
+ * a second statement of something the registry already states and which can
+ * therefore be wrong. The condition here is not a convention — it is the exact
+ * technical precondition for the stage to work: the same component reference at
+ * every slot is what lets React keep one instance mounted across a beat change.
+ * If that stops being true, the derived answer stops being `true` with it and
+ * the offering falls back to the stack of crossfading plates, which still
+ * renders correctly. A declared flag would instead produce six mounts of six
+ * different components in one grid cell, silently.
+ *
+ *
+ * WHY THE STACK IS NOT JUST ALWAYS THIS
+ * ─────────────────────────────────────
+ * Because the crossfade is right for offering 01 and wrong here. Three
+ * different photographs dissolving into each other is a transition between two
+ * pieces of evidence; one plant cutting from its own displacement field to its
+ * own determinant map is the same object being re-described, and holding it
+ * still through that is the point. The stack also keeps all N plates in the
+ * accessibility tree at once, which is correct when they are N figures and a
+ * lie when they are one.
+ */
+function isContinuous(offering: Offering): boolean {
+  const sources = offering.evidence.map((figure) => EVIDENCE_SOURCES[figure.id])
+  const first = sources[0]
+  if (sources.length < 2 || first?.type !== 'component') return false
+  return sources.every((s) => s?.type === 'component' && s.component === first.component)
 }
 
 /**

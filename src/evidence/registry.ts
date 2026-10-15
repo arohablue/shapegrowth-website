@@ -117,7 +117,29 @@ export type EvidenceSource =
        * which is the same promise `.plate__expand` already makes by not
        * rendering at all when the plate is inactive.
        */
-      readonly component: ComponentType<{ readonly active?: boolean }>
+      readonly component: ComponentType<{ readonly active?: boolean; readonly beat?: string }>
+      /**
+       * Which of the view's representations this slot asks for, when several
+       * slots are filled by ONE view.
+       *
+       * The field exists for offering 02 and is what makes that offering's
+       * sequence possible at all. Six plates there are six readings of one pair
+       * of scans, so they are filled by six entries that all name the same
+       * `component` — `Offerings.tsx` recognises that and mounts the view once,
+       * handing it the active slot's `beat` as the reader scrolls. Six separate
+       * instances would be six WebGL contexts for one plant, on a page that
+       * already holds two.
+       *
+       * It lives here rather than on the figure because it answers "what is
+       * currently in this slot", which is this file's question. The figure says
+       * what the step IS, and a step named `Registration` does not know that the
+       * thing filling it happens to call that representation `registered`.
+       *
+       * Unset everywhere else, and a view that is given one it does not
+       * recognise is expected to fall back to its own default rather than
+       * render nothing.
+       */
+      readonly beat?: string
       /**
        * The accessible name for the rendered output. Applied to the wrapper as
        * `role="img"` + `aria-label`, because a canvas that draws a point cloud
@@ -132,6 +154,16 @@ export type EvidenceSource =
        */
       readonly aspect?: FigureAspect
     }
+
+/**
+ * Offering 02's one view, declared once and referenced by all six of its slots.
+ *
+ * Module scope rather than inline, and that is the whole mechanism behind the
+ * continuous stage — see the note over those six entries. `lazy` for the reason
+ * the type's own docs give: this reaches three and @react-three/fiber, and the
+ * offerings sit below the entire reconstruction sequence.
+ */
+const GROWTH_FIELD_VIEW = lazy(() => import('@/evidence/views/plant-growth/GrowthFieldView'))
 
 /**
  * Step id → the material that fills it.
@@ -252,8 +284,120 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     aspect: 'wide',
   },
 
-  /* ── 02 / LEAF DYNAMICS ─────────────────────────────────────────────────────
-   * All six come out of the PhenoLeaf-TS dataset, specimen Col-0 / rep_21,
+  /* ── 02 / PLANT GROWTH FIELDS ───────────────────────────────────────────
+   * All six slots, filled by ONE view.
+   *
+   * The asset is neither an image nor a bundled model: `GrowthFieldView` reads
+   * `public/evidence/plant-growth/manifest.json` and a 120 kB binary beside
+   * it, both written by `scripts/build-plant-growth.py` from the Pheno4D
+   * scans. Nothing about the registration is computed in the browser — the
+   * arrays are the exporter's output, and `verify-plant-growth.mjs` checks
+   * that what the loader reads back matches the statistics the exporter
+   * published from the same arrays.
+   *
+   * `component` for the reason the dense cloud gives, with one addition. Every
+   * representation here is only legible in motion or from a chosen angle: a
+   * displacement field photographed head-on is a field of dots, and a
+   * determinant map shown at one yaw hides whichever half of the plant is
+   * behind the other.
+   *
+   * WHY THE SIX ENTRIES SHARE ONE `component` CONSTANT
+   * ──────────────────────────────────────────────────
+   * `GROWTH_FIELD_VIEW` is declared once above and referenced six times, and
+   * that identity is load-bearing rather than tidy. `Offerings.tsx` decides a
+   * sequence is one continuous figure by comparing these references, and React
+   * only keeps the view mounted across a beat change because the element type
+   * does not change. Six `lazy(...)` calls would be six distinct component
+   * types: six WebGL contexts if they were all mounted, and a remount — a new
+   * context, a refetch and a camera back at the opening shot — on every step
+   * if they were not.
+   *
+   * Each entry still carries its own `alt`, because the whole point of the
+   * sequence is that the thing on screen is different at each step, and an
+   * accessible name describing all six at once would be accurate at none of
+   * them. The wrapper takes the active slot's. */
+  'scan-day-t': {
+    type: 'component',
+    component: GROWTH_FIELD_VIEW,
+    beat: 'source',
+    alt:
+      'A three-dimensional view of one maize plant recorded as a cloud of three thousand points, drawn in a deep leaf green against an empty background. The stem and the long arching leaves are resolved as surfaces of scattered points with the soil removed, and the plant turns slowly so it is seen from every side. Dragging across it rotates it.',
+    aspect: 'wide',
+  },
+
+  'scan-day-t1': {
+    type: 'component',
+    component: GROWTH_FIELD_VIEW,
+    beat: 'target',
+    alt:
+      'The same plant recorded again a day later, drawn as a second cloud of three thousand points in a brighter chartreuse green. It is recognisably the same plant in the same pose, slightly taller, with the leaves held at somewhat different angles. Nothing marks which point here corresponds to which point in the earlier scan, because nothing does.',
+    aspect: 'wide',
+  },
+
+  'non-rigid-registration': {
+    type: 'component',
+    component: GROWTH_FIELD_VIEW,
+    beat: 'registered',
+    alt:
+      'The two scans drawn together: the later scan as larger chartreuse points, and over it, in the deep green of the earlier scan, the earlier cloud after a non-rigid registration has carried it onto the later one. The two surfaces coincide almost everywhere, so most of the plant reads as a single speckled cloud; where they separate — at leaf tips and at the top of the stem — the earlier scan is visibly short of the later one.',
+    aspect: 'wide',
+  },
+
+  'displacement-field': {
+    type: 'component',
+    component: GROWTH_FIELD_VIEW,
+    beat: 'displacement',
+    alt:
+      'The earlier scan dimmed to a faint green surface, with a line leaving each point along the displacement the registration estimated for it. Each line is drawn at true length and fades from a near-background tone at the point it starts from to the measurement green at its far end, so the field reads as flowing off the surface. The lines are short and roughly parallel over the stem and much longer at the leaf tips.',
+    aspect: 'wide',
+  },
+
+  'local-deformation': {
+    type: 'component',
+    component: GROWTH_FIELD_VIEW,
+    beat: 'deformation',
+    alt:
+      'The earlier scan again, with every point coloured by the determinant of the registration\u2019s Jacobian: green where the estimated map expands tissue, amber where it compresses it, and a separate off-scale crimson for points where the map folds and the value is not a deformation at all. A key beside the plant gives the three bands and the share of points in each.',
+    aspect: 'wide',
+  },
+
+  'growth-field-explorer': {
+    type: 'component',
+    component: GROWTH_FIELD_VIEW,
+    beat: 'explore',
+    alt:
+      'The same view with its controls shown, so all five representations above can be chosen in any order and compared. The plant is chosen from four — three maize and one tomato, the last marked in the list as a problematic registration — and the density and drawn length of the displacement vectors can be changed. Dragging across the plant rotates it; holding Control and scrolling, or pinching, moves the viewpoint. A legend names the specimen on screen and reports how far its registration is to be trusted, in scan units, together with any caution the study attaches to that specimen and its own caveat about what the representation showing is not.',
+    aspect: 'wide',
+  },
+}
+
+/**
+ * ── ARCHIVED — 02 / LEAF DYNAMICS ───────────────────────────────────────────
+ * Not spread into `EVIDENCE_SOURCES`, so none of the six is reachable: the
+ * figures that claimed them left `content.ts` when PLANT GROWTH FIELDS took
+ * position 02, and they now live in `content.archive.ts`.
+ *
+ * Kept here, in the registry, rather than moved into the archive file beside
+ * the copy. The split is the one this file already draws — what a figure says
+ * is content, what currently fills it is registry — and collapsing it for the
+ * archived offering would mean restoring the section reassembled a structure
+ * that no longer exists anywhere to be checked against.
+ *
+ * Nothing is deleted. The built assets are still in
+ * `public/evidence/leaf-dynamics/` and the two interactive views are still in
+ * `evidence/views/leaf-dynamics/`; the `lazy` chunks below are simply never
+ * requested, because nothing renders a figure with these ids.
+ *
+ * TO RESTORE: add `...ARCHIVED_LEAF_DYNAMICS_SOURCES,` to `EVIDENCE_SOURCES`
+ * above, alongside putting `ARCHIVED_LEAF_DYNAMICS` back in `OFFERINGS`. Two
+ * lines, and the section returns complete.
+ *
+ * It is exported rather than left as a module-local so that `tsc --noEmit`
+ * does not strip it as unused — an archive the compiler stops reading is an
+ * archive that rots silently.
+ */
+export const ARCHIVED_LEAF_DYNAMICS_SOURCES: Partial<Record<string, EvidenceSource>> = {
+  /* All six come out of the PhenoLeaf-TS dataset, specimen Col-0 / rep_21,
    * staged in `data/leaf-morphology/` and built by
    *
    *   scripts/build-leaf-dynamics-plates.py

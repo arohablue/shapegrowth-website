@@ -79,25 +79,28 @@ export const DEMO_SOURCES: Partial<Record<string, EvidenceSource>> = {
     alt: 'Placeholder schematic: the same drawn plant in outline with four measurement annotations — a dimension line for plant height, a hatched blade for leaf area, an arc between two arms for leaf angle, and a caliper across the stem base for stem thickness. Each carries only its trait name; no values are shown.',
   },
 
-  /* ── 02 / LEAF DYNAMICS / CONFORMAL GROWTH ──────────────────────────────── */
+  /* ── 02 / PLANT GROWTH FIELDS ───────────────────────────────────────────── */
 
-  // Nothing. All six leaf-dynamics plates are filled for real from the
-  // PhenoLeaf-TS dataset, specimen Col-0 / rep_21 — see the REAL block in
-  // `registry.ts`. Deleted rather than left underneath, same reasoning as
-  // offering 01's two deletions above: a superseded demo never renders once the
-  // registry has a real entry at that key, so keeping it here would just be dead
-  // code that still reads as an open placeholder to anyone auditing the page.
+  // Nothing, and this is the one place in the file where that is a decision
+  // rather than a leftover. All five plates of offering 02 are empty, and they
+  // stay empty rather than being covered by schematics.
   //
-  // `quantitative-validation` was the last one standing, and the note in this
-  // place argued it had to stay: there is no independent instrument measurement
-  // in this dataset to validate a recovered displacement field against, and
-  // inventing one was out of the question. That was true and is still true. What
-  // changed is that it turned out not to be the only available test — a map
-  // built from two frames can be made to predict a third it never saw, and
-  // scored against that frame's own mask. The plate now reports how that went,
-  // which includes the part where the conformal map does not clearly beat a
-  // much simpler correspondence.
+  // A schematic is defensible when it stands in for a figure whose *shape* is
+  // already settled — the trait diagram above is a drawing of annotations whose
+  // real version will be annotations. It is not defensible here. The claims on
+  // these plates are a displacement field that is motion rather than growth, and
+  // a Jacobian determinant that is a proxy rather than a measurement, and a
+  // drawing of either reads as a result the moment it is rendered. The arrows
+  // would be somebody's idea of what the field ought to look like, and nothing
+  // on the plate would distinguish that from the field the registration actually
+  // produced.
   //
-  // The SVGs for all six are still in `public/demo/conformal/` and are now
-  // unreferenced.
+  // So the bracketed placeholders show through until `build-plant-growth-
+  // assets.py` output is wired into a view. The slots look unfinished because
+  // they are.
+  //
+  // The six superseded leaf-dynamics demos were deleted from here when that
+  // offering was filled for real. Their SVGs are still in `public/demo/
+  // conformal/`, unreferenced, alongside the archived offering in
+  // `content.archive.ts`.
 }

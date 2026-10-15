@@ -314,9 +314,15 @@ function Media({
     const View = source.component
     // The component draws pixels and has no accessible name of its own, so the
     // wrapper carries one. Without this a point cloud is an empty element.
+    //
+    // `beat` is undefined for every slot but offering 02's six, where it names
+    // which representation this step asks the shared view for. Passed through
+    // untouched and unvalidated: the registry and the view are the two ends of
+    // that string, and a renderer that knew the vocabulary would be a third
+    // place to keep it up to date.
     return (
       <div className={className} role="img" aria-label={source.alt}>
-        <View active={active} />
+        <View active={active} beat={source.beat} />
       </div>
     )
   }

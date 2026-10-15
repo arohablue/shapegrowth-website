@@ -1034,16 +1034,22 @@
 
      This is a real alternative layout rather than `transition: none`, because
      the stage is not decoration — one figure is on screen at a time and the
-     other five are at zero opacity, so suppressing only the animation would
-     leave five figures permanently invisible. Unstacking the grid cell is the
-     whole change: `grid-auto-flow: row` turns one cell holding six plates into
-     six rows holding one each, and the frames keep the `aspect-ratio` they
-     already carry.
+     others are at zero opacity, so suppressing only the animation would leave
+     them permanently invisible. Unstacking the grid cell is the whole change:
+     `grid-auto-flow: row` turns one cell holding N plates into N rows holding
+     one each, and the frames keep the `aspect-ratio` they already carry.
+
+     Offering 02 is the exception and needs no rule, which is worth saying here
+     because this block looks like it ought to cover it. Its six plates are one
+     view at six beats, so the stage mounts a single plate and sends it to the
+     last step — the one with the rail. There is nothing stacked there to unstack
+     and nothing hidden to reveal: every representation is reachable, by a
+     control rather than by a scroll. See `isContinuous` in `Offerings.tsx`.
 
      `useActiveStep` checks the same query, never creates its observer, and
      reports every step as active — which matters beyond the styling here: the
      Enlarge control renders only on an active plate, so a component that left
-     `active` on the first plate would show the run of six with the control on
+     `active` on the first plate would show the run of plates with the control on
      one of them. The two halves have to agree, and the media query is the single
      source they agree on. Declared after the rules it overrides rather than with
      `!important`; these are all single-class selectors of equal weight. */
@@ -1269,16 +1275,51 @@
    because a reader on a phone who has no control has no way back.
 
    So this is the measured minimum rather than a clean answer, and the scrim is
-   raised to near-opaque to match: over the four positions where it does land on
-   copy it should read as a control sitting on top of the text, which is legible,
+   raised to near-opaque to match: over the positions where it does land on copy
+   it should read as a control sitting on top of the text, which is legible,
    rather than a translucent panel mixing with it, which is not.
 
-   Only the horizontal edge changes here — the desktop rule is already mid
-   height, and the rail it is avoiding does not exist at this width. */
+   MID-RIGHT, WHICH THIS USED TO BE, NO LONGER WINS. The count above was taken
+   when the second offering was a set of flat leaf plates. It is now a sticky
+   3/5 figure that pins to y=8..553 of an 812px viewport for the whole body of
+   the section, and it carries nine controls of its own. Re-running the same
+   fourteen positions against the current document, and separating the two kinds
+   of collision because they are not equally bad:
+
+     mid-right      2 controls   14 copy
+     bottom-right   0 controls   14 copy
+     bottom-left    0 controls   14 copy
+     top-right      0 controls    3 copy
+
+   Mid-right's whole advantage was its 4/14 on copy, and the sticky figure has
+   taken that away — it is 14/14 now like everything else, and it alone also
+   lands on the mode rail, covering the right edge of REGISTERED and taking its
+   clicks. A scrim answers a collision with a paragraph; nothing answers a
+   control sitting on a control.
+
+   Top-right scores best on copy and is still wrong: at this width the legend
+   docks to `top: 0.75rem` inside that same figure, so top-right would cover the
+   line naming which specimen is on screen — the one line the plate cannot
+   afford to hide. That leaves the two bottom corners, which tie, and
+   bottom-right is spoken for by the loading indicator (`fixed bottom-6
+   right-6`). Bottom-left is what the desktop comment above already called the
+   corner this obviously wants.
+
+   `4rem` and not the `1.5rem` that would match the other three insets, because
+   the loading indicator is right-anchored but not right-contained: its rail and
+   label come to 275px wide, so at 375px it reaches back to x=72 and a toggle
+   sharing its line would sit under it. At `1.5rem` the two occupy 755..788 and
+   772..788. `4rem` lifts the toggle to 715..748, which clears the indicator by
+   24px and still leaves 162px between it and the sticky figure above.
+
+   Both edges change here, so the desktop `top: 50%` centring is undone too. */
 @media (max-width: 639px) {
   .theme-toggle {
-    left: auto;
-    right: 1.5rem;
+    left: 1.5rem;
+    right: auto;
+    top: auto;
+    bottom: 4rem;
+    transform: none;
     background-color: color-mix(in oklab, var(--color-void) 96%, transparent);
   }
 }
@@ -1301,9 +1342,18 @@
   bottom: 0.75rem;
 }
 
-/* ── the leaf-dynamics plates ──
-   `evidence/views/leaf-dynamics/`. Two of offering 02's six plates are canvases
-   the reader drives: a 97-frame series and a three-state segmentation reveal.
+/* ── the interactive-plate chrome ──
+   Written for `evidence/views/leaf-dynamics/`, whose two canvases — a 97-frame
+   series and a three-state segmentation reveal — were offering 02 until PLANT
+   GROWTH FIELDS replaced it. That offering is archived, not deleted: see
+   `content.archive.ts`. Nothing renders these selectors today.
+
+   Kept whole, and not moved or commented out, because almost none of it is
+   about leaves. `.plate__view`, the control rail, the scrubber and the readout
+   are the house style for a plate the reader drives, and offering 02's own
+   explorer lands in the same frame under the same rules. The handful of
+   id-scoped rules below (`#leaf-observation`, `#leaf-segmentation`) match
+   nothing until the archived offering is restored, which is inert.
 
    Everything here is chrome *over* the plate. Nothing is added above or below
    the image — that rule has not moved, and it is why these controls are inside
@@ -1567,10 +1617,425 @@
 
 /* There is deliberately no rule moving `.plate__expand` clear of the wrapped
    rail. The two never coexist: Enlarge is drawn only for a figure carrying
-   `expandable: true`, and the two plates that wear this chrome do not set it,
-   for the reason `dense-reconstruction` already gives — a plate the reader can
+   `expandable: true`, and the plates that wear this chrome do not set it, for
+   the reason `dense-reconstruction` already gives — a plate the reader can
    already drive in place does not need a modal holding a second copy of it. A
    rule guarding a combination that cannot arise reads as evidence that it can. */
+
+/* ── 02 / PLANT GROWTH FIELDS: the displacement viewer ──
+   `evidence/views/plant-growth/GrowthFieldView.tsx`. The second plate on this
+   page the reader can turn, and the first that also has something to say about
+   what it is showing — five representations, a vector field with two of its own
+   controls, and a determinant scale in three bands.
+
+   It wears the chrome above rather than a second set: `.plate__view`,
+   `.plate__chrome`, `.plate__stages`, `.plate__control` and `.plate__vh` are
+   all inherited unchanged. What follows is only what that rail could not
+   already do — a wider gutter, labels that keep their case, and a legend. */
+
+.growth-view {
+  /* The affordance, same as `.cloud-view`. `.plate__view` already carries the
+     `touch-action: pan-y` that hands vertical drags back to the page. */
+  cursor: grab;
+}
+
+.growth-view:active {
+  cursor: grabbing;
+}
+
+/* The five narrated beats, where the camera is the sequence's and the view
+   ignores the pointer. A grab cursor over a model that will not turn is the
+   worst of the three states to be in — it is an affordance that is simply
+   false. The view states which it is in; the rule is one line because the
+   question of WHEN is not the stylesheet's. */
+.growth-view[data-interactive='false'],
+.growth-view[data-interactive='false']:active {
+  cursor: default;
+}
+
+/* The view is in the tab order when it is drivable, so it needs to say when it
+   has focus — a keyboard reader pressing an arrow has to know whether the model
+   or the page is about to move.
+
+   Inset rather than outset, and on the frame rather than around it: the view
+   fills `.evidence__frame` edge to edge, so an outline drawn outside the box
+   falls under the frame's own border and is invisible. `-2px` puts it just
+   inside. `.plate__control:focus-visible` above uses the same accent at the
+   same width, which is the point — this is one more control on the same rail,
+   and a figure that announced focus in a different language would read as a
+   different kind of thing.
+
+   `:focus-visible` and not `:focus`, or every pointer drag would ring the
+   figure for the rest of the beat. */
+.growth-view:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+/* R3F sizes its own backing store here — unlike the leaf plates, which measure
+   the box imperatively — so this takes `.cloud-view canvas`'s rule rather than
+   `.plate__view canvas`'s. Stated explicitly because the class it inherits from
+   does the opposite, and the two would otherwise fight over the element. */
+.growth-view canvas {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Wider than the 21% the leaf plates take, because this rail holds five mode
+   buttons where they held three states, and `DISPLACEMENT` is a longer word
+   than any of theirs.
+
+   It still covers no specimen. M05 normalises to 2.83 tall against 2.47 at its
+   widest yaw, so at 16:9 the plant occupies about 39% of the frame's width and
+   leaves ~30% clear on each side; 26% is inside that with room to spare. The
+   binding constraint is the label, not the plant.
+
+   `justify-content: flex-start` rather than the centred default: the mode group
+   is the primary control and should sit at a fixed place in the frame whether
+   or not the two vector rows are present, and they are present in one mode of
+   the five. Centred, every button would move when the reader chose
+   DISPLACEMENT. */
+.growth-chrome {
+  width: 26%;
+  justify-content: flex-start;
+  padding-top: 1rem;
+  gap: 0.5rem;
+}
+
+/* The specimen picker, which is a `<select>` rather than a fourth row of
+   buttons. `.plate__control--select` already strips the native control back to
+   the rail's own type; all this adds is the case, because the options read
+   `Maize M05` and `Tomato T02 — problematic` and uppercasing them would set a
+   species and a judgement as two more constants. Same argument as
+   `.plate__control--literal` one rule down, reached by a different route: that
+   one keeps a variable lowercase, this one keeps a proper noun a proper noun. */
+.growth-chrome__specimen {
+  text-transform: none;
+  letter-spacing: 0.06em;
+}
+
+/* The density and scale pickers. Three short options each, so they go across
+   rather than down — stacked, they would push Reset off the rail. */
+.growth-chrome__row {
+  flex-direction: row;
+}
+
+.growth-chrome__row .plate__control {
+  flex: 1 1 0;
+  padding-inline: 0.25rem;
+}
+
+/* `DAY t` and `DAY t+1` carry a lowercase variable, and `.plate__control`
+   uppercases everything. Uppercased, `t` reads as a second constant beside DAY
+   rather than as the symbol the rest of the plate uses. Same kind of reasoning
+   as `.plate__readout`, which is not uppercased either. */
+.plate__control--literal {
+  text-transform: none;
+  letter-spacing: 0.1em;
+}
+
+/* ── the legend ──
+   Bottom left, in the corner `.plate__expand` would hold if this figure were
+   expandable. It is not, for the reason the dense cloud already established: a
+   plate the reader can drive in place does not need a modal holding a second
+   copy of it. So the corner is free and this is what goes in it.
+
+   `right: 28%` keeps it clear of the rail above.
+
+   CAPPED AND SCROLLED, at every width rather than only on a phone. The height
+   of this block is content and not layout: it carries an identity line, four
+   fit diagnostics, a mode readout, three swatches, the specimen's own note and
+   the mode's caveat, and the last two are prose the exporter writes. Uncapped
+   with T02 in DEFORMATION — the worst case, being the one specimen that adds a
+   `problematic` flag to everything else — it came to 326px of a 460px frame,
+   which is a figure with a report in front of it. The brief for this plate is
+   that the plant stays the primary object, and a cap is the only way to say so
+   that a longer caveat cannot overrule.
+
+   40% is set against the plant rather than against the text: M05 normalises to
+   2.83 tall in a frame framed at ~80%, so the clear band above the legend holds
+   the canopy, which is where a day-to-day difference actually shows. Nothing is
+   dropped, truncated or folded behind a disclosure to fit — every word stays in
+   the document and in the accessibility tree, and the overflow is reached by
+   scrolling. Clamping the prose would be the one thing this plate must not do:
+   a half-shown caveat about what a displacement field is not reads as complete.
+
+   `pointer-events: auto` is what the scroll costs, and it is worth being exact
+   about what that means. The host's pointer handlers are on an ancestor, so
+   events still bubble and a horizontal drag across the legend keeps rotating
+   the model. Only the vertical drag changes hands, over this corner alone;
+   pitch is still available across the rest of the frame, which is most of it.
+   `overscroll-behavior: contain` stops a legend scrolled to its end from
+   carrying the page with it. */
+.growth-legend {
+  position: absolute;
+  left: 0.75rem;
+  right: 28%;
+  bottom: 0.75rem;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 40%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  pointer-events: auto;
+}
+
+/* Not uppercased, and for `.plate__readout`'s reason: these lines read
+   `median 9.4, p95 36.6, max 43.8 scan units` and `det J · median 1.31`.
+   Capitals would turn a unit and a statistic into something to be decoded. */
+.growth-legend__line {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: color-mix(in oklab, var(--color-ink) 78%, transparent);
+  background-color: color-mix(in oklab, var(--color-void) 76%, transparent);
+  padding: 0.25rem 0.4rem;
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+/* The exporter's own sentence about what the field on screen is not. Set in the
+   body face rather than mono, because it is prose and a monospaced paragraph at
+   this size is a wall. Still at 72% ink — a caveat dimmed into the background
+   is a caveat nobody reads, which is the failure this line exists to avoid. */
+.growth-legend__caveat {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--color-ink) 72%, transparent);
+  background-color: color-mix(in oklab, var(--color-void) 76%, transparent);
+  padding: 0.3rem 0.45rem;
+  max-width: 46ch;
+  text-wrap: pretty;
+}
+
+/* The specimen whose registration the exporter marked `problematic`. Full ink
+   rather than 72%, and an accent edge, because this is the one paragraph on the
+   plate that changes what the figure beside it means — T02's fit barely moved
+   and 80 of its points are folded, so everything the other lines report about
+   it is a measurement of a failure.
+
+   The edge is `--color-accent` and not the ramp's crimson. The crimson means
+   exactly one thing on this plate — a det J at or below zero — and spending it
+   on a paragraph would make the swatch beside it look like a cross-reference. */
+.growth-legend__caveat--flag {
+  color: var(--color-ink);
+  border-left: 2px solid color-mix(in oklab, var(--color-accent) 72%, transparent);
+  padding-left: 0.5rem;
+  background-color: color-mix(in oklab, var(--color-void) 88%, transparent);
+}
+
+/* A specimen being read, or one that could not be. Both name the specimen they
+   are about and both sit under the identity line, so the frame always says two
+   things at once: this is what you are looking at, and that is what is
+   happening to the thing you asked for. Neither ever replaces the figure.
+
+   Dimmer than `.growth-legend__line` for the pending case and brighter for the
+   failure — a transient note about bytes in flight should not compete with the
+   numbers above it, and a read that failed should. */
+.growth-legend__pending {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: color-mix(in oklab, var(--color-ink) 56%, transparent);
+  background-color: color-mix(in oklab, var(--color-void) 76%, transparent);
+  padding: 0.25rem 0.4rem;
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.growth-legend__pending--error {
+  color: color-mix(in oklab, var(--color-ink) 82%, transparent);
+}
+
+.growth-swatches {
+  list-style: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  align-self: flex-start;
+  background-color: color-mix(in oklab, var(--color-void) 76%, transparent);
+  padding: 0.3rem 0.45rem;
+}
+
+.growth-swatch {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: color-mix(in oklab, var(--color-ink) 76%, transparent);
+}
+
+/* The chip's colour is set inline from `DETJ_RAMP`, the same constant the
+   points are coloured from. Nothing about which band is which hue is written
+   here — a swatch that can disagree with its own scale is worse than none. */
+.growth-swatch__chip {
+  flex: none;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--color-ink) 22%, transparent);
+}
+
+/* Loading and failure. Centred in the frame rather than tucked in a corner:
+   there is no figure to sit beside yet, so for as long as it shows, this IS
+   the plate. */
+.growth-status {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  line-height: 1.7;
+  color: color-mix(in oklab, var(--color-ink) 52%, transparent);
+}
+
+/* Legible rather than alarming, and deliberately not dimmed: a failed fetch
+   here means the plate is showing nothing, which should not read as a design
+   decision. */
+.growth-status--error {
+  color: color-mix(in oklab, var(--color-ink) 78%, transparent);
+}
+
+/* The same breakpoint as the leaf plates, repeated rather than folded into the
+   block above because these rules have to come *after* `.growth-chrome` and
+   `.growth-legend` to beat them. Both sides are a single class — specificity
+   (0,1,0) — so the cascade is settled by order alone, and `.growth-chrome`'s
+   26% is written 120 lines below the earlier media query. Without this block
+   the rail would dock to the bottom edge at 26% of the frame's width, which is
+   a 85px column holding a word as long as DISPLACEMENT. */
+@media (max-width: 899px) {
+  /* Much taller than the 1/1 the leaf plates take, and the ratio is set by
+     arithmetic rather than by taste. Measured at 375px: the column leaves the
+     frame 327px wide; the rail wraps to three bands — five modes over two rows,
+     the two pickers sharing one, then Reset — and comes to about 210px; the
+     legend in DISPLACEMENT mode is two readouts and a caveat, about 143px. That
+     is 353px of apparatus before the specimen gets anything at all. At 1/1 the
+     plant would have none of the frame, which is what this plate did before
+     this block existed. 2/3 gives 490px, so the band left between the legend
+     and the rail is about 137px.
+
+     137px is thin and is the honest ceiling here rather than a target: nine
+     controls and a paragraph of caveat is a desktop-scale apparatus, and no
+     ratio makes it small. Going further — 1/2, say — would put a 650px plate on
+     an 812px phone, and since the five plates of this offering share one grid
+     cell, every one of them would get it.
+
+     Named by id for the reason the block above gives at length: a
+     `:has(.growth-chrome)` rule would be false at first paint, because the view
+     is lazily imported behind an IntersectionObserver, and the shared sticky
+     stage would then grow under the reader as the section arrived.
+
+     The id is the OFFERING's and not the plate's, which it used to be. The
+     offering mounts one view across all six beats now and the plate's id
+     changes under it with every step, so a rule naming `#growth-field-explorer`
+     applied to the last beat alone — and a sticky stage that changes ratio five
+     times on the way down is the same defect this rule exists to prevent,
+     arriving by a different route. The offering's id is on the `<article>` and
+     does not move.
+
+     It also means the five narrated beats, which have no rail, get the ratio
+     sized for one. That is deliberate and is the point: the stage's height has
+     to be a property of the offering rather than of whichever step is showing,
+     or it resizes as the reader scrolls through it.
+
+     3/5 rather than the 2/3 this started at, because the selector added a row
+     to the rail and the per-specimen diagnostics added two readouts and a note
+     to the legend. Re-measured at 375px with T02 in DEFORMATION — the worst
+     case, since it is the one specimen carrying a `problematic` flag on top of
+     everything else — the rail is 214px and the legend wants 355px, which is
+     569px of apparatus against the 490px that 2/3 gave. The frame was fully
+     covered and the rail was overlapped by 92px.
+
+     3/5 gives 545px. With the legend capped below, the band comes to about
+     160px, which is more than the 137px this plate had before the selector
+     existed. Still short of the 650px the note above rules out. */
+  #plant-growth-fields .evidence__frame {
+    aspect-ratio: 3 / 5 !important;
+  }
+
+  .growth-chrome {
+    width: auto;
+    justify-content: center;
+    padding-top: 0.5rem;
+  }
+
+  /* Five modes do not fit on one 327px line, and `.plate__stages` is authored
+     `nowrap`. Scoped to this chrome: the leaf plates' groups are three short
+     words and wrapping them would only make the rail ragged. */
+  .growth-chrome .plate__stages {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* The mode group owns its line outright. Without this it is a flex item with
+     no basis sitting beside two that have one, and the five modes redistribute
+     across whatever is left. */
+  .growth-chrome .plate__stages:not(.growth-chrome__row) {
+    flex: 1 1 100%;
+  }
+
+  /* The two pickers share a line. Stacked they cost 50px of a frame that has
+     137px of specimen in it, which is the more expensive of the two faults —
+     and the pairing is legible without their visually-hidden legends, because
+     one trio reads `1/4 1/2 All` and the other `×1 ×2 ×4`. The multiplication
+     sign is doing the work a visible group label otherwise would.
+
+     `min-width` rather than `min-width: 0`, which is the obvious pairing with a
+     zero basis and is wrong here: a fieldset allowed to shrink past its content
+     wraps internally, and the density group splits into `1/4 1/2` over `All`
+     while the scale group goes hunting for room beside Reset. 8.5rem is three
+     controls at the width `×1` needs plus their padding. Two of them and the
+     gap come to 278px of the 309px line, so Reset cannot fit beside them and
+     takes the next line on its own without being told to. */
+  .growth-chrome__row {
+    flex: 1 1 40%;
+    min-width: 8.5rem;
+  }
+
+  /* The legend moves to the top, because the corner it holds on desktop is
+     where the rail now is. `right: 0.75rem` as well — the 28% gutter it was
+     avoiding no longer exists.
+
+     The cap tightens from the 40% the base rule sets to 32%. Same reasoning,
+     different arithmetic: the rail is 214px of a 545px frame here against 213px
+     of 460px on a desktop that has it in a side gutter, so the share left for
+     the figure is smaller and the legend's share has to come down with it.
+     Everything else about the cap — what it does not drop, and what the scroll
+     costs — is argued at the base rule and not repeated. */
+  .growth-legend {
+    top: 0.75rem;
+    bottom: auto;
+    right: 0.75rem;
+    max-height: 32%;
+  }
+
+  /* 46ch of prose at the top of a 327px frame covers the plant. The caveat is
+     the one line here that must not be dropped at a smaller viewport, so it is
+     given the full width instead and the figure is framed below it. */
+  .growth-legend__caveat {
+    max-width: 100%;
+  }
+}
 
 .plate-view {
   width: 100vw;

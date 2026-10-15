@@ -511,252 +511,236 @@ const STAGE_CHAIN = Object.values(SECTION_COPY)
  * Lifted out of the `OFFERINGS` literal only so the chain printed at the
  * offering's head can be derived from it rather than typed twice. Offering 01
  * gets the same guarantee for free — its chain comes from `SECTION_COPY`,
- * because its six-word spine already exists elsewhere in the page. This one's
- * does not exist anywhere else, so it has to come from the plates themselves.
+ * because its spine already exists elsewhere in the page. This one's does not
+ * exist anywhere else, so it has to come from the plates themselves.
  *
  *
  * WHAT THE SEQUENCE HAS TO SAY, IN ORDER
  * ──────────────────────────────────────
- * OBSERVE → SEGMENT → TRACK → MAP → GROWTH → QUANTIFY.
+ * DAY t → DAY t+1 → REGISTRATION → DISPLACEMENT → DEFORMATION → EXPLORATION.
  *
- * A rosette as it was actually recorded; one frame of it resolved into labelled
- * organs; one of those organs followed across the series and measured; the two
- * observations of it carried onto a shared disk so their points correspond; the
- * difference between them resolved as a displacement field; the field put to a
- * test it can fail.
+ * One plant recorded, then recorded again; the two recordings put into
+ * correspondence by a deformation that is estimated rather than observed; the
+ * motion that correspondence implies; what that motion does to the tissue
+ * locally; and the whole of it handed to the reader to turn over.
  *
- * WHY MAP NO LONGER COMES BEFORE TRACK
- * ────────────────────────────────────
- * It used to, and the note in this place argued for it at some length: two
- * observations of a leaf differ in size, posture and camera angle at once, so
- * correspondence is only well posed after both have been carried into a frame
- * where those differences are gone — which made the map the thing that gives
- * TRACK an answer, and therefore the thing to read first.
+ * The two scans are two plates and not one, which is the change this sequence
+ * made when the figures arrived. As a single plate called SCANS it had to show
+ * both clouds at once, and two clouds shown together before anything has
+ * aligned them is a picture of a mess that the reader is asked to take on trust.
+ * Shown one after the other at a fixed camera they are a comparison: the same
+ * plant, a day on, and no way to say which point went where. That absence is
+ * the premise of every plate below, so it is worth a step of its own rather
+ * than a subordinate clause.
  *
- * That argument is sound about *point* correspondence and wrong about this
- * dataset. Nothing on these plates tracks anything: the leaf is followed by the
- * dataset's own ground-truth instance labels, which are given, and which owe
- * nothing to any map. Ordering MAP first to justify a step that does not need
- * justifying put the hardest plate third and left the reader meeting a Riemann
- * map before they had been shown a single leaf measured twice. TRACK now
- * establishes the identity and the two dates; MAP is what gets asked next,
- * which is how the two frames of one leaf are put into correspondence.
+ * The last step is not a summary of the five above it. Steps one to five are
+ * each a single claim with a single representation and no controls at all; the
+ * sixth is where the rail appears, and it is the only place the reader can put a
+ * specimen other than the default on screen — which is where a failure case
+ * stops being a sentence in a caption and becomes something they found
+ * themselves.
  *
- * WHAT CHANGED IN THE COPY
- * ────────────────────────
- * The note that used to end this block said nothing here is measured — no
- * species, no interval, no count, no unit — because every sentence had to stay
- * true of whatever figure eventually landed above it. Six figures have now
- * landed. The constraint has not been relaxed so much as discharged: `summary`
- * still carries no quantity, because it is the line that has to survive the
- * plate being rebuilt for another specimen, and the measurements have moved to
- * `caption` and `metadata`, which describe a particular figure and are checked
- * by `verify-narrative.mjs` against a real entry in `registry.ts`.
  *
- * Every number in those fields is computed by `scripts/build-leaf-dynamics-
- * plates.py` from these frames. None is quoted from a paper — specifically, the
- * 92% agreement Alim et al. report is nowhere on this page, and the number that
- * is here instead is a tie the conformal map did not win. Units are px and px²
- * throughout, because PhenoLeaf-TS ships no spatial calibration and a growth
- * rate in mm per day would be invented at the point of writing it down.
+ * ALL SIX ARE ONE FIGURE
+ * ──────────────────────
+ * Every plate here is filled by `GrowthFieldView`, from six entries in
+ * `registry.ts` that name the same component and differ only in which
+ * representation they ask for. The stage mounts it once and the reader's
+ * position in the column chooses the beat, so the plant on screen is one
+ * continuous object from the first step to the last rather than six pictures of
+ * one. See the note over those entries, and `Offerings.tsx` for the stage.
+ *
+ * What that costs this file is that a plate's `index` is now also its position
+ * in a narrative the view knows the order of. Reordering these six without
+ * reordering the `beat` strings beside them would caption each step with the
+ * one before it, and nothing would throw.
+ *
+ *
+ * WHAT THESE PLATES ARE NOT ALLOWED TO SAY
+ * ────────────────────────────────────────
+ * Every `summary` below is written to stay true of whatever figure lands in its
+ * slot, which is the house rule for an unfilled plate. Three of them carry a
+ * second constraint that does not expire when the figure arrives, because they
+ * are the three places this study can most easily overclaim:
+ *
+ *   DISPLACEMENT is motion, not growth. A plant bends, droops and rotates
+ *   overnight, and the registration has its own error; all of it lands in the
+ *   same vector. Calling the field growth would be the single biggest lie this
+ *   section could tell, and it would be an easy one.
+ *
+ *   DEFORMATION is a proxy, not a measurement. The Jacobian determinant of an
+ *   estimated map describes volumetric change, and leaves are thin surfaces, so
+ *   it answers *where* tissue expands and not *by how much*.
+ *
+ *   Correspondence is estimated. The two scans are independent samplings of the
+ *   plant and share no ground-truth point identity, so nothing on these plates
+ *   is a point that was tracked.
+ *
+ * None of that is hedging bolted on afterwards. It is the finding, and the
+ * `caveats` array the exporter writes into `plant-growth/manifest.json` carries
+ * the same four sentences in the same words, so the page and the data cannot
+ * drift apart on what they refuse to claim.
+ *
+ * No quantity appears in any `summary`, and that is a rule rather than a state
+ * of play: the interpretation line is the one piece of copy that is read as a
+ * claim about the whole step, so the study's numbers — Chamfer distances,
+ * median det J, the fraction of points where the map folds — go in `caption`
+ * and `metadata`, which `verify-narrative.mjs` will not let a plate carry until
+ * a real figure exists in `registry.ts` to be described.
+ *
+ * Only the last plate carries them, and that is now a choice rather than a
+ * constraint — all six have real figures, so the harness would let any of them
+ * have a key and a citation. Five do not, because the apparatus describes the
+ * EXPLORER: the panel key enumerates representations the reader can choose
+ * between, and the metadata reports the four specimens the picker offers. On a
+ * narrated step there is no picker and one representation, so every line of it
+ * would be describing controls that are not on screen. The figures those five
+ * steps show are each covered by the legend inside the view, which reads the
+ * same `plant-growth/manifest.json` the metadata quotes.
  */
-const DYNAMICS_EVIDENCE: readonly ScientificFigure[] = [
+const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
   {
-    id: 'leaf-observation',
+    id: 'scan-day-t',
     index: '01',
-    phase: 'Observe',
-    label: 'Rosette growth time series',
+    phase: 'Day t',
+    label: 'The earlier scan',
     summary:
-      'The whole recorded series for one rosette, playable and scrubbable, with every frame carrying its own timestamp. The nominally six-hourly cadence drifts by up to an hour either way, which is a property of the experiment rather than noise to be tidied.',
-    category: 'photograph',
-    // No `expandable`, on the same reasoning as `dense-reconstruction`: this
-    // slot holds a view the reader already drives, so the control would open a
-    // modal containing a second copy of the thing that was already answering
-    // the question. `aspect: 'wide'` is load-bearing rather than cosmetic —
-    // `stageStyle` takes the *minimum* ratio across the offering, so a near-
-    // square declared here would shrink the desktop stage for all six plates.
-    // The crop is near-square and pillarboxes inside this frame; that side
-    // gutter is where the controls live, which is why no image pixel is ever
-    // covered. Below 900px there is no gutter and 16/9 leaves too little
-    // height for a rail, so the stylesheet squares this frame up on its own —
-    // see `.plate:is(#leaf-observation, #leaf-segmentation) .evidence__frame`.
-    // That override is deliberately not authored here, because it must not
-    // reach `stageStyle`.
+      'One plant recorded as a cloud of points, with the soil label removed and the cloud brought to a common centre and scale. This is the whole of what the instrument gives: positions on a surface, with no identity attached to any of them.',
+    category: 'point-cloud',
     aspect: 'wide',
-    caption:
-      'Every recorded frame at its own timestamp, read from the filename. Play runs the series; the scrubber steps one observation at a time; Compare sets the first frame beside the current one. Nothing is interpolated — each position is a photograph that was taken.',
-    metadata: [
-      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21' },
-      { label: 'Series', value: '97 frames, 2022-08-09 17:03 to 2022-09-02 17:05 (24 days)' },
-      { label: 'Cadence', value: 'nominally 6 h; measured interval 4.99\u20137.00 h' },
-      { label: 'Delivery', value: 'one 2920\u00d72870 sprite atlas, 779 KB, decoded off the main thread' },
-      { label: 'Units', value: 'px \u2014 the dataset carries no spatial calibration' },
-    ],
-    reference:
-      'PhenoLeaf-TS dataset, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
-    placeholder: '[REAL LEAF OBSERVATION \u2014 TO BE INSERTED]',
+    placeholder: '[REAL DAY-t SCAN — TO BE INSERTED]',
   },
   {
-    id: 'leaf-segmentation',
+    id: 'scan-day-t1',
     index: '02',
-    phase: 'Segment',
-    label: 'Instance segmentation of the rosette',
+    phase: 'Day t+1',
+    label: 'The same plant one day later',
     summary:
-      'One frame in three states: the photograph, the dataset\u2019s own instance labels drawn over it, and a single leaf separated from its neighbours. No segmentation model was run here \u2014 the masks are ground truth that ships with the dataset.',
-    category: 'segmentation',
-    // No `expandable`, and `aspect: 'wide'` for the same two reasons spelled
-    // out on `leaf-observation` above.
+      'The second recording, made a day after the first and sampled independently of it. Nothing marks which point here is which point there, and that absence is the problem the rest of the sequence exists to work around.',
+    category: 'point-cloud',
     aspect: 'wide',
-    caption:
-      'Outline colours are the dataset\u2019s own label RGBs, so the tint identifying a leaf here is the same one identifying it on the plates below. A leaf can be chosen on the image or from the list; its area and perimeter are measured from the mask. Instances present in fewer than three frames are dropped \u2014 one such blip exists in this series, a 22 px\u00b2 label appearing in a single frame of 97.',
-    metadata: [
-      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21' },
-      { label: 'Frame shown', value: '96 of 97 \u2014 2022-09-02 17:05' },
-      { label: 'Instances shown', value: '15 on this frame, of 17 that survive the 3-frame filter' },
-      { label: 'Mask source', value: 'dataset ground-truth instance labels, exact-RGB' },
-      { label: 'Contours', value: 'marching squares, Douglas\u2013Peucker simplified to 1.2 px' },
-    ],
-    reference:
-      'PhenoLeaf-TS dataset, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
-    placeholder: '[REAL SEGMENTATION OVERLAY \u2014 TO BE INSERTED]',
+    placeholder: '[REAL DAY-t+1 SCAN — TO BE INSERTED]',
   },
   {
-    id: 'leaf-tracking',
+    id: 'non-rigid-registration',
     index: '03',
-    phase: 'Track',
-    label: 'One leaf measured at two dates',
+    phase: 'Registration',
+    label: 'Non-rigid registration between two scans',
     summary:
-      'The same blade is followed across widely separated frames by the dataset\u2019s own ground-truth instance labels, not by a tracker run in this study. Its area, perimeter and bounding box are measured from the masks and reported in pixels.',
-    category: 'segmentation',
-    expandable: true,
+      'A rigid alignment first, then a smooth non-rigid deformation that carries the earlier scan onto the later one. How well it arrived is reported as the distance between the two surfaces before and after, which is the only check available when there is no ground-truth correspondence.',
+    category: 'point-cloud',
     aspect: 'wide',
-    caption:
-      'Left and centre: leaf 5 at frames 27 and 56, outlined from its instance mask. Right: the two contours on a common centroid and long axis at their true relative sizes \u2014 not rescaled, so the grey ring inside the red one is the whole of the earlier leaf. Growth is a band around the entire margin rather than extension in one direction.',
-    metadata: [
-      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21, leaf 5' },
-      { label: 'Correspondence', value: 'dataset ground-truth instance labels (not computed here)' },
-      { label: 'Frames', value: '27 and 56 \u2014 2022-08-16 12:03 to 2022-08-23 17:03, 173 h apart' },
-      { label: 'Area', value: '917 \u2192 3962 px\u00b2' },
-      { label: 'Perimeter', value: '132 \u2192 352 px' },
-      { label: 'Continuity', value: '17 instances pass the 3-frame filter; 16 have no gaps' },
-    ],
-    reference:
-      'PhenoLeaf-TS dataset, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
-    placeholder: '[REAL TRACKING RESULT \u2014 TO BE INSERTED]',
+    placeholder: '[REAL REGISTRATION RESULT — TO BE INSERTED]',
   },
   {
-    id: 'conformal-mapping',
+    id: 'displacement-field',
     index: '04',
-    phase: 'Map',
-    label: 'Riemann map between successive outlines',
+    phase: 'Displacement',
+    label: 'Estimated displacement between scans',
     summary:
-      'Each blade is carried onto the unit disk by its own Riemann map, and the two disks are rotated into register so the composition sends the earlier leaf to the later one. This is the construction Alim and colleagues used to ask whether leaf growth is conformal.',
-    category: 'map',
-    expandable: true,
-    aspect: 'wide',
-    caption:
-      'Left and right: the two blades, each meshed and shaded by where its Riemann map sends it. Centre: the shared disk \u2014 matching hue is the same point of it, so the colours are the correspondence rather than decoration. Both maps wind exactly once around the boundary with no inverted triangles, which is what makes them bijections onto the disk rather than merely harmonic.',
-    metadata: [
-      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21, leaf 5' },
-      { label: 'Frames', value: '50 \u2192 56 \u2014 35 h apart, +10.5% area' },
-      {
-        label: 'Method',
-        value: 'Green\u2019s-function Riemann map: one cotangent-Laplacian Dirichlet solve for u, one Poisson solve for its harmonic conjugate',
-      },
-      { label: 'Meshes', value: '664 and 742 vertices; winding 1.000, 0.000% inverted on both' },
-      {
-        label: 'Alignment',
-        value: 'two landmarks \u2014 petiole attachment and tip \u2014 with the remaining rotation least-squares fitted over the margin at \u22126.6\u00b0',
-      },
-      {
-        label: 'Departure from the paper',
-        value: 'Alim et al. pin three landmarks and exhaust the M\u00f6bius group; two are robust on these masks, so the composed map is harmonic-exact and only approximately conformal',
-      },
-    ],
-    reference:
-      'Method after Alim, Armon, Shraiman & Boudaoud, Phys. Biol. 13(5) 05LT01 (2016). Specimen: PhenoLeaf-TS, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
-    placeholder: '[REAL CONFORMAL MAP \u2014 TO BE INSERTED]',
-  },
-  {
-    id: 'growth-field',
-    index: '05',
-    phase: 'Growth',
-    label: 'Predicted and measured displacement',
-    summary:
-      'The aligned map predicts where every interior point of the earlier blade should travel; block matching measures where the texture actually went. Both are shown with rigid motion removed, and the measured field is shown because it was run, not because it is evidence.',
+      'The vector carrying each point of the earlier scan to where the registration places it in the later one. It contains bending, drooping, rotation and registration error alongside growth, so it is the plant\u2019s motion and not its growth.',
     category: 'field',
-    expandable: true,
     aspect: 'wide',
-    caption:
-      'Left: displacement predicted by the composed conformal map. Centre: displacement measured by block matching over the same interval. Right: the measurement tested against itself \u2014 the same field measured over an interval twice as long should come out about twice as large, and it comes out the same size. A displacement that barely depends on how long you waited is not measuring a rate, so the two fields are not correlated against each other on this page.',
-    metadata: [
-      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21, leaf 5, frames 50 \u2192 56' },
-      { label: 'Predicted', value: 'f = \u03c6\u207b\u00b9 \u2218 M \u2218 \u03c6 at 548 of 552 interior vertices' },
-      { label: 'Measured', value: 'block matching, 16 px window / 4 px step / \u00b112 px search; 157 of 189 windows kept' },
-      { label: 'Nested-interval test', value: 'direction r = +0.65, magnitude 0.99\u00d7 where 2.1\u00d7 was expected' },
-      {
-        label: 'Why the correlation is withheld',
-        value: 'the blade spans 84\u00d7115 px with no resolvable venation; correlation peaks are high (median 0.91) but clear their nearest rival by only 0.03 and are ambiguous at 67% of sites',
-      },
-    ],
-    reference:
-      'Method after Alim, Armon, Shraiman & Boudaoud, Phys. Biol. 13(5) 05LT01 (2016). Specimen: PhenoLeaf-TS, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
-    placeholder: '[REAL GROWTH FIELD \u2014 TO BE INSERTED]',
+    placeholder: '[REAL DISPLACEMENT FIELD — TO BE INSERTED]',
   },
   {
-    id: 'quantitative-validation',
-    index: '06',
-    phase: 'Quantify',
-    label: 'Held-out test of the conformal map',
+    id: 'local-deformation',
+    index: '05',
+    phase: 'Deformation',
+    label: 'Local volumetric deformation of the estimated map',
     summary:
-      'The map is built from two frames and asked to predict a third it was never shown, scored against that frame\u2019s real mask and against three baselines that encode no growth model at all. The result is reported as it came out.',
-    category: 'plot',
-    expandable: true,
+      'The determinant of the deformation\u2019s Jacobian, read as where tissue expands and where it compresses. A leaf is a thin surface, so this is a cautious proxy for a volume change and answers where rather than by how much.',
+    category: 'field',
     aspect: 'wide',
+    placeholder: '[REAL DEFORMATION MAP — TO BE INSERTED]',
+  },
+  {
+    id: 'growth-field-explorer',
+    index: '06',
+    phase: 'Exploration',
+    label: 'Both scans and the fields between them, in one view',
+    summary:
+      'The same plant and the same five representations, now under the reader\u2019s hand and in any order they like. The specimen is theirs to change — the study\u2019s weakest registration is among the choices rather than held back — as are vector density and vector length, which alter how the field is drawn rather than what was computed.',
+    category: 'point-cloud',
+    aspect: 'wide',
+    placeholder: '[REAL INTERACTIVE EXPLORER — TO BE INSERTED]',
+    /* The only plate of this offering that carries apparatus, which is a choice
+     * and not a constraint — see the note above `GROWTH_FIELDS_EVIDENCE`, and
+     * assertion 12 in `verify-narrative.mjs` for what has to be true before any
+     * of them may. Every quantity below is read off
+     * `public/evidence/plant-growth/manifest.json` and nothing is rounded past
+     * the digit the legend shows.
+     *
+     * The key describes the rail and the metadata describes the picker, and
+     * neither exists on a narrated step. The five before this one are covered by
+     * the legend inside the view, which reads the same file. */
     caption:
-      'Left: one triple \u2014 the dotted and dashed contours are what the map was given, the green mask is what the middle date actually was, and the blue line is where the map put it. Right: held-out overlap for eight triples against three baselines. The conformal map clears a static leaf by a wide margin and does not separate from the arc-length correspondence it was meant to improve on; that difference is smaller than its own scatter, and is reported rather than rounded into a result.',
+      'Five representations of one pair of scans, chosen on the rail. DAY t and DAY t+1 are the two clouds on their own. REGISTERED overlays the warped earlier scan on the later one, so the residual is what remains visible between them. DISPLACEMENT draws each point\u2019s estimated motion as a line leaving the position it starts from. DEFORMATION colours every point by the determinant of the registration\u2019s Jacobian: green above one where the map expands tissue, amber between zero and one where it compresses, and an off-scale red at or below zero, where the map folds and the value is not a deformation at all. The picker above the rail changes the specimen, and the legend changes with it — every figure in it is read from the same file as the points beside it. Distances are in scan units. The vector display scale is a drawing choice and leaves the lengths the legend reports untouched.',
     metadata: [
-      { label: 'Specimen', value: 'PhenoLeaf-TS, Col-0 / rep_21, leaf 5' },
-      { label: 'Test', value: 'build the map from t\u2080 to t\u2082, predict t\u2081, score IoU against t\u2081\u2019s real mask' },
-      { label: 'Median IoU', value: 'conformal 0.758, arc-length null 0.757, uniform dilation 0.677, no growth 0.675' },
-      { label: 'Conformal \u2212 arc-length', value: '+0.003 \u00b1 0.011 over 8 triples, ahead in 5' },
-      { label: 'Conformal \u2212 no growth', value: '+0.108, ahead in 6 of 8' },
       {
-        label: 'Not shown',
-        value: 'the predicted-against-measured correlation Alim et al. report. It is not available at this resolution \u2014 see the plate above \u2014 and theirs is not ours to quote',
+        label: 'Specimens',
+        value:
+          'Four of the fourteen plants studied — maize M05, M04 and M06 and tomato T02 — being the four with point-level arrays. The other ten exist only as summary statistics and are not offered. M05 opens the plate.',
+      },
+      { label: 'Interval', value: '03-24 to 03-25, one day apart, the only labelled consecutive-day pair in Pheno4D' },
+      { label: 'Sampling', value: '3,000 points per scan, soil label removed, shared centre and scale' },
+      { label: 'Registration', value: 'Non-rigid Coherent Point Drift with rigid pre-alignment (β 1.2, λ 30, w 0.2)' },
+      {
+        label: 'Fit',
+        value:
+          'Chamfer distance, the only check available without ground-truth correspondence. 7.30 to 1.37 scan units on M05, the tightest of the four; 16.59 to 6.49 on T02, which is the study\u2019s weakest and is labelled as such on the plate.',
+      },
+      {
+        label: 'Displacement',
+        value:
+          'Median 9.4 scan units on M05, rising to 35.8 on T02. Much of the larger figures is leaf motion rather than tissue growth.',
+      },
+      {
+        label: 'det J',
+        value:
+          'Median 1.31 on M05 with no non-positive values; 1.96 on T02, where 80 of 3,000 points fold and carry no readable deformation. Those are drawn off-scale rather than clipped.',
+      },
+      {
+        label: 'Units',
+        value:
+          'Scan units. Pheno4D documents the files only as x, y, z and a label, so the millimetre reading the instrument implies is recorded as an inference and not applied.',
       },
     ],
     reference:
-      'Test designed here; the map it scores is after Alim, Armon, Shraiman & Boudaoud, Phys. Biol. 13(5) 05LT01 (2016). Specimen: PhenoLeaf-TS, Col-0 rep_21 \u2014 Sari\u0107, Azam, Khan & \u010custovi\u0107, ECCV 2026',
-    placeholder: '[REAL VALIDATION COMPARISON \u2014 TO BE INSERTED]',
+      'Pheno4D — Schunck, Magistri, Marcuzzi, Nardi, Nunes, Behley, Stachniss, PLoS ONE 16(8) e0256340 (2021)',
   },
 ]
 
 /**
- * `Time → Represent → Map → Track → Growth → Quantify`, read off the plates
- * rather than typed alongside them.
+ * `Scans → Registration → Displacement → Deformation → Exploration`, read off
+ * the plates rather than typed alongside them.
  *
- * This chain is also the section's whole navigation. It is printed once at the
- * offering's head as an arc, and each step in the prose column then names its
- * own position in it — which means the reader can place any plate from the plate
- * alone, with no rail and no stepper. Six words at the top and one word per step
- * is the entire wayfinding mechanism, and it is the version that still works in
- * a printed page.
+ * NOTHING RENDERS THIS. `Offerings.tsx` does not read `Offering.spec` — the
+ * wayfinding the reader actually gets is the one-word `phase` rubric on each
+ * plate, which is the same information one step at a time. The note that stood
+ * here described an arc printed at the offering's head; that arc is gone from
+ * the component and the note had outlived it.
  *
- * The arc at the head now also marks which term is current, which an earlier
- * revision of this note explicitly ruled out on the grounds that it would have
- * to track scroll position. It does track scroll position. That objection was
- * about not paying for a scroll listener to decorate static text; the section
- * now has one anyway, because the figures are a single transforming sequence and
- * something has to say which representation is on the stage. Marking the term is
- * the cheapest possible consumer of a value that already exists, and the chain
- * still reads correctly with the marking removed.
+ * It is still derived, and `verify-narrative.mjs` still asserts term-for-term
+ * that it matches the plates, because the field is on the `Offering` type and
+ * will be read again the moment a head arc or a stepper comes back. A chain
+ * typed by hand would be a chain that disagreed with the plates by then, and
+ * disagreed silently, since nothing on screen would show the contradiction.
  *
- * Same reasoning as `STAGE_CHAIN` one level up: the chain at the head of a
- * sequence and the labels on the sequence itself are the same information, and
- * the only way they cannot disagree is if there is one of them.
+ * The terms are nouns here where offering 01's are verbs, and that is not an
+ * oversight. Offering 01's chain names things *done to* the specimen by a
+ * pipeline the reader watches run. Every term below except the last names an
+ * object the study produces and then has to defend — a displacement field, a
+ * deformation — and a verb would have quietly credited the pipeline with having
+ * observed it. `Registration` is the hinge: it is the estimate everything after
+ * it inherits, and naming it as a thing rather than an action is the first
+ * reminder that what follows rests on it.
+ *
+ * Same reasoning as `STAGE_CHAIN` one level up: the chain and the labels on the
+ * sequence itself are the same information, and the only way they cannot
+ * disagree is if there is one of them.
  */
-const DYNAMICS_CHAIN = DYNAMICS_EVIDENCE.map((s) => s.phase).join(' → ')
+const GROWTH_FIELDS_CHAIN = GROWTH_FIELDS_EVIDENCE.map((s) => s.phase).join(' → ')
 
 export const OFFERINGS: readonly Offering[] = [
   {
@@ -833,17 +817,20 @@ export const OFFERINGS: readonly Offering[] = [
     ],
   },
   {
-    id: 'leaf-dynamics',
+    id: 'plant-growth-fields',
     index: '02',
     /**
-     * `Leaf Dynamics`, and the conformal work named in the chain underneath
-     * rather than in the title. A two-part title joined by a `+` reads as a
-     * bundle of two things offered together; this is one study, and the
-     * conformal map is a step inside it, not a second product.
+     * `Plant Growth Fields`, in sentence case — the stylesheet sets the caps, the
+     * same way it does for every plate title.
+     *
+     * The word doing the work is `Fields`. What this study produces is not a
+     * number per plant or a growth rate; it is a quantity defined at every point
+     * of a surface, and naming it in the title is what stops the section being
+     * read as a second trait table.
      */
-    title: 'Leaf Dynamics',
-    lede: 'The same leaf across time, and the deformation between observations.',
-    spec: DYNAMICS_CHAIN,
+    title: 'Plant Growth Fields',
+    lede: 'Consecutive scans of one plant, registered to estimate how it moved and deformed between them.',
+    spec: GROWTH_FIELDS_CHAIN,
     /**
      * The turn in the argument, and the only place on the page where three
      * sentences sit together.
@@ -855,16 +842,19 @@ export const OFFERINGS: readonly Offering[] = [
      * only then saying what follows from it — is what makes the second sequence
      * the next chapter rather than a second list.
      *
-     * No claim is made about the tracking being accurate, novel or better than
-     * anything. The third sentence says it is possible; the six plates are where
-     * the evidence for that would go.
+     * The third line is the whole claim and it is deliberately the weaker of the
+     * two available. `We can measure how it grew` was the sentence this section
+     * wants to be able to write and cannot: what comes off the registration is
+     * motion, and separating growth from bending is not something this work
+     * does. `Estimate` carries the rest — the correspondence between two scans is
+     * inferred, not observed, and everything on the six plates inherits that.
      */
     bridge: [
-      'A reconstructed plant gives us geometry.',
-      'But plants change over time.',
-      'We can track that change.',
+      'A reconstructed plant gives us geometry at one instant.',
+      'But a plant does not hold still between scans.',
+      'Registering two scans estimates what changed.',
     ],
-    evidence: DYNAMICS_EVIDENCE,
+    evidence: GROWTH_FIELDS_EVIDENCE,
   },
 ]
 
