@@ -351,9 +351,35 @@ const VECTOR_SCALES: readonly number[] = [1, 2, 4]
  * REGISTERED is drawn in the day-t colour because it *is* the day-t cloud,
  * carried forward — so the reader learns the pair once rather than per mode.
  */
+/*
+ * The vectors are the one thing on the plate that is not plant.
+ *
+ * They used to be drawn in the plant's own colours — the light tip was the
+ * day-t green exactly and the dark tip was the day-t+1 chartreuse exactly, so
+ * the field was painted in the same hex as the cloud it crosses and had nothing
+ * to separate from it but geometry. Violet at the base and cyan at the tip puts
+ * the whole field outside the page's green family, which is what lets it read as
+ * an overlay rather than as more point cloud.
+ *
+ * Violet and cyan specifically, because they are the only hues this palette has
+ * not already spent. Green is the plant, amber is `compress`, and crimson is
+ * `invalid` — and a red-based field would have made red mean "where the motion
+ * started" here and "det J ≤ 0, the map folds" one mode over. The modes are
+ * never on screen together, but a reader is meant to learn these colours once
+ * across the whole plate, not per mode, so red stays reserved for the reading
+ * that failed. A violet-to-cyan ramp also passes through blue at its midpoint
+ * rather than through magenta, which is what kept the dense end of the field
+ * off the crimson it must not be confused with.
+ *
+ * Cyan is at the TIP, and the choice of end is not arbitrary. The tip is the
+ * end that has to separate from the cloud, and cool-against-green survives
+ * red-green colour blindness where red-against-green is the one pair that does
+ * not. The darker violet sits on the dense day-t surface, where it is read as
+ * the field's origin rather than as its signal.
+ */
 const SCAN_COLOURS: Record<Theme, { src: string; tgt: string; vectorBase: string; vectorTip: string }> = {
-  light: { src: '#2f6b41', tgt: '#6f9b22', vectorBase: '#9bb08c', vectorTip: '#2f6b41' },
-  dark: { src: '#96a79b', tgt: '#9bd07f', vectorBase: '#3f5a46', vectorTip: '#9bd07f' },
+  light: { src: '#2f6b41', tgt: '#6f9b22', vectorBase: '#6a2bb5', vectorTip: '#0d87ad' },
+  dark: { src: '#96a79b', tgt: '#9bd07f', vectorBase: '#8b3fd9', vectorTip: '#3fd8f2' },
 }
 
 /**
@@ -449,9 +475,10 @@ function pointsGeometry(positions: Float32Array, colours?: Float32Array): Buffer
  * here and none is implied beyond the one the registration estimated.
  *
  * Colour carries direction, which is the job an arrowhead would otherwise do.
- * Each segment fades from a near-background tone at its base to the measurement
- * green at its tip, so the field reads as flowing away from the day-t surface
- * without 3,000 cones in the scene.
+ * Each segment runs violet at its base to cyan at its tip, so the field reads as
+ * flowing away from the day-t surface without 3,000 cones in the scene — and in
+ * hues the surface itself never uses, so it reads as flowing away from the
+ * plant rather than as part of it.
  */
 function vectorGeometry(
   src: Float32Array,

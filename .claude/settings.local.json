@@ -299,14 +299,12 @@
       "Bash(node -e \"const m=require\\('fs'\\).readFileSync\\('public/evidence/plant-growth/manifest.json','utf8'\\);const j=JSON.parse\\(m\\);console.log\\(JSON.stringify\\(j.specimens.map\\(s=>\\({id:s.id,label:s.label,quality:s.quality,scans:[s.source_scan||s.scan_a,s.target_scan||s.scan_b],interval:s.interval_days??s.interval,points:s.point_count||s.points}\\)\\),null,1\\)\\)\")",
       "Bash(python3 -c \"import json,sys; print\\('\\\\n'.join\\(k for k in json.load\\(sys.stdin\\)['scripts']\\)\\)\")",
       "Bash(curl -sS -L https://www.shape-growth.com/)",
-      "Bash(gh api:*)",
       "Bash(curl -sS -I https://www.shape-growth.com/src/main.tsx)",
       "Bash(curl -sS -o /dev/null -w \"%{http_code}\\\\n\" https://www.shape-growth.com/vite.config.ts)",
       "Bash(curl -sS -o /dev/null -w \"%{http_code}\\\\n\" https://www.shape-growth.com/package.json)",
       "Bash(curl -sS https://api.github.com/repos/arohablue/shapegrowth-website)",
       "Bash(curl -sS \"https://api.github.com/repos/arohablue/shapegrowth-website/actions/runs?per_page=5\")",
       "Bash(git commit -m ':*)",
-      "Bash(git push:*)",
       "Bash(curl -sS -L -H 'Cache-Control: no-cache' https://www.shape-growth.com/)",
       "Bash(curl -sS -o /dev/null -w \"vite.config.ts -> %{http_code}\\\\n\" https://www.shape-growth.com/vite.config.ts)",
       "Bash(curl -sS -o /dev/null -w \"assets/index-CuckxJCh.js -> %{http_code}\\\\n\" https://www.shape-growth.com/assets/index-CuckxJCh.js)",
@@ -315,7 +313,11 @@
       "Bash(curl -sS https://www.shape-growth.com/assets/index-CXITpSPD.js -o /tmp/live.js)",
       "Bash(curl -sS -o /dev/null -w \"  /CNAME -> %{http_code}\\\\n\" https://www.shape-growth.com/CNAME)",
       "Bash(echo \"--- typecheck exit: $?\")",
-      "Bash(echo \"exit $?\")"
+      "Bash(echo \"exit $?\")",
+      "Bash(gh run:*)",
+      "Bash(curl -sS \"https://api.github.com/repos/arohablue/shapegrowth-website/actions/runs?per_page=3\")",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('.claude/settings.local.json'\\)\\);print\\('valid JSON'\\)\")",
+      "Bash(git push:*)"
     ]
   }
 }
