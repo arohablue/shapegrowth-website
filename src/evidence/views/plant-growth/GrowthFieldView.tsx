@@ -343,63 +343,67 @@ const VECTOR_SCALES: readonly number[] = [1, 2, 4]
 /* ── colour ──────────────────────────────────────────────────────────────── */
 
 /**
- * The two scans never swap colours between modes.
+ * Every colour below is sampled from the study's own figures, not chosen here.
  *
- * `day t` material is the deep leaf green the page already uses for a point
- * cloud and `day t+1` is the brighter chartreuse it uses for measurement, in
- * both themes. That holds across all five modes — the warped cloud in
- * REGISTERED is drawn in the day-t colour because it *is* the day-t cloud,
- * carried forward — so the reader learns the pair once rather than per mode.
- */
-/*
- * The vectors are the one thing on the plate that is not plant.
+ * Source: `Plant_Registration_Results_1.pdf`, the intrinsic-geometry walkthrough
+ * on Pheno4D Maize01 Leaf #1. Figure 8(b) draws the registration as a warped
+ * day-t mesh in cyan with correspondence trajectories landing on a day-t+1
+ * target mesh in brown/red; Figure 9 colours active tissue expansion red
+ * against stable mature regions in blue and grey. Measured off those plates:
  *
- * They used to be drawn in the plant's own colours — the light tip was the
- * day-t green exactly and the dark tip was the day-t+1 chartreuse exactly, so
- * the field was painted in the same hex as the cloud it crosses and had nothing
- * to separate from it but geometry. Violet at the base and cyan at the tip puts
- * the whole field outside the page's green family, which is what lets it read as
- * an overlay rather than as more point cloud.
+ *     #58c2d0  warped day-t mesh          → src
+ *     #9b8487  day-t+1 target mesh        → tgt, saturated for a point cloud
+ *     #4da8d7  correspondence trajectory  → vector tip
+ *     #9c102c  expansion zone             → detJ expand
+ *     #839bcf  stable region, blue        → detJ compress
+ *     #b5b4b4  stable region, grey        → detJ neutral
  *
- * Violet and cyan specifically, because they are the only hues this palette has
- * not already spent. Green is the plant, amber is `compress`, and crimson is
- * `invalid` — and a red-based field would have made red mean "where the motion
- * started" here and "det J ≤ 0, the map folds" one mode over. The modes are
- * never on screen together, but a reader is meant to learn these colours once
- * across the whole plate, not per mode, so red stays reserved for the reading
- * that failed. A violet-to-cyan ramp also passes through blue at its midpoint
- * rather than through magenta, which is what kept the dense end of the field
- * off the crimson it must not be confused with.
+ * A reader moving between the paper and this page should not have to relearn
+ * what the colours mean, which is worth more than the internal palette argument
+ * it replaces — the figure is the study's, so the encoding should be too.
  *
- * Cyan is at the TIP, and the choice of end is not arbitrary. The tip is the
- * end that has to separate from the cloud, and cool-against-green survives
- * red-green colour blindness where red-against-green is the one pair that does
- * not. The darker violet sits on the dense day-t surface, where it is read as
- * the field's origin rather than as its signal.
+ * The study's plates are on white. Dark-theme values keep the sampled hue and
+ * lift only lightness, because the measured hexes were chosen against paper and
+ * several of them close up to nothing on a near-black ground.
+ *
+ * Two consequences worth stating plainly rather than discovering later. Green
+ * leaves this figure entirely: the page's `--cloud` and `--accent` no longer
+ * appear here, so the plant is cyan and rose rather than botanical. And red
+ * does double duty — day-t+1 in REGISTERED, expansion in DEFORMATION — which
+ * is the study's own doubling, reproduced rather than invented. The two never
+ * share a frame.
  */
 const SCAN_COLOURS: Record<Theme, { src: string; tgt: string; vectorBase: string; vectorTip: string }> = {
-  light: { src: '#2f6b41', tgt: '#6f9b22', vectorBase: '#6a2bb5', vectorTip: '#0d87ad' },
-  dark: { src: '#96a79b', tgt: '#9bd07f', vectorBase: '#8b3fd9', vectorTip: '#3fd8f2' },
+  light: { src: '#3fa9bb', tgt: '#a85f63', vectorBase: '#1f4a7a', vectorTip: '#4da8d7' },
+  dark: { src: '#58c2d0', tgt: '#c87478', vectorBase: '#1f5f9e', vectorTip: '#4da8d7' },
 }
 
 /**
- * The determinant scale: amber below one, green above it, and a colour that is
- * not on the scale at all below zero.
+ * The determinant scale: the study's stable blue below one, its expansion red
+ * above it, and a colour that is not on the scale at all below zero.
  *
  * Divergent about 1 — no volume change — rather than a single ramp, because the
  * question det J answers is directional and a one-ended ramp makes compression
- * read as "less expansion" rather than as its opposite. Amber for compression
- * is the botanical reading and, more usefully, it is the one hue that stays
- * separable from the page's greens at every weight in both themes.
+ * read as "less expansion" rather than as its opposite. The study has no
+ * compression to show, since its own figures report `Triangles flipped = 0`, so
+ * its blue marks "stable" and anchors the low end here while the grey it uses
+ * alongside sits at the neutral midpoint.
  *
- * `invalid` is deliberately outside the family. Non-positive det J is not a
- * small number on this scale, it is the absence of a reading — the estimated
- * map folds there — and a dark green or a deep amber would place it at one end
- * of a scale it does not belong to. The crimson says "not a value".
+ * `expand` was previously the page's leaf green — the same hex as the day-t
+ * cloud — which on a specimen that is 83% expanding rendered the whole view as
+ * a plain green plant. The study colours expansion red precisely so it separates
+ * from tissue, which is the fix and the reason for it in one.
+ *
+ * `invalid` is deliberately outside the family and has no study equivalent to
+ * borrow, for the same reason: their pipeline never folds. Non-positive det J is
+ * not a small number on this scale, it is the absence of a reading — the
+ * estimated map folds there — so it takes the one hue a blue-to-red ramp cannot
+ * reach. Gold is maximally distant from both ends; a magenta would have landed
+ * on the ramp's own midpoint hue and read as a value.
  */
 const DETJ_RAMP: Record<Theme, { compress: string; neutral: string; expand: string; invalid: string }> = {
-  light: { compress: '#9a6410', neutral: '#8e8c7a', expand: '#2f6b41', invalid: '#a01f3c' },
-  dark: { compress: '#d9922e', neutral: '#7c7f72', expand: '#9bd07f', invalid: '#ff5d7a' },
+  light: { compress: '#5a7fc0', neutral: '#9a9a98', expand: '#9c102c', invalid: '#b58900' },
+  dark: { compress: '#839bcf', neutral: '#8e8e8c', expand: '#dc2743', invalid: '#ffd93d' },
 }
 
 /**
@@ -475,10 +479,11 @@ function pointsGeometry(positions: Float32Array, colours?: Float32Array): Buffer
  * here and none is implied beyond the one the registration estimated.
  *
  * Colour carries direction, which is the job an arrowhead would otherwise do.
- * Each segment runs violet at its base to cyan at its tip, so the field reads as
- * flowing away from the day-t surface without 3,000 cones in the scene — and in
- * hues the surface itself never uses, so it reads as flowing away from the
- * plant rather than as part of it.
+ * Each segment runs dark blue at its base to the study's trajectory blue at its
+ * tip, so the field reads as flowing away from the day-t surface without 3,000
+ * cones in the scene. The study drew those trajectories in that blue over the
+ * same cyan mesh, so a tip sits close in hue to the cloud under it; the
+ * base-to-tip lightness ramp, not hue, is what separates vector from surface.
  */
 function vectorGeometry(
   src: Float32Array,
