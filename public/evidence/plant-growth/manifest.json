@@ -24,8 +24,25 @@
  ],
  "coverage": {
   "plants_in_study": 14,
-  "plants_with_point_data": 4,
-  "note": "14 plants were processed; 4 have point-level arrays available here. The rest exist only as summary statistics and rendered figures, so they are omitted rather than shown without data."
+  "plants_with_point_data": 5,
+  "note": "14 plants were processed; 5 have point-level arrays available here. The rest exist only as summary statistics and rendered figures, so they are omitted rather than shown without data."
+ },
+ "provenance": {
+  "archive": {
+   "specimens": [
+    "M05",
+    "M04",
+    "M06",
+    "T02"
+   ],
+   "note": "Arrays as produced by the original run and packed alongside the slide deck. Not reproducible on this machine."
+  },
+  "recomputed": {
+   "specimens": [
+    "M01"
+   ],
+   "note": "Re-registered from the raw Pheno4D scans at the same parameters, using a reimplementation of the CPD dependency that was missing. The reimplementation reproduces all four archive specimens from their own recorded inputs to 3.3e-12 relative, and these specimens reproduce every statistic in the study's table to 6.6e-13."
+  }
  },
  "specimens": [
   {
@@ -34,6 +51,7 @@
    "label": "Maize M05",
    "quality": "featured",
    "note": null,
+   "provenance": "archive",
    "interval": {
     "from": "03-24",
     "to": "03-25",
@@ -121,6 +139,7 @@
    "label": "Maize M04",
    "quality": "clean",
    "note": "Displacement is large — mean 23.8, max 172.6 scan units in one day. Much of this is leaf motion rather than tissue growth.",
+   "provenance": "archive",
    "interval": {
     "from": "03-24",
     "to": "03-25",
@@ -208,6 +227,7 @@
    "label": "Maize M06",
    "quality": "clean",
    "note": "Clean only with rigid pre-alignment. Without it the same fit folds over 90.0% of points (median det J −1.163), which is why every specimen here uses the rigid step.",
+   "provenance": "archive",
    "interval": {
     "from": "03-24",
     "to": "03-25",
@@ -290,11 +310,100 @@
    }
   },
   {
+   "id": "M01",
+   "species": "Maize",
+   "label": "Maize M01",
+   "quality": "clean",
+   "note": "Displacement is large — mean 28.6, max 172.1 scan units in one day. Much of this is leaf motion rather than tissue growth.",
+   "provenance": "recomputed",
+   "interval": {
+    "from": "03-24",
+    "to": "03-25",
+    "days": 1
+   },
+   "asset": {
+    "url": "/evidence/plant-growth/M01.bin",
+    "bytes": 120000,
+    "layout": [
+     {
+      "name": "src",
+      "components": 3
+     },
+     {
+      "name": "tgt",
+      "components": 3
+     },
+     {
+      "name": "displacement",
+      "components": 3
+     },
+     {
+      "name": "detJ",
+      "components": 1
+     }
+    ],
+    "dtype": "float32",
+    "endianness": "little",
+    "derived": {
+     "warped": "src + displacement"
+    }
+   },
+   "fit": {
+    "chamfer_before": 20.245789207685412,
+    "chamfer_after": 1.9790090544758772,
+    "chamfer_reduction": 0.9022508318063178
+   },
+   "diagnostics": {
+    "n_points": 3000,
+    "displacement": {
+     "mean": 28.55669992307133,
+     "median": 20.444676695181478,
+     "p95": 90.83237662654994,
+     "max": 172.09405159602363
+    },
+    "detJ": {
+     "median": 1.4467222148891903,
+     "p5": 0.8552802782014042,
+     "p95": 2.297104131967692,
+     "min": 0.63120452071698,
+     "max": 2.4051030123193966,
+     "frac_expanding": 0.863,
+     "frac_compressing": 0.137,
+     "frac_non_positive": 0.0,
+     "count_non_positive": 0
+    },
+    "bounds": {
+     "min": [
+      -281.4916,
+      -977.2159,
+      -0.7085
+     ],
+     "max": [
+      129.4112,
+      -728.4092,
+      364.2103
+     ],
+     "centre": [
+      -76.0402,
+      -852.8125500000001,
+      181.7509
+     ],
+     "extent": [
+      410.9028,
+      248.80669999999998,
+      364.91880000000003
+     ],
+     "diagonal": 603.2508728598493
+    }
+   }
+  },
+  {
    "id": "T02",
    "species": "Tomato",
    "label": "Tomato T02",
    "quality": "problematic",
    "note": "The weakest fit in the study. Chamfer distance stays at 6.49 after registration against a median of 2.1 across the 14 plants, and 2.67% of det J values are non-positive. Read this specimen as a failure case.",
+   "provenance": "archive",
    "interval": {
     "from": "03-24",
     "to": "03-25",

@@ -13,6 +13,7 @@ dataset. One binary per specimen plus one manifest:
         M05.bin           src, tgt, displacement, detJ as packed float32
         M04.bin
         M06.bin
+        M01.bin
         T02.bin
 
 WHERE
@@ -32,31 +33,70 @@ WHERE
 
 PROVENANCE, AND WHY THE INPUTS ARE NOT IN THIS REPO
 ---------------------------------------------------
-The registration was not run here and cannot be re-run here. `plant_growth.py`
-and its dependency `plant_registration.py` executed in a remote sandbox against
-the Pheno4D dataset; neither the dataset (~260M points) nor
-`plant_registration.py` exists on this machine. What came back was the slide
-deck and its figures, and the NPZ results packed alongside them.
+There are now TWO chains of custody. Every specimen records which one it came
+from in `manifest.specimens[].provenance`, because "the slide deck's own arrays"
+and "arrays recomputed here from the raw scans" are not the same claim and must
+not be presented as one.
 
-So the chain of custody is:
+(A) `archive` — M05, M04, M06, T02.
+
+`plant_growth.py` and its dependency `plant_registration.py` executed in a
+remote sandbox against the Pheno4D dataset. What came back was the slide deck
+and its figures, and the NPZ results packed alongside them:
 
     Pheno4D (Schunck et al. 2021)
       -> plant_growth.py --rigid, in a sandbox            [not reproducible here]
-      -> beamer_source.zip : beamer/npz/<PLANT>_rigid.npz [the arrays below]
+      -> beamer_source.zip : beamer/npz/<PLANT>_rigid.npz [the arrays]
       -> data/pheno4d-growth/                             [staged, gitignored]
       -> this script
       -> public/evidence/plant-growth/                    [what ships]
+
+(B) `recomputed` — M01.
+
+The raw Pheno4D scans for M01 are on this machine (another project's `data/`),
+and `plant_growth.py` is too. Only `plant_registration.py` was missing, so the
+CPD it imports was REIMPLEMENTED from the paper (Myronenko & Song 2010) and from
+`plant_growth.py`'s call signatures:
+
+    Pheno4D M01_0324_a.txt, M01_0325_a.txt     [raw scans, local]
+      -> plant_growth.py preprocess + register_growth(rigid=True)
+         with a reimplemented plant_registration.py
+      -> data/pheno4d-growth/npz/M01_rigid.npz           [staged, gitignored]
+      -> this script  ... as above
+
+A reimplementation is a claim until it is tested, so it was tested against the
+one thing that can falsify it: the staged NPZ carry BOTH the inputs (`src`,
+`tgt`) and the outputs (`warped`, `displacement`, `detJ`) for all four archive
+specimens. Feeding the recorded inputs to the reimplementation and comparing
+against the recorded outputs reproduces them to 3.3e-12 relative (rigid) and
+7.2e-12 (no-rigid) across all four — i.e. float64 round-off, not agreement by
+construction. M06 is the sharpest of these: its fit folds, median det J −1.163,
+and it reproduces to 1e-13.
+
+M01 then passes two further gates (see `validate()` and the summary row):
+`chamfer_before` depends only on the subsampling and not on CPD at all, and it
+matches summary.csv EXACTLY (0.0 absolute error) — which is the only available
+check on `preprocess`, since no raw scans exist here for the archive four. All
+11 published statistics for M01 agree to 6.6e-13.
+
+Two constants in the reimplementation were recovered from the data rather than
+read from source, and are the weakest links in chain (B): the convergence
+tolerance (1e-6, independently pinned by three specimens stopping at three
+different iterations) and the floor applied when sigma^2 goes non-positive
+(1e-8, pinned by M06 alone). M01 never reaches the floor, so it does not depend
+on the one-specimen constant; the build asserts this rather than assuming it.
 
 `data/` is gitignored, exactly as `data/colmap-sunflower` and
 `data/leaf-morphology` are. The staged NPZ are the archival copy; the originals
 in the zip are never written to.
 
-This is the reason the validation pass below is not optional. Normally a build
-script can be trusted because you can re-run the thing that produced its inputs.
-Here you cannot, so the only remaining check is internal consistency: the arrays
-must reproduce, to the last decimal, the statistics the slide deck published.
-They do — including Chamfer distance, which is computed from `src`, `tgt` and
-`warped` and could not agree by coincidence. See `validate()`.
+This is the reason the validation pass below is not optional. For chain (A) you
+cannot re-run the thing that produced the inputs, so the only remaining check is
+internal consistency: the arrays must reproduce, to the last decimal, the
+statistics the slide deck published. They do — including Chamfer distance, which
+is computed from `src`, `tgt` and `warped` and could not agree by coincidence.
+For chain (B) the same pass is doing something stronger — it is checking a
+reimplementation against a number it had no way to see. See `validate()`.
 
 
 WHAT IS NOT EXPORTED, AND WHY
@@ -74,11 +114,17 @@ copy of `displacement`. Presenting it as a second quantity would imply a rate
 was estimated across intervals of differing length. It was not. The manifest
 states `days` and lets the reader do the division that is not being hidden.
 
-The 10 other plants (M01-M03, M07, T01, T03-T07) are NOT exported. They have
+The 9 other plants (M02, M03, M07, T01, T03-T07) are NOT exported. They have
 summary statistics and rendered PNGs but no point-level arrays, so there is
 nothing to draw. They are absent from the manifest rather than present-and-
 disabled: a selector entry that cannot be selected is a promise the data does
 not keep.
+
+M01 was in that list until its raw scans turned up locally. The remaining nine
+are blocked only on the raw scans: the registration side is no longer the
+obstacle now that chain (B) exists and is validated. Obtaining them means the
+Pheno4D dataset from Uni Bonn (~260M points, licence agreement), which is a
+deliberate decision for a person to make, not a build step.
 
 
 FLOAT32
@@ -160,24 +206,31 @@ PARAMETERS = {
 
 SPECIES = {"M": "Maize", "T": "Tomato"}
 
-# The four specimens with point-level arrays. `note` is a caveat that must stay
+# The five specimens with point-level arrays. `note` is a caveat that must stay
 # attached to the specimen wherever it is shown; `None` means the fit is clean
 # and inventing a warning for it would be its own kind of dishonesty.
 #
-# All four are the RIGID run, because that is the run the deck reports for all
+# All five are the RIGID run, because that is the run the deck reports for all
 # 14 plants. Mixing runs per specimen to flatter each one would make the
 # selector a comparison between different methods labelled as one.
+#
+# `provenance` is "archive" (the deck's own NPZ) or "recomputed" (re-registered
+# here from raw scans with a reimplemented plant_registration.py). See the
+# PROVENANCE section above. It is carried into the manifest because the two are
+# different epistemic claims, even though both pass the same validation.
 SPECIMENS = [
     (
         "M05",
         "featured",
         None,
+        "archive",
     ),
     (
         "M04",
         "clean",
         "Displacement is large \u2014 mean 23.8, max 172.6 scan units in one day. Much of "
         "this is leaf motion rather than tissue growth.",
+        "archive",
     ),
     (
         "M06",
@@ -185,6 +238,14 @@ SPECIMENS = [
         "Clean only with rigid pre-alignment. Without it the same fit folds over "
         "90.0% of points (median det J \u22121.163), which is why every specimen here "
         "uses the rigid step.",
+        "archive",
+    ),
+    (
+        "M01",
+        "clean",
+        "Displacement is large \u2014 mean 28.6, max 172.1 scan units in one day. Much of "
+        "this is leaf motion rather than tissue growth.",
+        "recomputed",
     ),
     (
         "T02",
@@ -192,6 +253,7 @@ SPECIMENS = [
         "The weakest fit in the study. Chamfer distance stays at 6.49 after "
         "registration against a median of 2.1 across the 14 plants, and 2.67% of "
         "det J values are non-positive. Read this specimen as a failure case.",
+        "archive",
     ),
 ]
 
@@ -336,7 +398,7 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
 
     entries = []
-    for plant, quality, note in SPECIMENS:
+    for plant, quality, note, provenance in SPECIMENS:
         npz, src_path = load(plant)
         row = published[plant]
         confirmed = validate(plant, npz, row)
@@ -352,6 +414,7 @@ def main():
                 "label": f"{SPECIES[plant[0]]} {plant}",
                 "quality": quality,
                 "note": note,
+                "provenance": provenance,
                 "interval": {
                     "from": f"{DAY_A[:2]}-{DAY_A[2:]}",
                     "to": f"{DAY_B[:2]}-{DAY_B[2:]}",
@@ -426,6 +489,29 @@ def main():
                 "arrays available here. The rest exist only as summary statistics and "
                 "rendered figures, so they are omitted rather than shown without data."
             ),
+        },
+        # Two chains of custody, kept distinct. Both pass the same validation
+        # against summary.csv, but "the study's own arrays" and "arrays
+        # recomputed here" are different claims and a reader is entitled to
+        # know which one they are looking at.
+        "provenance": {
+            "archive": {
+                "specimens": [e["id"] for e in entries if e["provenance"] == "archive"],
+                "note": (
+                    "Arrays as produced by the original run and packed alongside the "
+                    "slide deck. Not reproducible on this machine."
+                ),
+            },
+            "recomputed": {
+                "specimens": [e["id"] for e in entries if e["provenance"] == "recomputed"],
+                "note": (
+                    "Re-registered from the raw Pheno4D scans at the same parameters, "
+                    "using a reimplementation of the CPD dependency that was missing. "
+                    "The reimplementation reproduces all four archive specimens from "
+                    "their own recorded inputs to 3.3e-12 relative, and these specimens "
+                    "reproduce every statistic in the study's table to 6.6e-13."
+                ),
+            },
         },
         "specimens": entries,
     }
