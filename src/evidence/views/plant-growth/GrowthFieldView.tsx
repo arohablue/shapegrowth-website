@@ -353,10 +353,17 @@ const VECTOR_SCALES: readonly number[] = [1, 2, 4]
  *
  *     #58c2d0  warped day-t mesh          → src
  *     #9b8487  day-t+1 target mesh        → tgt, saturated for a point cloud
- *     #4da8d7  correspondence trajectory  → vector tip
  *     #9c102c  expansion zone             → detJ expand
  *     #839bcf  stable region, blue        → detJ compress
  *     #b5b4b4  stable region, grey        → detJ neutral
+ *
+ * The displacement vectors are the one exception, and are NOT the study's.
+ * Sampling them gave `#4da8d7`, the paper's correspondence trajectories, which
+ * is the same hue family as the cyan `src` above — the study could afford that
+ * because it drew a handful of trajectories over a sparse mesh, where this
+ * draws up to 3,000 over the cloud itself and the cloud simply disappeared
+ * underneath them. They keep the violet-to-cyan ramp from before this palette;
+ * the reasoning for those two hues is on `vectorGeometry`.
  *
  * A reader moving between the paper and this page should not have to relearn
  * what the colours mean, which is worth more than the internal palette argument
@@ -374,8 +381,8 @@ const VECTOR_SCALES: readonly number[] = [1, 2, 4]
  * share a frame.
  */
 const SCAN_COLOURS: Record<Theme, { src: string; tgt: string; vectorBase: string; vectorTip: string }> = {
-  light: { src: '#3fa9bb', tgt: '#a85f63', vectorBase: '#1f4a7a', vectorTip: '#4da8d7' },
-  dark: { src: '#58c2d0', tgt: '#c87478', vectorBase: '#1f5f9e', vectorTip: '#4da8d7' },
+  light: { src: '#3fa9bb', tgt: '#a85f63', vectorBase: '#6a2bb5', vectorTip: '#0d87ad' },
+  dark: { src: '#58c2d0', tgt: '#c87478', vectorBase: '#8b3fd9', vectorTip: '#3fd8f2' },
 }
 
 /**
@@ -479,11 +486,24 @@ function pointsGeometry(positions: Float32Array, colours?: Float32Array): Buffer
  * here and none is implied beyond the one the registration estimated.
  *
  * Colour carries direction, which is the job an arrowhead would otherwise do.
- * Each segment runs dark blue at its base to the study's trajectory blue at its
- * tip, so the field reads as flowing away from the day-t surface without 3,000
- * cones in the scene. The study drew those trajectories in that blue over the
- * same cyan mesh, so a tip sits close in hue to the cloud under it; the
- * base-to-tip lightness ramp, not hue, is what separates vector from surface.
+ * Each segment runs violet at its base to cyan at its tip, so the field reads as
+ * flowing away from the day-t surface without 3,000 cones in the scene.
+ *
+ * Violet is the hue nothing else on this plate uses. The det J ramp spends blue
+ * and red, the two scans are cyan and rose, and gold is reserved for `invalid` —
+ * so a violet base cannot be read as any of those, and in particular a red-based
+ * field would have made warm mean "where the motion started" here and "the map
+ * folds" one mode over. The modes are never on screen together, but the reader
+ * is meant to learn these colours once across the whole plate, not per mode.
+ *
+ * The cyan tip is the weaker half of the pair and worth naming as such. It was
+ * picked when `src` was green, where cool-against-green also survived red-green
+ * colour blindness; `src` is now the study's cyan, so tip and cloud sit within a
+ * few degrees of hue and only lightness and the violet base separate them. That
+ * is still a long way clear of drawing the whole field in the study's own
+ * trajectory blue, which left the cloud invisible underneath it — but if the
+ * dense end of the field ever needs more separation, the tip is the end to move,
+ * not the base.
  */
 function vectorGeometry(
   src: Float32Array,
