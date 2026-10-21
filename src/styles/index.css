@@ -1198,6 +1198,7 @@
 .plate__expand,
 .plate__control,
 .plate-view__close,
+.researcher-open,
 .theme-toggle {
   font-family: var(--font-mono);
   font-size: 0.625rem;
@@ -1216,6 +1217,7 @@
 .plate__expand:hover,
 .plate__control:hover,
 .plate-view__close:hover,
+.researcher-open:hover,
 .theme-toggle:hover {
   color: var(--color-ink);
   border-color: color-mix(in oklab, var(--color-ink) 34%, transparent);
@@ -1231,6 +1233,7 @@
 .plate__control:focus-visible,
 .plate__control:focus-within,
 .plate-view__close:focus-visible,
+.researcher-open:focus-visible,
 .theme-toggle:focus-visible {
   outline: 1px solid var(--color-accent);
   outline-offset: 2px;
@@ -2116,6 +2119,48 @@ body:has(.plate-view[open]) {
   display: block;
   margin-top: 0.375rem;
   color: color-mix(in oklab, var(--color-ink) 42%, transparent);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESEARCHER VIEW
+   ─────────────────────────────────────────────────────────────────────────────
+   The growth plate at the size of the window, behind `?researcher`. Three rules,
+   because the dialog above already does the hard part: `.researcher-view` wears
+   `.plate-view` too, so it inherits 100vw, 100dvh, the backdrop and the `:has`
+   rule that stops the page scrolling underneath.
+
+   `.plate-view__inner` is NOT worn. Its grid reserves a caption row, and this
+   view exists to get away from the caption.
+
+   Every selector here matches nothing unless the flag is on. */
+
+/* `inset: 0` and not `object-fit: contain`. The enlarged-image case wants to be
+   letterboxed inside its frame because an image has a fixed ratio to respect;
+   `.growth-view` is a `.plate__view` at `width/height: 100%` with a canvas
+   filling it, and it wants the whole box. These are opposite requirements and
+   the one above belongs to the image. */
+.researcher-view__frame {
+  position: absolute;
+  inset: 0;
+}
+
+/* Above `.plate__chrome` and `.growth-legend`, which are both 2. */
+.researcher-view__close {
+  z-index: 3;
+}
+
+/* The legend is positioned against the frame's right edge, so on a 1600px
+   window its line runs to about 1100px — four times the measure the rest of the
+   page holds itself to. Scoped to this view: on the plate the frame is small
+   enough that the cap never binds. */
+.researcher-view .growth-legend {
+  max-width: 48rem;
+}
+
+/* Under the stage, in the flow, so it cannot cover the figure it opens. */
+.researcher-open {
+  display: block;
+  margin: 0.875rem auto 0;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

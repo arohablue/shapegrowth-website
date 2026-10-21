@@ -5,6 +5,20 @@ import type { Offering } from '@/content'
 import { aspectOf, aspectValue } from '@/evidence/figure'
 import { EVIDENCE_SOURCES } from '@/evidence/registry'
 import { Figure, rubricOf } from '@/ui/Figure'
+import { ResearcherView, researcherEnabled } from '@/ui/ResearcherView'
+
+/**
+ * Read once, at module scope, exactly as `App.tsx` reads `hudEnabled`.
+ *
+ * The URL cannot change without a reload on this page — there is no router —
+ * so re-reading it per render would be a subscription to something that never
+ * fires. A constant also lets the whole researcher branch below fold away to
+ * nothing for every ordinary visitor.
+ */
+const RESEARCHER = researcherEnabled()
+
+/** The one offering the researcher view is for. */
+const RESEARCHER_OFFERING = 'plant-growth-fields'
 
 /**
  * ────────────────────────────────────────────────────────────────────────────
@@ -122,6 +136,12 @@ function OfferingSequence({ offering }: { offering: Offering }) {
   const isActive = (i: number) => reduced || i === active
   const continuous = isContinuous(offering)
 
+  // Scoped to the one offering by construction rather than by a check somewhere
+  // else, and `false` for everyone without the flag, so the branch below is
+  // unreachable rather than merely hidden.
+  const researcher = RESEARCHER && offering.id === RESEARCHER_OFFERING
+  const [researcherOpen, setResearcherOpen] = useState(false)
+
   return (
     <article id={offering.id} className="offering">
       {/* The number is set large and the title beside it, the same arrangement
@@ -173,7 +193,18 @@ function OfferingSequence({ offering }: { offering: Offering }) {
               <Figure
                 figure={offering.evidence[reduced ? offering.evidence.length - 1 : active]!}
                 offeringIndex={offering.index}
-                active
+                // Stood down while the researcher view holds the screen. Not
+                // cosmetic: `active` is what `GrowthFieldView` spends on
+                // `frameloop`, so without this the plate keeps running a render
+                // loop over 3,000 points behind an opaque backdrop, and the two
+                // instances compete for the same GPU to draw one of them where
+                // nobody can see it. Making the dialog inert does not help —
+                // inertness is about focus and hit-testing, and the view's own
+                // IntersectionObserver still reports it on screen.
+                //
+                // It costs the plate's 560ms crossfade on the way back, which
+                // is a fade-in after the dialog has already gone.
+                active={!researcherOpen}
               />
             ) : (
               offering.evidence.map((figure, i) => (
@@ -186,6 +217,24 @@ function OfferingSequence({ offering }: { offering: Offering }) {
               ))
             )}
           </div>
+
+          {/* Inside the stage rather than anywhere global. A corner button
+              beside the theme toggle would read as a page-wide mode, and this
+              is one figure's; put beside the figure, it says which. It is also
+              the element `showModal()` restores focus to on close, so it has to
+              be somewhere a reader would expect to land. */}
+          {researcher ? (
+            <>
+              <button
+                type="button"
+                className="researcher-open"
+                onClick={() => setResearcherOpen(true)}
+              >
+                Open researcher view
+              </button>
+              <ResearcherView open={researcherOpen} onClose={() => setResearcherOpen(false)} />
+            </>
+          ) : null}
         </div>
 
         {/* An ordered list because it is one: a fixed sequence whose numbering
