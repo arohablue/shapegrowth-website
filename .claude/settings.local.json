@@ -355,7 +355,24 @@
       "Bash(sed -n '195,212p' scripts/build-plant-growth-assets.py)",
       "Bash(echo \"--- tsc exit $? ---\")",
       "Bash(grep -n \"/tmp/cpd-recover\\\\|/Users/amit.kumar/Downloads\\\\|SG-ideas\\\\|NPZ = \" *.py)",
-      "Bash(python3 -u validate.py --rigid M05 M06)"
+      "Bash(python3 -u validate.py --rigid M05 M06)",
+      "Bash(echo \"tsc exit $?\")",
+      "Bash(echo \"growth exit $?\")",
+      "Bash(echo \"narrative exit $?\")",
+      "Bash(python3 -c \"import json,sys; [print\\(r['head_sha'][:7], r['status'], r['conclusion'], r['name']\\) for r in json.load\\(sys.stdin\\)['workflow_runs']]\")",
+      "Bash(curl -sS -o /dev/null -w \"manifest %{http_code} %{size_download}\\\\n\" https://shapegrowth.io/evidence/plant-growth/manifest.json)",
+      "Bash(curl -sS -o /dev/null -w \"M01.bin   %{http_code} %{size_download}\\\\n\" https://shapegrowth.io/evidence/plant-growth/M01.bin)",
+      "Bash(curl -sS -o /dev/null -w \"manifest %{http_code} %{size_download}\\\\n\" https://www.shape-growth.com/evidence/plant-growth/manifest.json)",
+      "Bash(curl -sS -o /dev/null -w \"M01.bin   %{http_code} %{size_download}\\\\n\" https://www.shape-growth.com/evidence/plant-growth/M01.bin)",
+      "Bash(curl -sS https://www.shape-growth.com/evidence/plant-growth/manifest.json)",
+      "Bash(grep -n \"export function\\\\|export const\\\\|export type\" src/assets/loaders.ts src/assets/manifest.ts src/scene/specimen*.ts*)",
+      "Bash(grep -n \"createRepresentationWeights\\\\|interface RepresentationWeights\\\\|phenotype:\" src/experience/*.ts)",
+      "Bash(sed -n '495,545p' src/experience/phenotype.ts)",
+      "Bash(sed -n '436,495p' src/experience/phenotype.ts)",
+      "Bash(grep -rn \"breakpointRef\" src/progress/*.ts*)",
+      "Bash(echo \"=== exit $? ===\")",
+      "Bash(git apply:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
