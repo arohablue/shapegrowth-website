@@ -1,0 +1,15 @@
+# Core solver and geometry. The pipeline will not run without these.
+numpy>=1.23
+scipy>=1.9
+
+# Only for `pipeline/plots.py` (the four-panel diagnostic PNG). It is imported
+# inside the function, so fitting and exporting work without it.
+matplotlib>=3.6
+
+# Only for `tests/`.
+pytest>=7
+
+# Optional. `load_scan` uses pandas.read_csv when present -- it is several times
+# faster than np.loadtxt on the larger Pheno4D scans -- and falls back silently
+# when it is not. Results are identical either way.
+pandas>=1.5

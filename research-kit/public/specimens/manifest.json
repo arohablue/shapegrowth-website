@@ -1,0 +1,509 @@
+{
+ "schema": 1,
+ "dataset": "Pheno4D",
+ "reference": "Schunck, Magistri, Marcuzzi, Nardi, Nunes, Behley, Stachniss, PLoS ONE 16(8) e0256340 (2021)",
+ "method": "Non-rigid Coherent Point Drift with rigid pre-alignment",
+ "units": "scan units",
+ "unit_evidence": "Not stated by the Pheno4D documentation, which describes the files only as x, y, z and a label. Probably millimetres — the scanner is a Perceptron ScanWorks V5 on a ROMER Infinite 2.0 arm (σ ≈ 0.012 mm), which reports in mm, and the plants then stand 26–47 cm. Recorded as an inference and not applied.",
+ "calibration": null,
+ "parameters": {
+  "beta": 1.2,
+  "lam": 30.0,
+  "w": 0.2,
+  "n_points": 3000,
+  "rigid_prealignment": true,
+  "soil_label": 0,
+  "shared_centre_and_scale": true
+ },
+ "interval_note": "All PUBLISHED specimens use the same pair, 03-24 to 03-25, one day apart — the only labelled consecutive-day pair in Pheno4D. New specimens carry their own `interval.days`.",
+ "caveats": [
+  "Displacement is the estimated motion between two scans. It includes leaf bending, drooping, rotation and registration error, not only growth.",
+  "det J describes local volumetric deformation of an estimated map. A plant's leaves are thin surfaces, so it is a cautious proxy and should be read qualitatively — where tissue expands, not by how much.",
+  "Non-positive det J means the estimated map folds there. Those points carry no readable expansion or compression and are shown as invalid rather than clipped.",
+  "Point correspondence is estimated by the registration, not observed. The scans are independent samplings of the plant and share no ground-truth point identity."
+ ],
+ "specimens": [
+  {
+   "id": "M01",
+   "species": "Maize",
+   "label": "Maize M01",
+   "quality": "clean",
+   "note": "Displacement is large — mean 28.6, max 172.1 scan units in one day. Much of this is leaf motion rather than tissue growth.",
+   "provenance": "recomputed",
+   "validated": true,
+   "interval": {
+    "from": "03-24",
+    "to": "03-25",
+    "days": 1
+   },
+   "asset": {
+    "url": "M01.bin",
+    "bytes": 120000,
+    "layout": [
+     {
+      "name": "src",
+      "components": 3
+     },
+     {
+      "name": "tgt",
+      "components": 3
+     },
+     {
+      "name": "displacement",
+      "components": 3
+     },
+     {
+      "name": "detJ",
+      "components": 1
+     }
+    ],
+    "dtype": "float32",
+    "endianness": "little",
+    "derived": {
+     "warped": "src + displacement"
+    }
+   },
+   "fit": {
+    "chamfer_before": 20.245789207685412,
+    "chamfer_after": 1.9790090544758772,
+    "chamfer_reduction": 0.9022508318063178
+   },
+   "diagnostics": {
+    "n_points": 3000,
+    "displacement": {
+     "mean": 28.55669992307133,
+     "median": 20.444676695181478,
+     "p95": 90.83237662654994,
+     "max": 172.09405159602363
+    },
+    "detJ": {
+     "median": 1.4467222148891903,
+     "p5": 0.8552802782014042,
+     "p95": 2.297104131967692,
+     "min": 0.63120452071698,
+     "max": 2.4051030123193966,
+     "frac_expanding": 0.863,
+     "frac_compressing": 0.137,
+     "frac_non_positive": 0.0,
+     "count_non_positive": 0
+    },
+    "bounds": {
+     "min": [
+      -281.4916,
+      -977.2159,
+      -0.7085
+     ],
+     "max": [
+      129.4112,
+      -728.4092,
+      364.2103
+     ],
+     "centre": [
+      -76.0402,
+      -852.8125500000001,
+      181.7509
+     ],
+     "extent": [
+      410.9028,
+      248.80669999999998,
+      364.91880000000003
+     ],
+     "diagonal": 603.2508728598493
+    }
+   }
+  },
+  {
+   "id": "M04",
+   "species": "Maize",
+   "label": "Maize M04",
+   "quality": "clean",
+   "note": "Displacement is large — mean 23.8, max 172.6 scan units in one day. Much of this is leaf motion rather than tissue growth.",
+   "provenance": "archive",
+   "validated": true,
+   "interval": {
+    "from": "03-24",
+    "to": "03-25",
+    "days": 1
+   },
+   "asset": {
+    "url": "M04.bin",
+    "bytes": 120000,
+    "layout": [
+     {
+      "name": "src",
+      "components": 3
+     },
+     {
+      "name": "tgt",
+      "components": 3
+     },
+     {
+      "name": "displacement",
+      "components": 3
+     },
+     {
+      "name": "detJ",
+      "components": 1
+     }
+    ],
+    "dtype": "float32",
+    "endianness": "little",
+    "derived": {
+     "warped": "src + displacement"
+    }
+   },
+   "fit": {
+    "chamfer_before": 17.51399569823133,
+    "chamfer_after": 2.22025025682371,
+    "chamfer_reduction": 0.8732299416375942
+   },
+   "diagnostics": {
+    "n_points": 3000,
+    "displacement": {
+     "mean": 23.838548621415455,
+     "median": 18.103987133503338,
+     "p95": 75.61888811619598,
+     "max": 172.62616260132572
+    },
+    "detJ": {
+     "median": 1.2828938162708017,
+     "p5": 0.7629691864051298,
+     "p95": 1.7353620398440857,
+     "min": 0.28249704679417137,
+     "max": 1.7839541496239444,
+     "frac_expanding": 0.6506666666666666,
+     "frac_compressing": 0.34933333333333333,
+     "frac_non_positive": 0.0,
+     "count_non_positive": 0
+    },
+    "bounds": {
+     "min": [
+      -127.9244,
+      -896.2733,
+      -7.0482
+     ],
+     "max": [
+      136.2397,
+      -730.4989,
+      460.5457
+     ],
+     "centre": [
+      4.157649999999997,
+      -813.3860999999999,
+      226.74875
+     ],
+     "extent": [
+      264.1641,
+      165.7743999999999,
+      467.5939
+     ],
+     "diagonal": 562.0568287472183
+    }
+   }
+  },
+  {
+   "id": "M05",
+   "species": "Maize",
+   "label": "Maize M05",
+   "quality": "featured",
+   "note": null,
+   "provenance": "archive",
+   "validated": true,
+   "interval": {
+    "from": "03-24",
+    "to": "03-25",
+    "days": 1
+   },
+   "asset": {
+    "url": "M05.bin",
+    "bytes": 120000,
+    "layout": [
+     {
+      "name": "src",
+      "components": 3
+     },
+     {
+      "name": "tgt",
+      "components": 3
+     },
+     {
+      "name": "displacement",
+      "components": 3
+     },
+     {
+      "name": "detJ",
+      "components": 1
+     }
+    ],
+    "dtype": "float32",
+    "endianness": "little",
+    "derived": {
+     "warped": "src + displacement"
+    }
+   },
+   "fit": {
+    "chamfer_before": 7.3010728068216,
+    "chamfer_after": 1.3720268444940857,
+    "chamfer_reduction": 0.8120787340714968
+   },
+   "diagnostics": {
+    "n_points": 3000,
+    "displacement": {
+     "mean": 12.901429330655732,
+     "median": 9.423545911089866,
+     "p95": 36.590115319904214,
+     "max": 43.817034350542734
+    },
+    "detJ": {
+     "median": 1.3103685169063315,
+     "p5": 0.8896123748593666,
+     "p95": 2.082479848024204,
+     "min": 0.7395524235016536,
+     "max": 3.0558274549512543,
+     "frac_expanding": 0.831,
+     "frac_compressing": 0.169,
+     "frac_non_positive": 0.0,
+     "count_non_positive": 0
+    },
+    "bounds": {
+     "min": [
+      -145.145,
+      -870.8059,
+      -4.6934
+     ],
+     "max": [
+      98.9277,
+      -736.3027,
+      274.3074
+     ],
+     "centre": [
+      -23.108650000000004,
+      -803.5543,
+      134.807
+     ],
+     "extent": [
+      244.0727,
+      134.5032,
+      279.00079999999997
+     ],
+     "diagonal": 394.3400057008799
+    }
+   }
+  },
+  {
+   "id": "M06",
+   "species": "Maize",
+   "label": "Maize M06",
+   "quality": "clean",
+   "note": "Clean only with rigid pre-alignment. Without it the same fit folds over 90.0% of points (median det J −1.163), which is why every specimen here uses the rigid step.",
+   "provenance": "archive",
+   "validated": true,
+   "interval": {
+    "from": "03-24",
+    "to": "03-25",
+    "days": 1
+   },
+   "asset": {
+    "url": "M06.bin",
+    "bytes": 120000,
+    "layout": [
+     {
+      "name": "src",
+      "components": 3
+     },
+     {
+      "name": "tgt",
+      "components": 3
+     },
+     {
+      "name": "displacement",
+      "components": 3
+     },
+     {
+      "name": "detJ",
+      "components": 1
+     }
+    ],
+    "dtype": "float32",
+    "endianness": "little",
+    "derived": {
+     "warped": "src + displacement"
+    }
+   },
+   "fit": {
+    "chamfer_before": 35.011464203136555,
+    "chamfer_after": 1.846391778814426,
+    "chamfer_reduction": 0.9472632230374126
+   },
+   "diagnostics": {
+    "n_points": 3000,
+    "displacement": {
+     "mean": 44.83297292736338,
+     "median": 26.880478827462138,
+     "p95": 155.83257175821637,
+     "max": 232.93515585247653
+    },
+    "detJ": {
+     "median": 1.2276073380147978,
+     "p5": 0.8536974350489023,
+     "p95": 1.8356021692505953,
+     "min": 0.7921187482602196,
+     "max": 2.307859586353048,
+     "frac_expanding": 0.7203333333333334,
+     "frac_compressing": 0.2796666666666667,
+     "frac_non_positive": 0.0,
+     "count_non_positive": 0
+    },
+    "bounds": {
+     "min": [
+      -76.7734,
+      -919.4961,
+      -4.0516
+     ],
+     "max": [
+      96.8151,
+      -686.1459,
+      449.6664
+     ],
+     "centre": [
+      10.020850000000003,
+      -802.8209999999999,
+      222.8074
+     ],
+     "extent": [
+      173.5885,
+      233.35019999999997,
+      453.718
+     ],
+     "diagonal": 538.9297790030628
+    }
+   }
+  },
+  {
+   "id": "T02",
+   "species": "Tomato",
+   "label": "Tomato T02",
+   "quality": "problematic",
+   "note": "The weakest fit in the study. Chamfer distance stays at 6.49 after registration against a median of 2.1 across the 14 plants, and 2.67% of det J values are non-positive. Read this specimen as a failure case.",
+   "provenance": "archive",
+   "validated": true,
+   "interval": {
+    "from": "03-24",
+    "to": "03-25",
+    "days": 1
+   },
+   "asset": {
+    "url": "T02.bin",
+    "bytes": 120000,
+    "layout": [
+     {
+      "name": "src",
+      "components": 3
+     },
+     {
+      "name": "tgt",
+      "components": 3
+     },
+     {
+      "name": "displacement",
+      "components": 3
+     },
+     {
+      "name": "detJ",
+      "components": 1
+     }
+    ],
+    "dtype": "float32",
+    "endianness": "little",
+    "derived": {
+     "warped": "src + displacement"
+    }
+   },
+   "fit": {
+    "chamfer_before": 16.586035691243318,
+    "chamfer_after": 6.48829892166361,
+    "chamfer_reduction": 0.6088095406011251
+   },
+   "diagnostics": {
+    "n_points": 3000,
+    "displacement": {
+     "mean": 36.86344839749332,
+     "median": 35.78035135629215,
+     "p95": 58.54902767215014,
+     "max": 76.12032235993988
+    },
+    "detJ": {
+     "median": 1.958270501507003,
+     "p5": 0.5648986925480491,
+     "p95": 3.066152469966955,
+     "min": -0.533284009302859,
+     "max": 4.03936043492921,
+     "frac_expanding": 0.8686666666666667,
+     "frac_compressing": 0.10466666666666667,
+     "frac_non_positive": 0.02666666666666667,
+     "count_non_positive": 80
+    },
+    "bounds": {
+     "min": [
+      -188.1982,
+      -851.2932,
+      -6.8376
+     ],
+     "max": [
+      21.177,
+      -632.0251,
+      106.9107
+     ],
+     "centre": [
+      -83.51060000000001,
+      -741.65915,
+      50.036550000000005
+     ],
+     "extent": [
+      209.3752,
+      219.2681,
+      113.7483
+     ],
+     "diagonal": 323.81344908070145
+    }
+   }
+  }
+ ],
+ "coverage": {
+  "plants_in_study": 14,
+  "plants_with_point_data": 5,
+  "new_specimens": 0,
+  "note": "14 plants were processed in the published study; 5 of them have point-level arrays here. The rest exist only as summary statistics (docs/summary.csv) and are omitted rather than shown without data."
+ },
+ "provenance": {
+  "archive": {
+   "specimens": [
+    "M04",
+    "M05",
+    "M06",
+    "T02"
+   ],
+   "note": "Arrays as produced by the original run and packed alongside the slide deck (docs/plant_growth_slides.pdf). Not reproducible here without the raw scans."
+  },
+  "recomputed": {
+   "specimens": [
+    "M01"
+   ],
+   "note": "Re-registered from the raw Pheno4D scans at the same parameters, using this package's reimplementation of the CPD dependency. The reimplementation reproduces all four archive specimens from their own recorded inputs to 3.3e-12 relative."
+  }
+ },
+ "rigid_prealignment_evidence": {
+  "plant": "M06",
+  "without_rigid": {
+   "detJ_median": -1.1630996338167687,
+   "detJ_frac_negative": 0.9003333333333333,
+   "chamfer_after": 2.0009280069898816
+  },
+  "with_rigid": {
+   "detJ_median": 1.2276073380147978,
+   "detJ_frac_negative": 0.0,
+   "chamfer_after": 1.846391778814426
+  },
+  "note": "Rigid pre-alignment changes the outcome for M06 alone among the 14 plants. It is applied to every specimen for consistency."
+ }
+}

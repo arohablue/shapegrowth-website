@@ -1,0 +1,8 @@
+# Pipeline output. Every file under here is reproducible from the code plus the
+# scans, so none of it is tracked.
+runs/
+
+node_modules/
+dist/
+__pycache__/
+*.pyc
