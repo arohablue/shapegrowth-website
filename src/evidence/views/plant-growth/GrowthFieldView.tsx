@@ -425,6 +425,26 @@ const DETJ_RAMP: Record<Theme, { compress: string; neutral: string; expand: stri
 }
 
 /**
+ * How strongly the day-t+1 cloud is drawn where it stands BEHIND the
+ * displacement field, as opposed to the TARGET and REGISTERED beats where it is
+ * the subject and runs at full strength.
+ *
+ * Per theme, and much lower in dark, because `SCAN_COLOURS.dark.tgt` is
+ * deliberately the brighter of the two reds — a correction for a cloud read at
+ * full strength against a near-black field. Behind the vectors that correction
+ * works against the picture: at a shared 0.38 the red out-draws the violet tips
+ * it is supposed to be the ground for. Measured off the drawing buffer at ×1,
+ * 1/2 density, M05: light drew 6175 red against 6106 violet, dark 8217 against
+ * 4576. At 0.24 dark draws 6681 against 5451, near the parity light already had.
+ *
+ * Not tuned further. Counted pixels are a proxy for loudness and not the thing
+ * itself — below about this point the red stops being counted as red and starts
+ * being counted as unsaturated rather than actually leaving the frame, so
+ * chasing an exact ratio would be fitting the measurement, not the picture.
+ */
+const TARGET_BACKDROP_OPACITY: Record<Theme, number> = { light: 0.38, dark: 0.24 }
+
+/**
  * One RGB triple per point, from its determinant.
  *
  * The valid ramp saturates at the specimen's own p95 so that a handful of
@@ -658,9 +678,45 @@ function Field({ mode, scene, record, theme, stride, vectorScale }: {
 
       {/* DISPLACEMENT: the day-t surface, dimmed, with its own vectors on it.
           The cloud stays so the field has a plant to be read against — the
-          vectors alone are a shape in space with no surface to attach to. */}
+          vectors alone are a shape in space with no surface to attach to.
+
+          DAY t+1 IS HERE TOO, BUT ONLY AT ×1
+          ───────────────────────────────────
+          The obvious reading of this plate is that each line runs from a day-t
+          point to where that point ended up, and without the later scan on
+          screen there is nothing to check that reading against. So it is drawn,
+          faintest of the three and furthest back: the subject is the violet
+          tips, and red is the ground they land on.
+
+          It is gated on ×1 because that is the only scale at which the tips
+          claim a position. A tip is `src + displacement * scale` and
+          `displacement` is `warped - src`, so at ×1 the tips ARE the warped
+          cloud — the thing the registration fitted to this red surface — and
+          seeing them arrive on it is the evidence. At ×2 and ×4 they are
+          stretched past any real position, and red behind them would read as
+          the prediction overshooting the data, which is a claim about
+          registration quality and a false one. Taking the later scan away at
+          those scales is what makes the exaggeration legible AS exaggeration.
+
+          Note the tips land on the later SURFACE and never on a later POINT.
+          Day t+1 is an independently sampled scan; there is no point-to-point
+          correspondence and the plate must not be read as offering one. */}
       {mode === 'displacement' && srcGeometry && vectors ? (
         <>
+          {vectorScale === 1 && tgtGeometry ? (
+            <points geometry={tgtGeometry} frustumCulled={false}>
+              <pointsMaterial
+                size={POINT_SIZE_TARGET}
+                sizeAttenuation
+                color={colours.tgt}
+                opacity={TARGET_BACKDROP_OPACITY[theme]}
+                transparent
+                depthWrite={false}
+                depthTest
+                blending={NormalBlending}
+              />
+            </points>
+          ) : null}
           <points geometry={srcGeometry} frustumCulled={false}>
             <pointsMaterial
               size={POINT_SIZE * 0.72}
@@ -902,8 +958,17 @@ function Legend({ hostRef, mode, record, manifest, theme, vectorScale, reading, 
             visual only" and this only has to stop the misreading, not teach it
             from scratch. The drawn-vector count went with the long form: how
             many are drawn is a sampling fact the density control states, not a
-            thing a reader can misread off the image. */}
-        {mode === 'displacement' && vectorScale !== 1 ? ` · ×${vectorScale} visual only` : null}
+            thing a reader can misread off the image.
+
+            `day t+1 hidden` is here and not left to be noticed because the
+            later scan leaves the frame on the same keystroke that exaggerates
+            the vectors, and an unexplained disappearance reads as a bug. It
+            earns the extra words by naming a cause: the red surface is a
+            position, the stretched tips are not, and the two cannot share a
+            frame without the tips appearing to overshoot it. */}
+        {mode === 'displacement' && vectorScale !== 1
+          ? ` · ×${vectorScale} visual only, day t+1 hidden`
+          : null}
       </p>
 
       {reading ? (

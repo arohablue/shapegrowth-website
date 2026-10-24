@@ -373,7 +373,7 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     component: GROWTH_FIELD_VIEW,
     beat: 'displacement',
     alt:
-      'The earlier scan dimmed to a faint blue surface, with a line leaving each point along the displacement the registration estimated for it. Each line is drawn at true length and is violet throughout, faint where it leaves the surface and at full strength at its far end, so the field reads as flowing off the surface. The lines are short and roughly parallel over the stem and much longer at the leaf tips.',
+      'The earlier scan dimmed to a faint blue surface, standing in front of the later scan drawn fainter still in red, with a line leaving each blue point along the displacement the registration estimated for it. Each line is drawn at true length and is violet throughout, faint where it leaves the blue surface and at full strength at its far end, so the field reads as flowing off the earlier scan and onto the later one. The lines are short and roughly parallel over the stem and much longer at the leaf tips. A line ends where the registration estimates that point went, which falls on the later surface rather than on any particular point of it. Lengthening the lines for legibility takes the red scan away, because lengthened ends no longer mark a position for it to be compared against.',
     aspect: 'wide',
   },
 
