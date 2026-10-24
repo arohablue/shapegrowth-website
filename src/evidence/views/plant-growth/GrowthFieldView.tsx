@@ -330,16 +330,6 @@ const DENSITIES: readonly { readonly label: string; readonly stride: number }[] 
   { label: 'All', stride: 1 },
 ]
 
-/**
- * Multipliers for the drawn length of a displacement vector.
- *
- * ×1 is true length in the normalised frame — a vector drawn exactly as long as
- * the motion it represents. The others are legibility aids and the rail labels
- * them as such, because a field drawn at ×4 looks like a plant moving four
- * times as far and there is nothing in the picture to say otherwise.
- */
-const VECTOR_SCALES: readonly number[] = [1, 2, 4]
-
 /* ── colour ──────────────────────────────────────────────────────────────── */
 
 /**
@@ -433,8 +423,8 @@ const DETJ_RAMP: Record<Theme, { compress: string; neutral: string; expand: stri
  * deliberately the brighter of the two reds — a correction for a cloud read at
  * full strength against a near-black field. Behind the vectors that correction
  * works against the picture: at a shared 0.38 the red out-draws the violet tips
- * it is supposed to be the ground for. Measured off the drawing buffer at ×1,
- * 1/2 density, M05: light drew 6175 red against 6106 violet, dark 8217 against
+ * it is supposed to be the ground for. Measured off the drawing buffer at 1/2
+ * density on M05: light drew 6175 red against 6106 violet, dark 8217 against
  * 4576. At 0.24 dark draws 6681 against 5451, near the parity light already had.
  *
  * Not tuned further. Counted pixels are a proxy for loudness and not the thing
@@ -511,10 +501,20 @@ function pointsGeometry(positions: Float32Array, colours?: Float32Array): Buffer
  * The displacement field as ONE `LineSegments` — two vertices per vector, one
  * draw call, no object per arrow.
  *
- * Each segment runs from a source point to that point plus its own displacement
- * times the display scale. The pairing is the file's: vector i belongs to point
- * i, because the exporter wrote them that way. No correspondence is computed
- * here and none is implied beyond the one the registration estimated.
+ * Each segment runs from a source point to that point plus its own displacement,
+ * at true length in the normalised frame and at no other length. The pairing is
+ * the file's: vector i belongs to point i, because the exporter wrote them that
+ * way. No correspondence is computed here and none is implied beyond the one the
+ * registration estimated.
+ *
+ * There used to be a ×1 / ×2 / ×4 control over this, labelled "visual only".
+ * It is gone. A field drawn at ×4 looks like a plant moving four times as far
+ * and nothing in the picture says otherwise, so the exaggeration needed a label
+ * to stay honest — and once the later scan is drawn behind the field, it needed
+ * more than a label, because stretched tips crossing the surface they were
+ * fitted to read as the registration overshooting its own data. Reaching the
+ * field is a camera problem, and `RADIUS_MIN` already exists to solve it: the
+ * orbit comes in to 2.6 precisely so a reader can get in among the vectors.
  *
  * Colour carries direction, which is the job an arrowhead would otherwise do.
  * Each segment is violet at both ends and changes only in lightness, running
@@ -526,9 +526,9 @@ function pointsGeometry(positions: Float32Array, colours?: Float32Array): Buffer
  * The tip used to be cyan, `#3fd8f2`. Measured against the day-t cloud it sat
  * at 188.7 degrees to the cloud's 187.0 — 1.7 degrees apart — and because the
  * tips are the long, dense, visually dominant half of the field, the field's
- * dominant colour was the same hue as the surface it flows off. At ×4 with no
- * stride the plate was mostly cyan in a mode whose whole subject is the motion
- * rather than the surface.
+ * dominant colour was the same hue as the surface it flows off. At full density
+ * the plate was mostly cyan in a mode whose whole subject is the motion rather
+ * than the surface.
  *
  * Collapsing to one hue fixes that without spending a new one. Violet is the
  * hue nothing else on this plate uses: the det J ramp spends cyan and red, the
@@ -553,7 +553,6 @@ function vectorGeometry(
   src: Float32Array,
   displacement: Float32Array,
   stride: number,
-  scale: number,
   theme: Theme,
 ): BufferGeometry {
   const n = src.length / 3
@@ -573,9 +572,9 @@ function vectorGeometry(
     positions[o] = x
     positions[o + 1] = y
     positions[o + 2] = z
-    positions[o + 3] = x + displacement[i * 3]! * scale
-    positions[o + 4] = y + displacement[i * 3 + 1]! * scale
-    positions[o + 5] = z + displacement[i * 3 + 2]! * scale
+    positions[o + 3] = x + displacement[i * 3]!
+    positions[o + 4] = y + displacement[i * 3 + 1]!
+    positions[o + 5] = z + displacement[i * 3 + 2]!
     colours[o] = base.r
     colours[o + 1] = base.g
     colours[o + 2] = base.b
@@ -618,13 +617,12 @@ const POINT_SIZE = 0.045
 const POINT_SIZE_WARPED = 0.032
 const POINT_SIZE_TARGET = 0.052
 
-function Field({ mode, scene, record, theme, stride, vectorScale }: {
+function Field({ mode, scene, record, theme, stride }: {
   mode: Mode
   scene: SceneArrays
   record: SpecimenRecord
   theme: Theme
   stride: number
-  vectorScale: number
 }) {
   const colours = SCAN_COLOURS[theme]
 
@@ -643,9 +641,9 @@ function Field({ mode, scene, record, theme, stride, vectorScale }: {
   const vectors = useDisposableGeometry(
     () =>
       mode === 'displacement'
-        ? vectorGeometry(scene.src, scene.displacement, stride, vectorScale, theme)
+        ? vectorGeometry(scene.src, scene.displacement, stride, theme)
         : null,
-    [mode, scene.src, scene.displacement, stride, vectorScale, theme],
+    [mode, scene.src, scene.displacement, stride, theme],
   )
 
   return (
@@ -680,30 +678,29 @@ function Field({ mode, scene, record, theme, stride, vectorScale }: {
           The cloud stays so the field has a plant to be read against — the
           vectors alone are a shape in space with no surface to attach to.
 
-          DAY t+1 IS HERE TOO, BUT ONLY AT ×1
-          ───────────────────────────────────
+          DAY t+1 IS HERE TOO
+          ───────────────────
           The obvious reading of this plate is that each line runs from a day-t
           point to where that point ended up, and without the later scan on
           screen there is nothing to check that reading against. So it is drawn,
           faintest of the three and furthest back: the subject is the violet
           tips, and red is the ground they land on.
 
-          It is gated on ×1 because that is the only scale at which the tips
-          claim a position. A tip is `src + displacement * scale` and
-          `displacement` is `warped - src`, so at ×1 the tips ARE the warped
-          cloud — the thing the registration fitted to this red surface — and
-          seeing them arrive on it is the evidence. At ×2 and ×4 they are
-          stretched past any real position, and red behind them would read as
-          the prediction overshooting the data, which is a claim about
-          registration quality and a false one. Taking the later scan away at
-          those scales is what makes the exaggeration legible AS exaggeration.
+          It can be drawn unconditionally because the vectors are now true
+          length and nothing else. A tip is `src + displacement` and
+          `displacement` is `warped - src`, so every tip IS a point of the
+          warped cloud — the thing the registration fitted to this red surface —
+          and seeing them arrive on it is the evidence. That is exactly what the
+          old ×2 / ×4 exaggeration broke, and why it went: stretched tips
+          crossing the surface they were fitted to read as the registration
+          overshooting its own data.
 
           Note the tips land on the later SURFACE and never on a later POINT.
           Day t+1 is an independently sampled scan; there is no point-to-point
           correspondence and the plate must not be read as offering one. */}
       {mode === 'displacement' && srcGeometry && vectors ? (
         <>
-          {vectorScale === 1 && tgtGeometry ? (
+          {tgtGeometry ? (
             <points geometry={tgtGeometry} frustumCulled={false}>
               <pointsMaterial
                 size={POINT_SIZE_TARGET}
@@ -883,14 +880,13 @@ function useSpecimen(near: boolean, selected: string): SpecimenState {
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`
 
 
-function Legend({ hostRef, mode, record, manifest, theme, vectorScale, reading, failure }: {
+function Legend({ hostRef, mode, record, manifest, theme, reading, failure }: {
   /** Measured by the view, which gives the scene the band below it on mobile. */
   hostRef: RefObject<HTMLDivElement | null>
   mode: Mode
   record: SpecimenRecord
   manifest: PlantGrowthManifest
   theme: Theme
-  vectorScale: number
   /** A specimen being read that is not this one, named rather than spun. */
   reading: string | null
   failure: { readonly id: string; readonly message: string } | null
@@ -949,26 +945,12 @@ function Legend({ hostRef, mode, record, manifest, theme, vectorScale, reading, 
             on the key to the colours. On T02 it was also the difference between
             one line and two at 375px. */}
         {mode === 'deformation' ? 'det J, local expansion proxy' : null}
-        {/* The one thing that is never implied by the picture. A vector drawn
-            at ×2 is twice the length it was measured at, and a reader who takes
-            it for the measurement has been misled by the figure rather than by
-            the copy — so the exaggeration is named wherever it is in force, and
-            says nothing when the vectors are true length. Three words, because
-            the fieldset these come from is already named "Vector display scale,
-            visual only" and this only has to stop the misreading, not teach it
-            from scratch. The drawn-vector count went with the long form: how
-            many are drawn is a sampling fact the density control states, not a
-            thing a reader can misread off the image.
-
-            `day t+1 hidden` is here and not left to be noticed because the
-            later scan leaves the frame on the same keystroke that exaggerates
-            the vectors, and an unexplained disappearance reads as a bug. It
-            earns the extra words by naming a cause: the red surface is a
-            position, the stretched tips are not, and the two cannot share a
-            frame without the tips appearing to overshoot it. */}
-        {mode === 'displacement' && vectorScale !== 1
-          ? ` · ×${vectorScale} visual only, day t+1 hidden`
-          : null}
+        {/* Nothing here names a display scale any more. This line used to append
+            `×2 visual only` whenever the exaggeration was in force, because a
+            vector drawn at twice the length it was measured at misleads through
+            the figure rather than through the copy. The control is gone, every
+            vector is true length, and a caveat about a state the view can no
+            longer enter is worse than no caveat — it implies the state exists. */}
       </p>
 
       {reading ? (
@@ -1030,7 +1012,6 @@ export default function GrowthFieldView({
   const [selected, setSelected] = useState(DEFAULT_SPECIMEN)
   const [mode, setMode] = useState<Mode>('source')
   const [strideIndex, setStrideIndex] = useState(1)
-  const [scaleIndex, setScaleIndex] = useState(0)
 
   // A narrated beat writes its representation into the same state the rail
   // drives, rather than being carried beside it. Two reasons, and the second is
@@ -1344,7 +1325,6 @@ export default function GrowthFieldView({
   )
 
   const stride = DENSITIES[strideIndex]!.stride
-  const vectorScale = VECTOR_SCALES[scaleIndex]!
 
   return (
     <div
@@ -1401,7 +1381,6 @@ export default function GrowthFieldView({
             record={shown.record}
             theme={theme}
             stride={stride}
-            vectorScale={vectorScale}
           />
         ) : null}
       </Canvas>
@@ -1480,42 +1459,33 @@ export default function GrowthFieldView({
                 ))}
               </fieldset>
 
-              {mode === 'displacement' ? (
-                <>
-                  <fieldset className="plate__stages growth-chrome__row">
-                    <legend className="plate__vh">Vector density</legend>
-                    {DENSITIES.map((d, i) => (
-                      <label key={d.label} className="plate__control" aria-pressed={strideIndex === i}>
-                        <input
-                          className="plate__vh"
-                          type="radio"
-                          name="growth-density"
-                          checked={strideIndex === i}
-                          onChange={() => setStrideIndex(i)}
-                        />
-                        {d.label}
-                      </label>
-                    ))}
-                  </fieldset>
+              {/* Density only. There was a second fieldset here offering ×1, ×2
+                  and ×4 on the drawn length of a vector, legended "Vector
+                  display scale, visual only" — a control whose own name had to
+                  carry a disclaimer. It is gone rather than reduced to its
+                  honest option, because a one-option radio group is chrome that
+                  asks to be pressed and then does nothing.
 
-                  <fieldset className="plate__stages growth-chrome__row">
-                    {/* Named as display scaling in the control's own accessible
-                        name, not only in the legend under it. */}
-                    <legend className="plate__vh">Vector display scale, visual only</legend>
-                    {VECTOR_SCALES.map((s, i) => (
-                      <label key={s} className="plate__control" aria-pressed={scaleIndex === i}>
-                        <input
-                          className="plate__vh"
-                          type="radio"
-                          name="growth-scale"
-                          checked={scaleIndex === i}
-                          onChange={() => setScaleIndex(i)}
-                        />
-                        ×{s}
-                      </label>
-                    ))}
-                  </fieldset>
-                </>
+                  Density is not the same kind of control and stays: thinning
+                  the field shows a nested subset of the same vectors at the
+                  same lengths, so there is no setting of it under which the
+                  picture says something untrue. */}
+              {mode === 'displacement' ? (
+                <fieldset className="plate__stages growth-chrome__row">
+                  <legend className="plate__vh">Vector density</legend>
+                  {DENSITIES.map((d, i) => (
+                    <label key={d.label} className="plate__control" aria-pressed={strideIndex === i}>
+                      <input
+                        className="plate__vh"
+                        type="radio"
+                        name="growth-density"
+                        checked={strideIndex === i}
+                        onChange={() => setStrideIndex(i)}
+                      />
+                      {d.label}
+                    </label>
+                  ))}
+                </fieldset>
               ) : null}
 
               <button type="button" className="plate__control" onClick={reset}>
@@ -1530,7 +1500,6 @@ export default function GrowthFieldView({
             record={shown.record}
             manifest={shown.manifest}
             theme={theme}
-            vectorScale={vectorScale}
             // Named only while they are about a specimen other than the one on
             // screen. The first read of all has nothing to sit beside, and is
             // reported by the full-frame status above instead.

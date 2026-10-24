@@ -373,7 +373,7 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     component: GROWTH_FIELD_VIEW,
     beat: 'displacement',
     alt:
-      'The earlier scan dimmed to a faint blue surface, standing in front of the later scan drawn fainter still in red, with a line leaving each blue point along the displacement the registration estimated for it. Each line is drawn at true length and is violet throughout, faint where it leaves the blue surface and at full strength at its far end, so the field reads as flowing off the earlier scan and onto the later one. The lines are short and roughly parallel over the stem and much longer at the leaf tips. A line ends where the registration estimates that point went, which falls on the later surface rather than on any particular point of it. Lengthening the lines for legibility takes the red scan away, because lengthened ends no longer mark a position for it to be compared against.',
+      'The earlier scan dimmed to a faint blue surface, standing in front of the later scan drawn fainter still in red, with a line leaving each blue point along the displacement the registration estimated for it. Each line is drawn at true length and is violet throughout, faint where it leaves the blue surface and at full strength at its far end, so the field reads as flowing off the earlier scan and onto the later one. The lines are short and roughly parallel over the stem and much longer at the leaf tips. A line ends where the registration estimates that point went, which falls on the later surface rather than on any particular point of it.',
     aspect: 'wide',
   },
 
@@ -391,7 +391,7 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     component: GROWTH_FIELD_VIEW,
     beat: 'explore',
     alt:
-      'The same view with its controls shown, so all five representations above can be chosen in any order and compared. The plant is chosen from four — three maize and one tomato, the last marked in the list as a problematic registration — and the density and drawn length of the displacement vectors can be changed. Dragging across the plant rotates it; holding Control and scrolling, or pinching, moves the viewpoint. A legend names the specimen on screen and reports how far its registration is to be trusted, in scan units, together with any caution the study attaches to that specimen and its own caveat about what the representation showing is not.',
+      'The same view with its controls shown, so all five representations above can be chosen in any order and compared. The plant is chosen from four — three maize and one tomato, the last marked in the list as a problematic registration — and the displacement field can be thinned to half or a quarter of its vectors. Dragging across the plant rotates it; holding Control and scrolling, or pinching, moves the viewpoint. A legend names the specimen on screen and reports how far its registration is to be trusted, in scan units, together with any caution the study attaches to that specimen and its own caveat about what the representation showing is not.',
     aspect: 'wide',
   },
 }
