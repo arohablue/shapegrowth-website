@@ -375,7 +375,27 @@
       "Bash(git commit:*)",
       "Bash(git fetch:*)",
       "Bash(git rev-list:*)",
-      "Bash(python3 -c \"import json,sys; print\\(json.load\\(sys.stdin\\)['scripts']\\)\")"
+      "Bash(python3 -c \"import json,sys; print\\(json.load\\(sys.stdin\\)['scripts']\\)\")",
+      "Bash(node scripts/verify-narrative.mjs)",
+      "Bash(node scripts/verify-plant-growth.mjs)",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./package.json'\\).scripts,null,1\\)\\)\")",
+      "Bash(wc -l research-kit/pipeline/*.py)",
+      "Bash(mv growth.tmp growth.py)",
+      "Bash(python3 -c \"import numpy,scipy;print\\('numpy',numpy.__version__,'scipy',scipy.__version__\\)\")",
+      "Bash(python3 -c \"import matplotlib;print\\('matplotlib',matplotlib.__version__\\)\")",
+      "Bash(python3 -c \"import pandas;print\\('pandas',pandas.__version__\\)\")",
+      "Bash(python3 -m py_compile pipeline/*.py)",
+      "Bash(rm -rf pipeline/__pycache__)",
+      "Bash(pip3 install:*)",
+      "Bash(python3 -m pipeline export --npz runs/demo/M01_0313_to_0314/growth_field.npz --id DEMO --label \"Synthetic demo plant\")",
+      "Bash(python3 -m pipeline export --npz runs/demo/M01_0313_to_0314/growth_field.npz --id M05)",
+      "Bash(python3 -m pytest --version)",
+      "Bash(python3 -m pytest tests/ -q)",
+      "Bash(npm --version)",
+      "Bash(sed -n '157,160p;180p' pipeline/growth.py)",
+      "Bash(sed -n '83,86p' pipeline/registration.py)",
+      "Bash(git log:*)",
+      "Bash(xargs -I{} du -k {})"
     ]
   }
 }
