@@ -346,7 +346,7 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     component: GROWTH_FIELD_VIEW,
     beat: 'source',
     alt:
-      'A three-dimensional view of one maize plant recorded as a cloud of three thousand points, drawn in a deep leaf green against an empty background. The stem and the long arching leaves are resolved as surfaces of scattered points with the soil removed, and the plant turns slowly so it is seen from every side. Dragging across it rotates it.',
+      'A three-dimensional view of one maize plant recorded as a cloud of three thousand points, drawn in blue against an empty background. The stem and the long arching leaves are resolved as surfaces of scattered points with the soil removed, and the plant turns slowly so it is seen from every side. Dragging across it rotates it.',
     aspect: 'wide',
   },
 
@@ -355,7 +355,7 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     component: GROWTH_FIELD_VIEW,
     beat: 'target',
     alt:
-      'The same plant recorded again a day later, drawn as a second cloud of three thousand points in a brighter chartreuse green. It is recognisably the same plant in the same pose, slightly taller, with the leaves held at somewhat different angles. Nothing marks which point here corresponds to which point in the earlier scan, because nothing does.',
+      'The same plant recorded again a day later, drawn as a second cloud of three thousand points in red. It is recognisably the same plant in the same pose, slightly taller, with the leaves held at somewhat different angles. Nothing marks which point here corresponds to which point in the earlier scan, because nothing does.',
     aspect: 'wide',
   },
 
@@ -364,7 +364,7 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     component: GROWTH_FIELD_VIEW,
     beat: 'registered',
     alt:
-      'The two scans drawn together: the later scan as larger chartreuse points, and over it, in the deep green of the earlier scan, the earlier cloud after a non-rigid registration has carried it onto the later one. The two surfaces coincide almost everywhere, so most of the plant reads as a single speckled cloud; where they separate — at leaf tips and at the top of the stem — the earlier scan is visibly short of the later one.',
+      'The two scans drawn together: the later scan as larger red points, and over it, in the blue of the earlier scan, the earlier cloud after a non-rigid registration has carried it onto the later one. The two surfaces coincide almost everywhere, so most of the plant reads as a single speckled cloud of mixed blue and red; where they separate — at leaf tips and at the top of the stem — the earlier scan is visibly short of the later one.',
     aspect: 'wide',
   },
 
@@ -373,7 +373,7 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     component: GROWTH_FIELD_VIEW,
     beat: 'displacement',
     alt:
-      'The earlier scan dimmed to a faint green surface, with a line leaving each point along the displacement the registration estimated for it. Each line is drawn at true length and fades from a near-background tone at the point it starts from to the measurement green at its far end, so the field reads as flowing off the surface. The lines are short and roughly parallel over the stem and much longer at the leaf tips.',
+      'The earlier scan dimmed to a faint blue surface, with a line leaving each point along the displacement the registration estimated for it. Each line is drawn at true length and is violet throughout, faint where it leaves the surface and at full strength at its far end, so the field reads as flowing off the surface. The lines are short and roughly parallel over the stem and much longer at the leaf tips.',
     aspect: 'wide',
   },
 
@@ -382,7 +382,7 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     component: GROWTH_FIELD_VIEW,
     beat: 'deformation',
     alt:
-      'The earlier scan again, with every point coloured by the determinant of the registration\u2019s Jacobian: green where the estimated map expands tissue, amber where it compresses it, and a separate off-scale crimson for points where the map folds and the value is not a deformation at all. A key beside the plant gives the three bands and the share of points in each.',
+      'The earlier scan again, with every point coloured by the determinant of the registration\u2019s Jacobian: red where the estimated map expands tissue, cyan where it compresses it, grey in between where it does neither, and a separate off-scale gold for points where the map folds and the value is not a deformation at all. A key beside the plant gives the bands and the share of points in each.',
     aspect: 'wide',
   },
 

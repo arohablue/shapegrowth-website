@@ -1878,9 +1878,10 @@
    and 80 of its points are folded, so everything the other lines report about
    it is a measurement of a failure.
 
-   The edge is `--color-accent` and not the ramp's crimson. The crimson means
-   exactly one thing on this plate — a det J at or below zero — and spending it
-   on a paragraph would make the swatch beside it look like a cross-reference. */
+   The edge is `--color-accent` and not the ramp's `invalid` gold. That gold
+   means exactly one thing on this plate — a det J at or below zero — and
+   spending it on a paragraph would make the swatch beside it look like a
+   cross-reference. */
 .growth-legend__caveat--flag {
   color: var(--color-ink);
   border-left: 2px solid color-mix(in oklab, var(--color-accent) 72%, transparent);
