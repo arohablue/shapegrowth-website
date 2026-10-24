@@ -1,0 +1,19 @@
+<!-- The hero's full stop, and nothing else.
+
+     `.display__stop` is the one mark the page already owns — the accent-green
+     period that closes "growth." — so the tab icon is that stop rather than a
+     logo invented to fill the slot.
+
+     The two colours are the light palette's `--bg` and `--accent`, copied
+     rather than referenced: an SVG loaded as a favicon gets no stylesheet and
+     no custom properties, so there is no way to point at the tokens from here.
+     A change to `--accent` in `index.css` does not reach this file.
+
+     It does not answer `prefers-color-scheme`, deliberately. The document's own
+     rule (see the theme boot in `index.html`) is that light is the default for
+     everyone who has not explicitly chosen, and a tab icon that darkened on its
+     own would be the one part of the site disagreeing with that. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Shape Growth">
+  <rect width="32" height="32" rx="7" fill="#f2f0e8" />
+  <circle cx="16" cy="16" r="7" fill="#3a6f1c" />
+</svg>

@@ -372,7 +372,9 @@
       "Bash(grep -rn \"breakpointRef\" src/progress/*.ts*)",
       "Bash(echo \"=== exit $? ===\")",
       "Bash(git apply:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git fetch:*)",
+      "Bash(git rev-list:*)"
     ]
   }
 }

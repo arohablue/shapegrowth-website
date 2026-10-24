@@ -8,6 +8,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#f2f0e8" />
 
+    <!-- Declaring an icon is also what stops the browser's implicit request for
+         `/favicon.ico`, which this site has never shipped and which 404s on
+         every first load. SVG only: the browsers that cannot read it are the
+         ones that would fall back to that same `.ico`, so supporting them means
+         committing a second, binary copy of the mark that nothing keeps in step
+         with `favicon.svg`. Not worth it for a tab icon. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
     <!--
       Theme boot. Must stay INLINE, SYNCHRONOUS, and ABOVE the stylesheet.
 
