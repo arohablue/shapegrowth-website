@@ -809,8 +809,20 @@ export const OFFERINGS: readonly Offering[] = [
         label: 'Trait extraction',
         stage: 'phenotype',
         summary:
-          'The 3D model is used to measure plant height, leaf area, leaf length, and leaf orientation. These measurements are derived directly from the reconstructed plant geometry.',
-        category: 'diagram',
+          // Was "...These measurements are derived directly from the
+          // reconstructed plant geometry." That sentence was the single
+          // strongest claim on the page and it was false in both halves:
+          // nothing in this pipeline segments organs, so there is no leaf to
+          // measure a length or an area on, and the reconstruction carries no
+          // metric scale, so there is no unit to report one in. The figure now
+          // shows what IS derived from the geometry — where each caliper is
+          // placed — and `PHENOTYPE_DISCLAIMER` says on the frame itself that
+          // the readings beside them are not.
+          'Each trait is a measurement taken at a specific place on the geometry, and the figure shows where. The seven calipers are positioned against the reconstruction; the values beside them are illustrative, and the frame says so.',
+        // `point-cloud`, not `diagram`. It was a diagram — a drawing of a plant
+        // that is not this plant — and the category is a description of the
+        // material, so it had to move when the material did.
+        category: 'point-cloud',
         aspect: 'wide',
         placeholder: '[REAL RESEARCH FIGURE — TO BE INSERTED]',
       },

@@ -249,9 +249,15 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
    * happen to be 16:9, which is what the figures already reserved — that is a
    * coincidence of how they were built, not something to rely on.
    *
-   * `phenotyping-output` is deliberately still a demo. There is no trait
-   * extraction figure yet, and there will not be one until traits have
-   * actually been measured. */
+   * `phenotyping-output` is no longer a demo, and the line that used to stand
+   * here said there would not be a trait extraction figure "until traits have
+   * actually been measured". That is still the rule, and this entry does not
+   * break it: what landed is the real specimen with the real CALIPER
+   * PLACEMENTS drawn on it, carrying the same `SCHEMATIC — NOT MEASURED`
+   * notice the scroll stage carries. The seven numbers are still invented. The
+   * figure now shows the one thing about the pass that is a result — where
+   * each measurement would be taken — instead of an outline drawing of a
+   * plant that is not this plant. */
 
   'source-data': {
     type: 'image',
@@ -281,6 +287,25 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     component: lazy(() => import('@/evidence/views/DenseCloud')),
     alt:
       'An interactive three-dimensional view of the reconstructed sunflower, drawn as a dense cloud of individually coloured points recovered from the photographs. The stem, the leaf blades and the yellow flower head are all resolved, and the plant turns slowly so it is seen from every side. Dragging across it rotates the plant; a pinch moves the viewpoint closer or further away.',
+    aspect: 'wide',
+  },
+
+  /* The same view as the plate above it, with the measurement pass drawn over
+   * it — and a SEPARATE module rather than a second reference to `DenseCloud`,
+   * which is load-bearing: `isContinuous` compares these `component`
+   * references with `===` to decide a run of plates is one continuous figure.
+   * See the note in `TraitCalipers.tsx`.
+   *
+   * It reads no new asset. The cloud is the PLY the plate above already
+   * parsed, the caliper endpoints are `TRAIT_GEOMETRY`, and the bounds they
+   * resolve against are measured from the same mesh the scroll stage measures
+   * — so the seven placements here and the seven in the hero are the same
+   * seven, by construction rather than by matching numbers twice. */
+  'phenotyping-output': {
+    type: 'component',
+    component: lazy(() => import('@/evidence/views/TraitCalipers')),
+    alt:
+      'The same reconstructed sunflower, with a measurement pass drawn over it. Seven dimension lines are placed one after another against the geometry — the full height of the plant, the length and width of a leaf blade, the angle that leaf leaves the stem at, the gap between two leaf junctions, and the thickness of the stem near its base — each ending in a small marker with a label and a reading beside it. A notice in the corner reads SCHEMATIC — NOT MEASURED: the placements are taken from the reconstruction, the numbers beside them are not. Dragging across it rotates the plant and the lines turn with it, staying in the same space as the surfaces they measure.',
     aspect: 'wide',
   },
 

@@ -57,27 +57,31 @@ import type { EvidenceSource } from '@/evidence/registry'
 export const DEMO_SOURCES: Partial<Record<string, EvidenceSource>> = {
   /* ── 01 / 3D RECONSTRUCTION ─────────────────────────────────────────────── */
 
-  // `source-data` and `reconstruction-output` stood here. Both are now filled
-  // for real, from the COLMAP sunflower scan — see the REAL block in
-  // `registry.ts`. They are deleted rather than left underneath the real
-  // entries: the registry spread means a superseded demo never renders, so
-  // keeping it would be dead code that still reads as a live placeholder to
-  // anyone auditing what is and is not yet evidenced.
+  // Nothing. Offering 01 is fully evidenced and this section is empty on
+  // purpose, which is the state the whole file is working towards.
+  //
+  // `source-data`, `reconstruction-output` and `phenotyping-output` all stood
+  // here. All three are now filled for real from the COLMAP sunflower scan —
+  // see the REAL block in `registry.ts`. They are deleted rather than left
+  // underneath the real entries: the registry spread means a superseded demo
+  // never renders, so keeping one would be dead code that still reads as a
+  // live placeholder to anyone auditing what is and is not yet evidenced.
+  //
+  // `phenotyping-output`'s demo was the last to go, and it is worth recording
+  // what replaced it, because the bar did not move. It was an outline drawing
+  // of a plant that is not this plant, carrying four trait names and no
+  // values. What stands there now is the real specimen with the real caliper
+  // placements on it — and the seven numbers beside them are STILL invented,
+  // still labelled `SCHEMATIC — NOT MEASURED`. The demo was replaced because
+  // the placements became real, not because the readings did.
   //
   // `geometry-output` and `final-model` also stood here, for the SURFACE
   // TOPOLOGY and RECONSTRUCTED SURFACE MODEL plates. Those plates were removed
   // when the page went from five beats to three; a demo with no slot to fill is
   // dead weight in a file whose whole purpose is to empty out.
   //
-  // The SVGs for all four are still in `public/demo/reconstruction/` and are
+  // The SVGs for all five are still in `public/demo/reconstruction/` and are
   // now unreferenced.
-
-  /** DEMO ONLY — stands in for the real trait extraction figure. */
-  'phenotyping-output': {
-    type: 'image',
-    src: '/demo/reconstruction/phenotyping-output.svg',
-    alt: 'Placeholder schematic: the same drawn plant in outline with four measurement annotations — a dimension line for plant height, a hatched blade for leaf area, an arc between two arms for leaf angle, and a caliper across the stem base for stem thickness. Each carries only its trait name; no values are shown.',
-  },
 
   /* ── 02 / PLANT GROWTH FIELDS ───────────────────────────────────────────── */
 

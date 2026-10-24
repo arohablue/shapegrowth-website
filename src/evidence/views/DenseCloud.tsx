@@ -1,9 +1,16 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { NormalBlending, Vector3 } from 'three'
-import { usePointCloud } from '@/assets/loaders'
+import { usePointCloud, useReconstructedMesh } from '@/assets/loaders'
 import { ASSETS } from '@/assets/manifest'
+import type { MeshAsset } from '@/assets/manifest'
+import { extractMeshVertices } from '@/assets/topology'
+import { FALLBACK_BOUNDS, measureSpecimenBounds, type SpecimenBounds } from '@/experience/phenotype'
+import { createRepresentationWeights } from '@/experience/representation'
+import type { Breakpoint } from '@/experience/types'
 import { useProgressContext } from '@/progress/ProgressContext'
+import { AnnotationLabels, AnnotationProjector, createAnnotationLabelHandles } from '@/scene/AnnotationLabels'
+import { PhenotypeLayer } from '@/scene/PhenotypeLayer'
 
 /**
  * ────────────────────────────────────────────────────────────────────────────
@@ -229,7 +236,104 @@ function Rig({ orbit, reducedMotion }: { orbit: React.RefObject<Orbit>; reducedM
 
 const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v)
 
-export default function DenseCloud() {
+/**
+ * ────────────────────────────────────────────────────────────────────────────
+ * THE MEASUREMENT PASS, AS A FIGURE
+ * ────────────────────────────────────────────────────────────────────────────
+ * Everything below this line is off unless `calipers` is set, and the plate it
+ * is set for is 01.03. The cloud, the camera contract and the loader are shared
+ * verbatim with 01.02 rather than copied into a second file: the two plates
+ * differ by one overlay and would otherwise duplicate ~300 lines of orbit and
+ * input handling that must not drift apart.
+ *
+ * `PhenotypeLayer` and `AnnotationProjector` are the SAME components the scroll
+ * stage uses — not a second implementation of the same drawing. That identity
+ * is the point: if a caliper moves in the hero it moves here, and there is no
+ * way for the figure to show a placement the stage does not.
+ *
+ * WHAT THIS DOES NOT DO
+ * ─────────────────────
+ * It does not make the numbers real. `TRAIT_READOUT` is still invented copy and
+ * `PHENOTYPE_DISCLAIMER` still says so on the frame — which is why
+ * `AnnotationLabels` has to come along rather than being left behind with the
+ * rest of the DOM layer. A figure that showed the readings without the notice
+ * would be the one screenshot on this page that lies.
+ */
+
+/**
+ * Bounds measured from the mesh, exactly as `Assembly` measures them.
+ *
+ * Not from the cloud, even though the cloud is what this plate draws and is
+ * already loaded. The scroll stage prefers the mesh because a scan carries
+ * stray returns the reconstruction has already rejected, and a single outlier
+ * inflates `planHalfExtent` enough to push every anchor off the silhouette.
+ * Measuring differently here would place the same seven calipers in two
+ * different spots on one page.
+ *
+ * The GLB is in `useLoader`'s cache by the time this mounts — the stage above
+ * asked for the same URL — so this costs one pass over the vertex buffer.
+ */
+function MeshBounds({
+  asset,
+  onMeasure,
+}: {
+  asset: MeshAsset
+  onMeasure: (bounds: SpecimenBounds) => void
+}) {
+  const mesh = useReconstructedMesh(asset)
+  useEffect(() => {
+    const vertices = extractMeshVertices(mesh.object)
+    if (vertices.length > 0) onMeasure(measureSpecimenBounds(vertices))
+  }, [mesh, onMeasure])
+  return null
+}
+
+/** How long the full pass takes to draw on, in seconds. */
+const REVEAL_SECONDS = 2.6
+
+/**
+ * Drives `weights.phenotype` 0 → 1 while the plate is on the stage.
+ *
+ * In the scroll stage this number is scroll position; here there is no scroll
+ * to spend, so it is time. The stagger inside `annotationReveal` is unchanged,
+ * which is what keeps the two readings of the same pass identical in shape.
+ *
+ * It runs DOWN as well as up. A plate that is stepped away from and back to
+ * redraws rather than being found already finished, and the one that matters is
+ * the first: a reader arriving at 01.03 must see the calipers being placed,
+ * because that placement is the only part of this figure that is a result.
+ */
+function Reveal({
+  on,
+  reducedMotion,
+  weightsRef,
+}: {
+  on: boolean
+  reducedMotion: boolean
+  weightsRef: React.RefObject<ReturnType<typeof createRepresentationWeights>>
+}) {
+  useFrame((_, delta) => {
+    const w = weightsRef.current
+    // Reduced motion gets the finished state, not a faster animation: the
+    // request is for no motion, and seven lines racing in is still motion.
+    if (reducedMotion) {
+      w.phenotype = on ? 1 : 0
+      return
+    }
+    const step = Math.min(delta, 0.05) / REVEAL_SECONDS
+    w.phenotype = on ? Math.min(1, w.phenotype + step) : Math.max(0, w.phenotype - step * 3)
+  })
+  return null
+}
+
+export default function DenseCloud({
+  active = false,
+  calipers = false,
+}: {
+  readonly active?: boolean
+  /** Draw the seven trait calipers over the cloud. Plate 01.03 only. */
+  readonly calipers?: boolean
+}) {
   const { reducedMotion } = useProgressContext()
   const hostRef = useRef<HTMLDivElement>(null)
   const orbit = useRef<Orbit>({ ...HOME, spin: 0, idle: true })
@@ -346,10 +450,71 @@ export default function DenseCloud() {
     [],
   )
 
+  /**
+   * The calipers' own state. All of it is inert when `calipers` is false — the
+   * refs are two allocations and the bounds state never changes — which is what
+   * lets 01.02 and 01.03 share this component without 01.02 paying for it.
+   */
+  const weightsRef = useRef(createRepresentationWeights())
+  const labelsRef = useRef(createAnnotationLabelHandles())
+
+  /**
+   * `annotationCapacity`'s breakpoint, measured from THIS FIGURE rather than
+   * from the viewport — which is why `useProgressContext`'s `breakpointRef` is
+   * deliberately not passed down here.
+   *
+   * That ref is correct for the scroll scene, where the canvas IS the viewport,
+   * so the two readings are the same number. They are not the same number here:
+   * the plate is a column inside a page, and at a 1024px viewport it measures
+   * 572px. The viewport ref says `desktop`, capacity 7, and all seven labels
+   * draw into a frame with room for four — measured, PLANT HEIGHT's box ran
+   * into STEM DIAMETER's.
+   *
+   * `annotationCapacity`'s own note says what the gate is actually for: "the
+   * label's own line-height and the leader line's minimum useful length —
+   * neither of which shrinks with the viewport". Neither shrinks with the
+   * viewport because neither has anything to do with it. They are measured
+   * against the box the labels are drawn in, and this is that box.
+   *
+   * Still a per-frame ref read, so the resize story is unchanged — see that
+   * same note. The observer writes a ref; nothing re-renders.
+   */
+  const figureBreakpointRef = useRef<Breakpoint>('desktop')
+  useEffect(() => {
+    const host = hostRef.current
+    if (!host || !calipers) return
+    // The same 767px edge as `MOBILE_QUERY` in `ProgressProvider`, applied to
+    // the element instead of the window. Not imported from there because that
+    // is a media query string and this is an element width; duplicating the
+    // number is cheaper than a shared parser, but they must move together.
+    const measure = () => {
+      figureBreakpointRef.current = host.clientWidth <= 767 ? 'mobile' : 'desktop'
+    }
+    measure()
+    if (typeof ResizeObserver !== 'function') return
+    const ro = new ResizeObserver(measure)
+    ro.observe(host)
+    return () => ro.disconnect()
+  }, [calipers])
+
+  const [bounds, setBounds] = useState<SpecimenBounds>(FALLBACK_BOUNDS)
+  // Stable, so `MeshBounds`'s effect does not re-run on every parent render.
+  const onMeasure = useCallback((b: SpecimenBounds) => setBounds(b), [])
+
+  // A concrete number, unlike the Canvas's `[1, 2]` range: the annotation
+  // shaders size lines and markers in device pixels and need the value, not the
+  // bounds R3F picks from. Read once — a reader who drags this plate between
+  // monitors has a redraw at the wrong line width, which is not worth a
+  // resize listener.
+  const dpr = useMemo(
+    () => (typeof window === 'undefined' ? 1 : Math.min(2, window.devicePixelRatio || 1)),
+    [],
+  )
+
   return (
     <div
       ref={hostRef}
-      className="cloud-view"
+      className={calipers ? 'cloud-view cloud-view--calipers' : 'cloud-view'}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -371,7 +536,41 @@ export default function DenseCloud() {
         <Suspense fallback={null}>
           <Cloud />
         </Suspense>
+
+        {calipers ? (
+          <>
+            {/* First, so the weight it writes is the one the two layers below
+                read on the same frame rather than the previous one's. */}
+            <Reveal on={active && live} reducedMotion={reducedMotion} weightsRef={weightsRef} />
+            {/* Its own Suspense: the mesh is a separate request from the PLY,
+                and the cloud must not be held back waiting for it. Until it
+                resolves the layers draw against `FALLBACK_BOUNDS`, which is
+                invisible — `phenotype` is still 0 on those frames. */}
+            {ASSETS.mesh ? (
+              <Suspense fallback={null}>
+                <MeshBounds asset={ASSETS.mesh} onMeasure={onMeasure} />
+              </Suspense>
+            ) : null}
+            <PhenotypeLayer
+              bounds={bounds}
+              breakpointRef={figureBreakpointRef}
+              dpr={dpr}
+              weightsRef={weightsRef}
+            />
+            <AnnotationProjector
+              bounds={bounds}
+              breakpointRef={figureBreakpointRef}
+              weightsRef={weightsRef}
+              handlesRef={labelsRef}
+            />
+          </>
+        ) : null}
       </Canvas>
+
+      {/* Outside the Canvas and inside the host: these are DOM labels, written
+          every frame by the projector above against the real camera. See
+          `AnnotationLabels.tsx` for why the two halves are split this way. */}
+      {calipers ? <AnnotationLabels handlesRef={labelsRef} /> : null}
     </div>
   )
 }

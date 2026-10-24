@@ -1156,6 +1156,58 @@
   height: 100% !important;
 }
 
+/* PLATE 01.03 — the same annotation layer, re-hosted.
+   ──────────────────────────────────────────────────
+   `.annotation-layer` is `position: fixed` because in the scroll stage it
+   overlays a fixed full-viewport canvas, and `inset: 0` there means the
+   viewport. Inside a figure it has to mean the figure, or seven labels project
+   against an 830px canvas and are written at page coordinates — every one of
+   them lands outside the frame.
+
+   So the ONE thing that changes is the containing block, and it changes by
+   giving the host one. Nothing about the labels themselves is restyled: the
+   halo, the ink alphas and the tabular figures were contrast-tuned against the
+   specimen, and the specimen is the same specimen here. The `--calipers`
+   modifier is what keeps this off 01.02, which mounts the same component with
+   no annotation layer in it at all. */
+.cloud-view--calipers {
+  position: relative;
+}
+
+.cloud-view--calipers .annotation-layer {
+  position: absolute;
+}
+
+/* The notice is positioned against the layer, and the layer is now the figure —
+   so it moves corner, and that is a correction rather than a preference.
+
+   The rule above picks top left because "nothing else occupies it while the
+   stage is open": in the full-viewport stage the labels sit around a specimen
+   that is a fraction of a 1440x900 frame, and the heading and rail hold the
+   other edges. Neither half of that transfers here. The specimen fills the
+   plate, the labels radiate from it, and LEAF LENGTH is the apex anchor marched
+   outward with `side: 'left'` — which is to say the top-left corner is not
+   incidentally occupied at figure scale, it is occupied by construction.
+   Measured at 375px, where the plate is 325x182: the 161px notice at (14,14)
+   ran straight through LEAF LENGTH's box at (34,20).
+
+   Bottom right is the corner no anchor reaches. The two `side: 'right'` traits
+   (LEAF WIDTH, LEAF ANGLE) are both mid-height, and the two that sit low
+   (PLANT HEIGHT, STEM DIAMETER) are both `side: 'left'`. Checked at 1440 and at
+   375 with all seven and with the mobile four.
+
+   This is a corner, not a guarantee — the reader can orbit, and a label can be
+   carried anywhere. The note is still outside the collision budget by design
+   (see `.annotation__note` above); what changed is which corner loses least
+   often. If it ever needs to be a guarantee, the fix is to lift the notice out
+   of the overlay and onto the frame's own edge, not to add it to the budget. */
+.cloud-view--calipers .annotation__note {
+  top: auto;
+  left: auto;
+  right: 0.875rem;
+  bottom: 0.875rem;
+}
+
 .evidence__placeholder {
   position: absolute;
   inset: 0;
