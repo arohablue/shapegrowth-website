@@ -395,7 +395,18 @@
       "Bash(sed -n '157,160p;180p' pipeline/growth.py)",
       "Bash(sed -n '83,86p' pipeline/registration.py)",
       "Bash(git log:*)",
-      "Bash(xargs -I{} du -k {})"
+      "Bash(xargs -I{} du -k {})",
+      "Bash(rm -rf /tmp/kit-share-test)",
+      "Bash(mkdir -p /tmp/kit-share-test)",
+      "Bash(rsync -a --exclude node_modules --exclude runs --exclude __pycache__ --exclude .pytest_cache . /tmp/kit-share-test/)",
+      "Bash(python3 -m pipeline demo --no-plot)",
+      "Bash(python3 -m pipeline export --npz runs/demo/M01_0313_to_0314/growth_field.npz --id DEMO --label \"Synthetic demo\" --out-dir /tmp/kit-share-test/public/specimens)",
+      "Bash(npm ci:*)",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(git stash:*)",
+      "Bash(echo \"exit clean: $?\")",
+      "Bash(echo \"exit on clean tree: $?\")"
     ]
   }
 }
