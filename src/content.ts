@@ -882,10 +882,12 @@ export const OFFERINGS: readonly Offering[] = [
  * bio, swapping in a photo, or adding a LinkedIn link later is a change to this
  * array and nothing else — no component, no stylesheet, no layout edit.
  *
- * Every field below is a placeholder, deliberately. This file does not invent
- * a name, a title or a credential — the brackets stay until the real copy
- * arrives, the same discipline `evidence/registry.ts` applies to a figure that
- * has no asset yet.
+ * Names and credentials below are real. The images are interim initials
+ * avatars (`public/team/*.svg`), each carrying "PORTRAIT TO FOLLOW" in the
+ * frame so a stand-in cannot pass for a photograph — the same discipline the
+ * phenotype readout applies with "Schematic — not measured". The bios state
+ * only what is known; no field of study, title or contribution is invented.
+ * `linkedin` stays null until real profile URLs arrive.
  */
 export interface Founder {
   readonly id: string
@@ -910,19 +912,19 @@ export const FOUNDERS: readonly Founder[] = [
   {
     id: 'founder-01',
     index: '01',
-    name: '[NAME]',
-    role: '[ROLE]',
-    bio: '[SHORT BIO]',
-    image: null,
+    name: 'Shashwat Kumar',
+    role: 'PhD, University of Virginia',
+    bio: 'PhD from the University of Virginia, followed by postdoctoral research in applied mathematics and statistics at Johns Hopkins University.',
+    image: '/team/shashwat-kumar.svg',
     linkedin: null,
   },
   {
     id: 'founder-02',
     index: '02',
-    name: '[NAME]',
-    role: '[ROLE]',
-    bio: '[SHORT BIO]',
-    image: null,
+    name: 'Amit Kumar',
+    role: 'MS, University of Maryland',
+    bio: 'Master\u2019s degree from the University of Maryland.',
+    image: '/team/amit-kumar.svg',
     linkedin: null,
   },
 ]
