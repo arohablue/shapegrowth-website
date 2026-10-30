@@ -814,11 +814,12 @@ export const OFFERINGS: readonly Offering[] = [
           // strongest claim on the page and it was false in both halves:
           // nothing in this pipeline segments organs, so there is no leaf to
           // measure a length or an area on, and the reconstruction carries no
-          // metric scale, so there is no unit to report one in. The figure now
-          // shows what IS derived from the geometry — where each caliper is
-          // placed — and `PHENOTYPE_DISCLAIMER` says on the frame itself that
-          // the readings beside them are not.
-          'Each trait is a measurement taken at a specific place on the geometry, and the figure shows where. The seven calipers are positioned against the reconstruction; the values beside them are illustrative, and the frame says so.',
+          // metric scale, so there is no unit to report one in. The longer
+          // two-sentence caption that replaced it was cut back to this single
+          // line on request; the illustrative-values caveat it carried is not
+          // lost, because `PHENOTYPE_DISCLAIMER` states it on the frame
+          // itself, which is where it was always load-bearing.
+          'The figure shows where each trait is read against the reconstructed geometry.',
         // `point-cloud`, not `diagram`. It was a diagram — a drawing of a plant
         // that is not this plant — and the category is a description of the
         // material, so it had to move when the material did.
