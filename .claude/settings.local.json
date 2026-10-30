@@ -406,7 +406,8 @@
       "Bash(echo \"exit: $?\")",
       "Bash(git stash:*)",
       "Bash(echo \"exit clean: $?\")",
-      "Bash(echo \"exit on clean tree: $?\")"
+      "Bash(echo \"exit on clean tree: $?\")",
+      "Bash(echo \"narrative exit: $?\")"
     ]
   }
 }
