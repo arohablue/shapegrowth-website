@@ -407,7 +407,13 @@
       "Bash(git stash:*)",
       "Bash(echo \"exit clean: $?\")",
       "Bash(echo \"exit on clean tree: $?\")",
-      "Bash(echo \"narrative exit: $?\")"
+      "Bash(echo \"narrative exit: $?\")",
+      "Bash(git rm:*)",
+      "Bash(grep -n \"caveat\" src/evidence/views/plant-growth/GrowthFieldView.tsx src/ui/*.tsx)",
+      "Bash(echo \"narrative: $?\")",
+      "Bash(echo \"plant-growth: $?\")",
+      "Bash(gh repo:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://api.github.com/repos/arohablue/shapegrowth-website)"
     ]
   }
 }
