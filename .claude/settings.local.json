@@ -413,7 +413,8 @@
       "Bash(echo \"narrative: $?\")",
       "Bash(echo \"plant-growth: $?\")",
       "Bash(gh repo:*)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://api.github.com/repos/arohablue/shapegrowth-website)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://api.github.com/repos/arohablue/shapegrowth-website)",
+      "Bash(grep -n \"\\\\.method\\\\|\\\\.parameters\\\\|manifest.method\\\\|manifest.parameters\" src/evidence/views/plant-growth/*.tsx src/evidence/views/plant-growth/*.ts)"
     ]
   }
 }
