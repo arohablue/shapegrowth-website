@@ -605,7 +605,7 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
     phase: 'Day t',
     label: 'The earlier scan',
     summary:
-      'One plant recorded as a cloud of points, with the soil label removed and the cloud brought to a common centre and scale. This is the whole of what the instrument gives: positions on a surface, with no identity attached to any of them.',
+      'One plant recorded as a cloud of points, soil removed. The instrument gives positions only \u2014 no point carries an identity.',
     category: 'point-cloud',
     aspect: 'wide',
     placeholder: '[REAL DAY-t SCAN — TO BE INSERTED]',
@@ -616,7 +616,7 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
     phase: 'Day t+1',
     label: 'The same plant one day later',
     summary:
-      'The second recording, made a day after the first and sampled independently of it. Nothing marks which point here is which point there, and that absence is the problem the rest of the sequence exists to work around.',
+      'The same plant a day later, sampled independently. Nothing marks which point here is which point there \u2014 that absence is the problem the rest of the sequence works around.',
     category: 'point-cloud',
     aspect: 'wide',
     placeholder: '[REAL DAY-t+1 SCAN — TO BE INSERTED]',
@@ -627,7 +627,7 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
     phase: 'Registration',
     label: 'Non-rigid registration between two scans',
     summary:
-      'A rigid alignment first, then a smooth non-rigid deformation that carries the earlier scan onto the later one. How well it arrived is reported as the distance between the two surfaces before and after, which is the only check available when there is no ground-truth correspondence.',
+      'A rigid alignment, then a smooth deformation carrying the earlier scan onto the later one. The fit is judged by the distance left between the surfaces \u2014 the only check without ground-truth correspondence.',
     category: 'point-cloud',
     aspect: 'wide',
     placeholder: '[REAL REGISTRATION RESULT — TO BE INSERTED]',
@@ -638,7 +638,7 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
     phase: 'Displacement',
     label: 'Estimated displacement between scans',
     summary:
-      'The vector carrying each point of the earlier scan to where the registration places it in the later one. It contains bending, drooping, rotation and registration error alongside growth, so it is the plant\u2019s motion and not its growth.',
+      'The vector carrying each point to where the registration places it a day later. It mixes bending, drooping, rotation and registration error with growth, so it is the plant\u2019s motion and not its growth.',
     category: 'field',
     aspect: 'wide',
     placeholder: '[REAL DISPLACEMENT FIELD — TO BE INSERTED]',
@@ -649,7 +649,7 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
     phase: 'Deformation',
     label: 'Local volumetric deformation of the estimated map',
     summary:
-      'A local reading of where the fitted deformation expands tissue and where it compresses. A leaf is a thin surface, so this is a cautious proxy for a volume change and answers where rather than by how much.',
+      'Where the fitted map expands tissue and where it compresses. Leaves are thin surfaces, so this is a cautious proxy that answers where rather than by how much.',
     category: 'field',
     aspect: 'wide',
     placeholder: '[REAL DEFORMATION MAP — TO BE INSERTED]',
@@ -660,7 +660,7 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
     phase: 'Exploration',
     label: 'Both scans and the fields between them, in one view',
     summary:
-      'The same plant and the same five representations, now under the reader\u2019s hand and in any order they like. The specimen is theirs to change — the study\u2019s weakest registration is among the choices rather than held back — as are vector density and vector length, which alter how the field is drawn rather than what was computed.',
+      'The same plant and the same five representations, now under the reader\u2019s hand. Specimen, vector density and vector length are theirs to change \u2014 the study\u2019s weakest registration included, offered rather than held back.',
     category: 'point-cloud',
     aspect: 'wide',
     placeholder: '[REAL INTERACTIVE EXPLORER — TO BE INSERTED]',
@@ -675,12 +675,12 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
      * neither exists on a narrated step. The five before this one are covered by
      * the legend inside the view, which reads the same file. */
     caption:
-      'Five representations of one pair of scans, chosen on the rail. DAY t and DAY t+1 are the two clouds on their own. REGISTERED overlays the warped earlier scan on the later one, so the residual is what remains visible between them. DISPLACEMENT draws each point\u2019s estimated motion as a line leaving the position it starts from. DEFORMATION colours every point by the local volume change the registration implies: green where the map expands tissue, amber where it compresses, and an off-scale red where the map folds and the value is not a deformation at all. The picker above the rail changes the specimen, and the legend changes with it — every figure in it is read from the same file as the points beside it. Distances are in scan units. The vector display scale is a drawing choice and leaves the lengths the legend reports untouched.',
+      'Five representations of one pair of scans, chosen on the rail. DAY t and DAY t+1 are the two clouds on their own; REGISTERED overlays the warped earlier scan on the later one. DISPLACEMENT draws each point\u2019s estimated motion as a line; DEFORMATION colours each point by the local volume change the registration implies \u2014 green expansion, amber compression, off-scale red where the map folds. The picker changes the specimen and the legend with it, every figure read from the same file as the points beside it. Distances are in scan units; the vector display scale is a drawing choice and leaves the reported lengths untouched.',
     metadata: [
       {
         label: 'Specimens',
         value:
-          'Four of the fourteen plants studied — maize M05, M04 and M06 and tomato T02 — being the four with point-level arrays. The other ten exist only as summary statistics and are not offered. M05 opens the plate.',
+          'Four of the fourteen plants studied — maize M05, M04 and M06 and tomato T02 — the four with point-level arrays. M05 opens the plate.',
       },
       { label: 'Interval', value: '03-24 to 03-25, one day apart, the only labelled consecutive-day pair in Pheno4D' },
       { label: 'Sampling', value: '3,000 points per scan, soil removed' },
@@ -691,22 +691,20 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
       {
         label: 'Fit',
         value:
-          'Mean surface-to-surface distance, the only check available without ground-truth correspondence. 7.30 to 1.37 scan units on M05, the tightest of the four; 16.59 to 6.49 on T02, which is the study\u2019s weakest and is labelled as such on the plate.',
+          'Mean surface-to-surface distance: 7.30 to 1.37 scan units on M05, the tightest of the four; 16.59 to 6.49 on T02, the weakest, labelled as such on the plate.',
       },
       {
         label: 'Displacement',
-        value:
-          'Median 9.4 scan units on M05, rising to 35.8 on T02. Much of the larger figures is leaf motion rather than tissue growth.',
+        value: 'Median 9.4 scan units on M05, rising to 35.8 on T02 — much of it leaf motion rather than tissue growth.',
       },
       {
         label: 'Deformation',
         value:
-          'Median local volume change 1.31 on M05 with no folded points; 1.96 on T02, where 80 of 3,000 points fold and carry no readable deformation. Those are drawn off-scale rather than clipped.',
+          'Median local volume change 1.31 on M05 with no folded points; 1.96 on T02, where 80 of 3,000 points fold and are drawn off-scale rather than clipped.',
       },
       {
         label: 'Units',
-        value:
-          'Scan units. Pheno4D documents the files only as x, y, z and a label, so the millimetre reading the instrument implies is recorded as an inference and not applied.',
+        value: 'Scan units. Pheno4D states no physical unit; the millimetre reading is an inference and is not applied.',
       },
     ],
     reference:
