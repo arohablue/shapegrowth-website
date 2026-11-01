@@ -939,12 +939,14 @@ function Legend({ hostRef, mode, record, manifest, theme, reading, failure }: {
             in the line read as a claim about the figure, and those two were
             the difference between one line and two. */}
         {mode === 'displacement' ? 'estimated motion' : null}
-        {/* "proxy", not "is". det J is a cautious stand-in for local expansion,
-            and the word carries that. Where the ramp saturates moved down to
-            the expanding swatch: it is a fact about the colours, so it belongs
-            on the key to the colours. On T02 it was also the difference between
-            one line and two at 375px. */}
-        {mode === 'deformation' ? 'det J, local expansion proxy' : null}
+        {/* "proxy", not "is". The quantity is a cautious stand-in for local
+            expansion, and the word carries that. It is no longer named "det J"
+            here: the public copy describes what the colours mean and keeps the
+            method's own vocabulary off the page. Where the ramp saturates
+            moved down to the expanding swatch: it is a fact about the colours,
+            so it belongs on the key to the colours. On T02 it was also the
+            difference between one line and two at 375px. */}
+        {mode === 'deformation' ? 'local expansion proxy' : null}
         {/* Nothing here names a display scale any more. This line used to append
             `×2 visual only` whenever the exaggeration was in force, because a
             vector drawn at twice the length it was measured at misleads through

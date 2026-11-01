@@ -382,7 +382,7 @@ export const EVIDENCE_SOURCES: Partial<Record<string, EvidenceSource>> = {
     component: GROWTH_FIELD_VIEW,
     beat: 'deformation',
     alt:
-      'The earlier scan again, with every point coloured by the determinant of the registration\u2019s Jacobian: red where the estimated map expands tissue, cyan where it compresses it, grey in between where it does neither, and a separate off-scale gold for points where the map folds and the value is not a deformation at all. A key beside the plant gives the bands and the share of points in each.',
+      'The earlier scan again, with every point coloured by the local volume change the registration implies: red where the estimated map expands tissue, cyan where it compresses it, grey in between where it does neither, and a separate off-scale gold for points where the map folds and the value is not a deformation at all. A key beside the plant gives the bands and the share of points in each.',
     aspect: 'wide',
   },
 

@@ -649,7 +649,7 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
     phase: 'Deformation',
     label: 'Local volumetric deformation of the estimated map',
     summary:
-      'The determinant of the deformation\u2019s Jacobian, read as where tissue expands and where it compresses. A leaf is a thin surface, so this is a cautious proxy for a volume change and answers where rather than by how much.',
+      'A local reading of where the fitted deformation expands tissue and where it compresses. A leaf is a thin surface, so this is a cautious proxy for a volume change and answers where rather than by how much.',
     category: 'field',
     aspect: 'wide',
     placeholder: '[REAL DEFORMATION MAP — TO BE INSERTED]',
@@ -675,7 +675,7 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
      * neither exists on a narrated step. The five before this one are covered by
      * the legend inside the view, which reads the same file. */
     caption:
-      'Five representations of one pair of scans, chosen on the rail. DAY t and DAY t+1 are the two clouds on their own. REGISTERED overlays the warped earlier scan on the later one, so the residual is what remains visible between them. DISPLACEMENT draws each point\u2019s estimated motion as a line leaving the position it starts from. DEFORMATION colours every point by the determinant of the registration\u2019s Jacobian: green above one where the map expands tissue, amber between zero and one where it compresses, and an off-scale red at or below zero, where the map folds and the value is not a deformation at all. The picker above the rail changes the specimen, and the legend changes with it — every figure in it is read from the same file as the points beside it. Distances are in scan units. The vector display scale is a drawing choice and leaves the lengths the legend reports untouched.',
+      'Five representations of one pair of scans, chosen on the rail. DAY t and DAY t+1 are the two clouds on their own. REGISTERED overlays the warped earlier scan on the later one, so the residual is what remains visible between them. DISPLACEMENT draws each point\u2019s estimated motion as a line leaving the position it starts from. DEFORMATION colours every point by the local volume change the registration implies: green where the map expands tissue, amber where it compresses, and an off-scale red where the map folds and the value is not a deformation at all. The picker above the rail changes the specimen, and the legend changes with it — every figure in it is read from the same file as the points beside it. Distances are in scan units. The vector display scale is a drawing choice and leaves the lengths the legend reports untouched.',
     metadata: [
       {
         label: 'Specimens',
@@ -683,12 +683,15 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
           'Four of the fourteen plants studied — maize M05, M04 and M06 and tomato T02 — being the four with point-level arrays. The other ten exist only as summary statistics and are not offered. M05 opens the plate.',
       },
       { label: 'Interval', value: '03-24 to 03-25, one day apart, the only labelled consecutive-day pair in Pheno4D' },
-      { label: 'Sampling', value: '3,000 points per scan, soil label removed, shared centre and scale' },
-      { label: 'Registration', value: 'Non-rigid Coherent Point Drift with rigid pre-alignment (β 1.2, λ 30, w 0.2)' },
+      { label: 'Sampling', value: '3,000 points per scan, soil removed' },
+      // Deliberately generic: the public copy names what the step does — a
+      // rigid alignment, then a smooth regularised deformation — and not the
+      // algorithm or its tuning, which stay out of the rendered page.
+      { label: 'Registration', value: 'A rigid alignment followed by a smooth, regularised non-rigid registration' },
       {
         label: 'Fit',
         value:
-          'Chamfer distance, the only check available without ground-truth correspondence. 7.30 to 1.37 scan units on M05, the tightest of the four; 16.59 to 6.49 on T02, which is the study\u2019s weakest and is labelled as such on the plate.',
+          'Mean surface-to-surface distance, the only check available without ground-truth correspondence. 7.30 to 1.37 scan units on M05, the tightest of the four; 16.59 to 6.49 on T02, which is the study\u2019s weakest and is labelled as such on the plate.',
       },
       {
         label: 'Displacement',
@@ -696,9 +699,9 @@ const GROWTH_FIELDS_EVIDENCE: readonly ScientificFigure[] = [
           'Median 9.4 scan units on M05, rising to 35.8 on T02. Much of the larger figures is leaf motion rather than tissue growth.',
       },
       {
-        label: 'det J',
+        label: 'Deformation',
         value:
-          'Median 1.31 on M05 with no non-positive values; 1.96 on T02, where 80 of 3,000 points fold and carry no readable deformation. Those are drawn off-scale rather than clipped.',
+          'Median local volume change 1.31 on M05 with no folded points; 1.96 on T02, where 80 of 3,000 points fold and carry no readable deformation. Those are drawn off-scale rather than clipped.',
       },
       {
         label: 'Units',
@@ -883,23 +886,30 @@ export const OFFERINGS: readonly Offering[] = [
  * bio, swapping in a photo, or adding a LinkedIn link later is a change to this
  * array and nothing else — no component, no stylesheet, no layout edit.
  *
- * Names and credentials below are real. The images are interim initials
- * avatars (`public/team/*.svg`), each carrying "PORTRAIT TO FOLLOW" in the
- * frame so a stand-in cannot pass for a photograph — the same discipline the
+ * Names and credentials below are real. Shashwat's portrait is a real
+ * photograph; Amit's is still the interim initials avatar
+ * (`public/team/amit-kumar.svg`), carrying "PORTRAIT TO FOLLOW" in the frame
+ * so a stand-in cannot pass for a photograph — the same discipline the
  * phenotype readout applies with "Schematic — not measured". The bios state
  * only what is known; no field of study, title or contribution is invented.
  * `linkedin` stays null until real profile URLs arrive.
  */
 export interface Founder {
   readonly id: string
-  /** `01` | `02` — the founder's position in the pair, not a headcount. */
-  readonly index: string
   readonly name: string
   readonly role: string
   /** Two to three sentences. Background, contribution, nothing invented. */
   readonly bio: string
   /** Path under `public/`, e.g. `/team/jane.jpg`. `null` renders the placeholder frame. */
   readonly image: string | null
+  /**
+   * Stored as parts, never as one string, so `user@domain` appears nowhere in
+   * the source, the bundle or the rendered DOM — harvesters regex all three.
+   * The visible text is `user [at] domain` and the `mailto:` URL is assembled
+   * inside the click handler (`About.tsx`, `EmailLink`), the only place the
+   * two halves ever meet.
+   */
+  readonly email: { readonly user: string; readonly domain: string } | null
   /** Full profile URL. `null` omits the link rather than showing a dead one. */
   readonly linkedin: string | null
 }
@@ -912,20 +922,20 @@ export const ABOUT_COPY = {
 export const FOUNDERS: readonly Founder[] = [
   {
     id: 'founder-01',
-    index: '01',
     name: 'Shashwat Kumar',
     role: 'PhD, University of Virginia',
     bio: 'PhD from the University of Virginia, followed by postdoctoral research in applied mathematics and statistics at Johns Hopkins University.',
-    image: '/team/shashwat-kumar.svg',
+    image: '/team/shashwat-kumar.jpg',
+    email: { user: 'shashwat', domain: 'shape-growth.com' },
     linkedin: null,
   },
   {
     id: 'founder-02',
-    index: '02',
     name: 'Amit Kumar',
     role: 'MS, University of Maryland',
     bio: 'Master\u2019s degree from the University of Maryland.',
     image: '/team/amit-kumar.svg',
+    email: { user: 'amit', domain: 'shape-growth.com' },
     linkedin: null,
   },
 ]
