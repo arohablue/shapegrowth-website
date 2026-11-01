@@ -190,19 +190,12 @@ UNIT_EVIDENCE = (
 # in Pheno4D, which is why all 14 plants share it (beamer/main.tex:55-56).
 DAY_A, DAY_B = "0324", "0325"
 
-# Exactly as recorded in the deck (main.tex:117-119, 219-220) and identical to
-# the defaults in plant_growth.py. Written here to be SHOWN, not to be applied:
-# nothing in this script re-runs a fit, so these are a transcription of what the
-# producing run used. Changing them here changes a label and nothing else.
-PARAMETERS = {
-    "beta": 1.2,
-    "lam": 30.0,
-    "w": 0.2,
-    "n_points": 3000,
-    "rigid_prealignment": True,
-    "soil_label_removed": 0,
-    "shared_centre_and_scale": True,
-}
+# The method name and fit parameters (beta, lam, w, n_points) used to be
+# written into the manifest verbatim. They were removed deliberately: the
+# manifest is served to anyone who opens the page, and the site now describes
+# the method generically ("a rigid alignment followed by a smooth, regularised
+# non-rigid registration") without naming the algorithm or its constants. The
+# full record lives in the deck and in research-kit/, not in public JSON.
 
 SPECIES = {"M": "Maize", "T": "Tomato"}
 
@@ -236,8 +229,8 @@ SPECIMENS = [
         "M06",
         "clean",
         "Clean only with rigid pre-alignment. Without it the same fit folds over "
-        "90.0% of points (median det J \u22121.163), which is why every specimen here "
-        "uses the rigid step.",
+        "90.0% of points (median local volume change \u22121.163), which is why every "
+        "specimen here uses the rigid step.",
         "archive",
     ),
     (
@@ -250,9 +243,10 @@ SPECIMENS = [
     (
         "T02",
         "problematic",
-        "The weakest fit in the study. Chamfer distance stays at 6.49 after "
-        "registration against a median of 2.1 across the 14 plants, and 2.67% of "
-        "det J values are non-positive. Read this specimen as a failure case.",
+        "The weakest fit in the study. The mean surface-to-surface distance stays "
+        "at 6.49 after registration against a median of 2.1 across the 14 plants, "
+        "and 2.67% of local volume-change values are non-positive. Read this "
+        "specimen as a failure case.",
         "archive",
     ),
 ]
@@ -458,11 +452,9 @@ def main():
             "Schunck, Magistri, Marcuzzi, Nardi, Nunes, Behley, Stachniss, "
             "PLoS ONE 16(8) e0256340 (2021)"
         ),
-        "method": "Non-rigid Coherent Point Drift with rigid pre-alignment",
         "units": UNITS,
         "unit_evidence": UNIT_EVIDENCE,
         "calibration": None,
-        "parameters": PARAMETERS,
         # Stated at the top level because it is a property of the study, not of
         # a specimen: every pair here is the same single day, and a reader who
         # sees four specimens could otherwise assume four different intervals.
@@ -473,11 +465,12 @@ def main():
         "caveats": [
             "Displacement is the estimated motion between two scans. It includes leaf "
             "bending, drooping, rotation and registration error, not only growth.",
-            "det J describes local volumetric deformation of an estimated map. A plant's "
+            "The local volume change describes deformation of an estimated map. A plant's "
             "leaves are thin surfaces, so it is a cautious proxy and should be read "
             "qualitatively \u2014 where tissue expands, not by how much.",
-            "Non-positive det J means the estimated map folds there. Those points carry no "
-            "readable expansion or compression and are shown as invalid rather than clipped.",
+            "A non-positive local volume change means the estimated map folds there. Those "
+            "points carry no readable expansion or compression and are shown as invalid "
+            "rather than clipped.",
             "Point correspondence is estimated by the registration, not observed. The scans "
             "are independent samplings of the plant and share no ground-truth point identity.",
         ],
@@ -505,8 +498,9 @@ def main():
             "recomputed": {
                 "specimens": [e["id"] for e in entries if e["provenance"] == "recomputed"],
                 "note": (
-                    "Re-registered from the raw Pheno4D scans at the same parameters, "
-                    "using a reimplementation of the CPD dependency that was missing. "
+                    "Re-registered from the raw Pheno4D scans at the same settings, "
+                    "using a reimplementation of the registration dependency that was "
+                    "missing. "
                     "The reimplementation reproduces all four archive specimens from "
                     "their own recorded inputs to 3.3e-12 relative, and these specimens "
                     "reproduce every statistic in the study's table to 6.6e-13."

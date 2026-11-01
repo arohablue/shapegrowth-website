@@ -181,11 +181,9 @@ export interface PlantGrowthManifest {
   readonly schema: 1
   readonly dataset: 'Pheno4D'
   readonly reference: string
-  readonly method: string
   readonly units: ScanUnits
   readonly unit_evidence: string
   readonly calibration: null
-  readonly parameters: Readonly<Record<string, number | boolean>>
   readonly interval_note: string
   /** The four sentences this study is not allowed to drop. */
   readonly caveats: readonly string[]

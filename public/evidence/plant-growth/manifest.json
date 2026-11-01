@@ -2,24 +2,14 @@
  "schema": 1,
  "dataset": "Pheno4D",
  "reference": "Schunck, Magistri, Marcuzzi, Nardi, Nunes, Behley, Stachniss, PLoS ONE 16(8) e0256340 (2021)",
- "method": "Non-rigid Coherent Point Drift with rigid pre-alignment",
  "units": "scan units",
  "unit_evidence": "Not stated by the Pheno4D documentation, which describes the files only as x, y, z and a label. Probably millimetres — the scanner is a Perceptron ScanWorks V5 on a ROMER Infinite 2.0 arm (σ ≈ 0.012 mm), which reports in mm, and the plants then stand 26–47 cm. Recorded as an inference and not applied.",
  "calibration": null,
- "parameters": {
-  "beta": 1.2,
-  "lam": 30.0,
-  "w": 0.2,
-  "n_points": 3000,
-  "rigid_prealignment": true,
-  "soil_label_removed": 0,
-  "shared_centre_and_scale": true
- },
  "interval_note": "All specimens use the same pair, 03-24 to 03-25, one day apart. It is the only labelled consecutive-day pair in Pheno4D.",
  "caveats": [
   "Displacement is the estimated motion between two scans. It includes leaf bending, drooping, rotation and registration error, not only growth.",
-  "det J describes local volumetric deformation of an estimated map. A plant's leaves are thin surfaces, so it is a cautious proxy and should be read qualitatively — where tissue expands, not by how much.",
-  "Non-positive det J means the estimated map folds there. Those points carry no readable expansion or compression and are shown as invalid rather than clipped.",
+  "The local volume change describes deformation of an estimated map. A plant's leaves are thin surfaces, so it is a cautious proxy and should be read qualitatively — where tissue expands, not by how much.",
+  "A non-positive local volume change means the estimated map folds there. Those points carry no readable expansion or compression and are shown as invalid rather than clipped.",
   "Point correspondence is estimated by the registration, not observed. The scans are independent samplings of the plant and share no ground-truth point identity."
  ],
  "coverage": {
@@ -41,7 +31,7 @@
    "specimens": [
     "M01"
    ],
-   "note": "Re-registered from the raw Pheno4D scans at the same parameters, using a reimplementation of the CPD dependency that was missing. The reimplementation reproduces all four archive specimens from their own recorded inputs to 3.3e-12 relative, and these specimens reproduce every statistic in the study's table to 6.6e-13."
+   "note": "Re-registered from the raw Pheno4D scans at the same settings, using a reimplementation of the registration dependency that was missing. The reimplementation reproduces all four archive specimens from their own recorded inputs to 3.3e-12 relative, and these specimens reproduce every statistic in the study's table to 6.6e-13."
   }
  },
  "specimens": [
@@ -226,7 +216,7 @@
    "species": "Maize",
    "label": "Maize M06",
    "quality": "clean",
-   "note": "Clean only with rigid pre-alignment. Without it the same fit folds over 90.0% of points (median det J −1.163), which is why every specimen here uses the rigid step.",
+   "note": "Clean only with rigid pre-alignment. Without it the same fit folds over 90.0% of points (median local volume change −1.163), which is why every specimen here uses the rigid step.",
    "provenance": "archive",
    "interval": {
     "from": "03-24",
@@ -402,7 +392,7 @@
    "species": "Tomato",
    "label": "Tomato T02",
    "quality": "problematic",
-   "note": "The weakest fit in the study. Chamfer distance stays at 6.49 after registration against a median of 2.1 across the 14 plants, and 2.67% of det J values are non-positive. Read this specimen as a failure case.",
+   "note": "The weakest fit in the study. The mean surface-to-surface distance stays at 6.49 after registration against a median of 2.1 across the 14 plants, and 2.67% of local volume-change values are non-positive. Read this specimen as a failure case.",
    "provenance": "archive",
    "interval": {
     "from": "03-24",
