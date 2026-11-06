@@ -884,13 +884,10 @@ export const OFFERINGS: readonly Offering[] = [
  * bio, swapping in a photo, or adding a LinkedIn link later is a change to this
  * array and nothing else — no component, no stylesheet, no layout edit.
  *
- * Names and credentials below are real. Shashwat's portrait is a real
- * photograph; Amit's is still the interim initials avatar
- * (`public/team/amit-kumar.svg`), carrying "PORTRAIT TO FOLLOW" in the frame
- * so a stand-in cannot pass for a photograph — the same discipline the
- * phenotype readout applies with "Schematic — not measured". The bios state
- * only what is known; no field of study, title or contribution is invented.
- * `linkedin` stays null until real profile URLs arrive.
+ * Names and credentials below are real, and both portraits are real
+ * photographs. The bios state only what is known; no field of study, title or
+ * contribution is invented. `linkedin` stays null until real profile URLs
+ * arrive.
  */
 export interface Founder {
   readonly id: string
@@ -932,7 +929,7 @@ export const FOUNDERS: readonly Founder[] = [
     name: 'Amit Kumar',
     role: 'MS, University of Maryland',
     bio: 'Master\u2019s degree from the University of Maryland.',
-    image: '/team/amit-kumar.svg',
+    image: '/team/amit-kumar.jpg',
     email: { user: 'amit', domain: 'shape-growth.com' },
     linkedin: null,
   },
