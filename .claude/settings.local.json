@@ -414,7 +414,14 @@
       "Bash(echo \"plant-growth: $?\")",
       "Bash(gh repo:*)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://api.github.com/repos/arohablue/shapegrowth-website)",
-      "Bash(grep -n \"\\\\.method\\\\|\\\\.parameters\\\\|manifest.method\\\\|manifest.parameters\" src/evidence/views/plant-growth/*.tsx src/evidence/views/plant-growth/*.ts)"
+      "Bash(grep -n \"\\\\.method\\\\|\\\\.parameters\\\\|manifest.method\\\\|manifest.parameters\" src/evidence/views/plant-growth/*.tsx src/evidence/views/plant-growth/*.ts)",
+      "Bash(command -v pngpaste)",
+      "Bash(pngpaste /tmp/amit-founder.png)",
+      "Bash(osascript -e 'set f to open for access POSIX file \"/tmp/amit-founder.png\" with write permission' -e 'set eof f to 0' -e 'write \\(the clipboard as «class PNGf»\\) to f' -e 'close access f')",
+      "Bash(osascript -e 'set f to open for access POSIX file \"/tmp/amit-founder.jpg\" with write permission' -e 'set eof f to 0' -e 'write \\(the clipboard as JPEG picture\\) to f' -e 'close access f')",
+      "Bash(osascript -e 'clipboard info')",
+      "Bash(sips -g pixelWidth -g pixelHeight ~/Downloads/image-1794002830823.png)",
+      "Bash(sips -s format jpeg -s formatOptions 85 ~/Downloads/image-1794002830823.png --out public/team/amit-kumar.jpg)"
     ]
   }
 }
