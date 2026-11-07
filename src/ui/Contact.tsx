@@ -13,23 +13,39 @@ import { CONTACT_COPY } from '@/content'
  * design rather than a shortcut. This is a static Vite build deployed to GitHub
  * Pages, so there is nothing to POST to; a form here would have to be a
  * third-party endpoint or a fake. Two links instead — one that opens a drafted
- * message, one that is simply the address — and both work with JavaScript off.
+ * message, one that shows the address in harvest-resistant form.
+ *
+ * Both links used to carry the address in their `href` and worked with
+ * JavaScript off. That property is traded away deliberately: an address in an
+ * `href` is an address in the DOM, and harvesters regex the DOM. The same
+ * pattern as `EmailLink` in `About.tsx` applies now — `content.ts` stores user
+ * and domain apart, the visible text joins them with ` [at] `, and the real
+ * `mailto:` URL exists only for the instant a click handler runs.
  */
 
 /**
- * Built once at module scope because it is a constant.
+ * The only places the two halves of the address ever meet. Assembled per click
+ * rather than at module scope, because a module-scope constant would put the
+ * joined address back in the bundle for the lifetime of the page.
  *
- * `encodeURIComponent`, not a template literal: the subject carries an em dash
- * and the body carries newlines, and both have to survive the URL. The em dash
- * is the more interesting of the two — it is a multi-byte character, so an
- * unencoded `mailto:` is not merely untidy, some clients truncate the subject at
- * the first byte they cannot parse. `encodeURIComponent` also escapes the `&`
- * that would otherwise start a new header field, which is the mailto equivalent
- * of an injection and the reason this is not assembled by hand.
+ * `encodeURIComponent`, not a template literal, for subject and body: the
+ * subject carries an em dash and the body carries newlines, and both have to
+ * survive the URL. The em dash is the more interesting of the two — it is a
+ * multi-byte character, so an unencoded `mailto:` is not merely untidy, some
+ * clients truncate the subject at the first byte they cannot parse.
+ * `encodeURIComponent` also escapes the `&` that would otherwise start a new
+ * header field, which is the mailto equivalent of an injection and the reason
+ * this is not assembled by hand.
  */
-const MAILTO = `mailto:${CONTACT_COPY.address}?subject=${encodeURIComponent(
-  CONTACT_COPY.subject,
-)}&body=${encodeURIComponent(CONTACT_COPY.bodyHint.join('\n\n'))}`
+function address() {
+  return `${CONTACT_COPY.address.user}@${CONTACT_COPY.address.domain}`
+}
+
+function openDraft() {
+  window.location.href = `mailto:${address()}?subject=${encodeURIComponent(
+    CONTACT_COPY.subject,
+  )}&body=${encodeURIComponent(CONTACT_COPY.bodyHint.join('\n\n'))}`
+}
 
 export function Contact() {
   return (
@@ -44,12 +60,17 @@ export function Contact() {
         <p className="contact__standfirst">{CONTACT_COPY.standfirst}</p>
 
         <div className="contact__actions">
-          {/* An anchor, not a button. It navigates, so it should be the element
-              that navigates: middle-click and "copy link" work, and a keyboard
-              gets Enter without an onClick handler existing at all. */}
+          {/* An anchor so it reads, focuses and announces as the link it is;
+              the `#` href is never followed because the handler prevents it.
+              Middle-click and "copy link" are casualties of keeping the
+              address out of the DOM — see the note at the top of the file. */}
           <a
             className="contact__action"
-            href={MAILTO}
+            href="#"
+            onClick={(event) => {
+              event.preventDefault()
+              openDraft()
+            }}
             aria-label={`${CONTACT_COPY.action} — ${CONTACT_COPY.hint}`}
           >
             {CONTACT_COPY.action}
@@ -63,11 +84,19 @@ export function Contact() {
           </span>
         </div>
 
-        {/* Plain address, no subject or body. Someone who skips the drafted
-            message wants the string itself — to copy it, or to send from an
-            account that is not their default. */}
-        <a className="contact__direct" href={`mailto:${CONTACT_COPY.address}`}>
-          {CONTACT_COPY.address}
+        {/* The plain address, no subject or body, for someone who wants the
+            string itself — shown as ` [at] ` so the string a harvester wants
+            never appears, joined only when clicked. The thin spaces are
+            `&#8201;`, matching `EmailLink`. */}
+        <a
+          className="contact__direct"
+          href="#"
+          onClick={(event) => {
+            event.preventDefault()
+            window.location.href = `mailto:${address()}`
+          }}
+        >
+          {CONTACT_COPY.address.user}&#8201;[at]&#8201;{CONTACT_COPY.address.domain}
         </a>
       </div>
     </section>

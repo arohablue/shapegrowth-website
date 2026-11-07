@@ -954,7 +954,13 @@ export const CONTACT_COPY = {
   eyebrow: 'Contact',
   title: "Let's talk.",
   standfirst: 'Have a plant dataset, research question, or collaboration in mind?',
-  address: 'admin@shape-growth.com',
+  /**
+   * Split like `Founder.email` and for the same reason: `user@domain` must not
+   * exist as one string in the source, the bundle or the rendered DOM. The two
+   * halves meet only inside the click handlers in `Contact.tsx`. The cost is
+   * that the links now need JavaScript, which the component comment there owns.
+   */
+  address: { user: 'admin', domain: 'shape-growth.com' },
   subject: 'Shape Growth — Inquiry',
   /**
    * Trailing newline on each line so the reader's cursor lands under the label
