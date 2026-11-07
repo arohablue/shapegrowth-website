@@ -421,7 +421,20 @@
       "Bash(osascript -e 'set f to open for access POSIX file \"/tmp/amit-founder.jpg\" with write permission' -e 'set eof f to 0' -e 'write \\(the clipboard as JPEG picture\\) to f' -e 'close access f')",
       "Bash(osascript -e 'clipboard info')",
       "Bash(sips -g pixelWidth -g pixelHeight ~/Downloads/image-1794002830823.png)",
-      "Bash(sips -s format jpeg -s formatOptions 85 ~/Downloads/image-1794002830823.png --out public/team/amit-kumar.jpg)"
+      "Bash(sips -s format jpeg -s formatOptions 85 ~/Downloads/image-1794002830823.png --out public/team/amit-kumar.jpg)",
+      "WebFetch(domain:www.climatehubs.usda.gov)",
+      "WebFetch(domain:www.ars.usda.gov)",
+      "WebFetch(domain:www.sciencedirect.com)",
+      "WebFetch(domain:www.sciopen.com)",
+      "WebFetch(domain:doi.org)",
+      "WebFetch(domain:www.newswise.com)",
+      "WebFetch(domain:pubmed.ncbi.nlm.nih.gov)",
+      "WebFetch(domain:pmc.ncbi.nlm.nih.gov)",
+      "Bash(grep -rcE '\\(admin|shashwat|amit\\)@shape-growth\\\\.com' dist/assets/*.js dist/index.html)",
+      "Bash(echo \"bundle-check-exit=$?\")",
+      "WebFetch(domain:linkinghub.elsevier.com)",
+      "WebFetch(domain:www.phenospex.com)",
+      "WebFetch(domain:www.shape-growth.com)"
     ]
   }
 }
