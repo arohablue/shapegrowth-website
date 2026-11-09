@@ -434,7 +434,20 @@
       "Bash(echo \"bundle-check-exit=$?\")",
       "WebFetch(domain:linkinghub.elsevier.com)",
       "WebFetch(domain:www.phenospex.com)",
-      "WebFetch(domain:www.shape-growth.com)"
+      "WebFetch(domain:www.shape-growth.com)",
+      "Bash(brew install:*)",
+      "Bash(tectonic main.tex)",
+      "Bash(echo \"---done rc=$?---\")",
+      "Bash(echo \"---rc=$?---\")",
+      "Bash(echo \"grep exit: $? \\(1 = clean\\)\")",
+      "Bash(tectonic --keep-logs main.tex)",
+      "Bash(awk '/\\\\[12/,/\\\\[14/' main.log)",
+      "Bash(tectonic probe.tex)",
+      "Bash(echo \"grep-exit:$?\")",
+      "Bash(python3 -c \"import pikepdf; print\\(pikepdf.__version__\\)\")",
+      "Bash(sips -g pixelWidth -g pixelHeight ~/Downloads/Gemini_Generated_Image_26bood26bood26bo.jpeg ~/Downloads/Gemini_Generated_Image_lj6kf9lj6kf9lj6k.jpeg)",
+      "Bash(sips -z 800 800 -s format jpeg -s formatOptions 85 ~/Downloads/Gemini_Generated_Image_26bood26bood26bo.jpeg --out public/team/shashwat-kumar.jpg)",
+      "Bash(sips -z 800 800 -s format jpeg -s formatOptions 85 ~/Downloads/Gemini_Generated_Image_lj6kf9lj6kf9lj6k.jpeg --out public/team/amit-kumar.jpg)"
     ]
   }
 }
